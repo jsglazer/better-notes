@@ -189,7 +189,13 @@ async function note2md(
       );
       const cachedHeader = options.cachedYAMLHeader || {};
       for (const key in cachedHeader) {
-        if ((key === "tags" || key.startsWith("$")) && key in header) {
+        const isGenerated =
+          key === "tags" ||
+          key === "itemKey" ||
+          key === "libraryID" ||
+          key === "version" ||
+          key.startsWith("$");
+        if (isGenerated && key in header) {
           // generated header overwrites cached header
           continue;
         } else {
@@ -200,12 +206,21 @@ async function note2md(
     } catch (e) {
       ztoolkit.log(e);
     }
-    Object.assign(header, {
-      $version: noteItem.version,
-      $libraryID: noteItem.libraryID,
-      $itemKey: noteItem.key,
-    });
-    const yamlFrontMatter = `---\n${YAML.stringify(header, 10)}\n---`;
+    // Build YAML in canonical field order (no $ prefixes)
+    const orderedHeader: Record<string, any> = {
+      itemKey: noteItem.key,
+      libraryID: noteItem.libraryID,
+      version: noteItem.version,
+      tags: header.tags,
+      parent: header.parent,
+      collections: header.collections,
+    };
+    for (const key of Object.keys(header)) {
+      if (!["tags", "parent", "collections"].includes(key)) {
+        orderedHeader[key] = header[key];
+      }
+    }
+    const yamlFrontMatter = `---\n${YAML.stringify(orderedHeader, 10)}\n---`;
     md = `${yamlFrontMatter}\n${md}`;
   }
   return md;
