@@ -1,5 +1,5 @@
 title =
-    .title = Notları Better Notes ile Dışa Aktar
+    .title = Notları better-notes ile Dışa Aktar
 
 target =
     .value = Hedef: {$title}{ $left ->
@@ -40,7 +40,7 @@ markdown-autoFilename =
 
 useDefaultExport =
     .label = Zotero'nun varsayılan dışa aktarımını kullan
-    .tooltiptext = Better Notes tarafından sağlanan gelişmiş seçenekler olmadan notları dışa aktar.
+    .tooltiptext = better-notes tarafından sağlanan gelişmiş seçenekler olmadan notları dışa aktar.
 
 latex-merge =
     .label = Tek tex dosyasında birleştir

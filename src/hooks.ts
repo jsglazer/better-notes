@@ -265,7 +265,7 @@ async function onOpenNote<K extends keyof OpenNoteReturns>(
     case "preview":
       if (!workspaceUID) {
         throw new Error(
-          "Better Notes onOpenNote mode=preview must have workspaceUID provided.",
+          "better-notes onOpenNote mode=preview must have workspaceUID provided.",
         );
       }
       openNotePreview(noteItem, workspaceUID, options);

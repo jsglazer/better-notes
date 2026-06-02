@@ -1,4 +1,4 @@
-pref-title = Better Notes
+pref-title = better-notes
 
 menuEditor-resizeImage = Resmi Boyutlandır
 menuEditor-copy = Not Bağlantısını Kopyala...
@@ -60,7 +60,7 @@ sync-running-hint-diff = Birleşmeyi Onayla
 sync-running-hint-finish = Bitir
 sync-running-hint-synced = Senkronize Edildi
 sync-running-hint-upToDate = Güncel
-sync-autoLink-selectFolder-title = Better Notes - Bağlı Notu Otomatik Eşitle
+sync-autoLink-selectFolder-title = better-notes - Bağlı Notu Otomatik Eşitle
 sync-autoLink-selectFolder-text = Bağlı notlar birkaç farklı klasöre eşitleniyor. Yeni bağlı notların hangi klasöre eşitleneceğini seçin:
 sync-autoLink-added-hint = Bağlı not "{ $title }" şu konuma eşitlemeye eklendi: { $dir }
 
@@ -96,8 +96,8 @@ alert-linkCreator-emptyNote = Boş bir nota/nottan bağlantı oluşturulamaz. no
 alert-templateEditor-shouldImport = Şablon kodunu doğrudan kaydetmeye çalışıyorsunuz gibi görünüyor. Şablon olarak içe aktarmak ister misiniz?
 alert-templateEditor-unsaved = You have unsaved changes in the template editor. Do you want to save them?
 
-userGuide-start-title = Better Notes'a hoş geldiniz!
-userGuide-start-desc = Better Notes düşüncelerinizi ve tasarılarınızı düzenlemenize yardımcı olan güçlü bir not alma aracıdır. Kullanımı kolay ve yalın biçimde tasarlanmış olsa da karmaşık not alma işlerini görebilecek kadar da esnektir. Bu rehber size Better Notes'u kullanmaya başlamanıza ve ileri düzey işlevleri verimli kullanmanıza yardımcı olacaktır.
+userGuide-start-title = better-notes'a hoş geldiniz!
+userGuide-start-desc = better-notes düşüncelerinizi ve tasarılarınızı düzenlemenize yardımcı olan güçlü bir not alma aracıdır. Kullanımı kolay ve yalın biçimde tasarlanmış olsa da karmaşık not alma işlerini görebilecek kadar da esnektir. Bu rehber size better-notes'u kullanmaya başlamanıza ve ileri düzey işlevleri verimli kullanmanıza yardımcı olacaktır.
 userGuide-start-close = Daha sonra hatırlat
 userGuide-createNoteButton-title = Yeni bir not oluştur
 userGuide-createNoteButton-desc = Buradan boş ya da şablondan yeni bir not oluşturabilirsiniz.
@@ -105,7 +105,7 @@ userGuide-createNote-title = Yeni Not Oluştur.
 userGuide-createNote-desc = Görünen o ki hiçbir notunuz yok, hadi bir tane oluşturalım.
 userGuide-createNote-next = Not Oluştur
 userGuide-openNote-title = Notu Aç
-userGuide-openNote-desc = Herhangi bir nota çift tıklayarak notu yeni bir Better Notes çalışma alanı sekmesinde açabilirsiniz.
+userGuide-openNote-desc = Herhangi bir nota çift tıklayarak notu yeni bir better-notes çalışma alanı sekmesinde açabilirsiniz.
 userGuide-openNote-next = Notu Aç
 userGuide-workspace-title = Not Çalışma Alanı Sekmesi 
 userGuide-workspace-desc = Not çalışma alanı içeriğinizi düzenleyebileceğiniz, notunuzun anahattımı görüntüleyebileceğiniz ve not ilişkilerini yönetebileceğiniz bir sekmedir.
@@ -127,5 +127,5 @@ userGuide-workspaceOutlineSaveAs-desc = Notunuzu PDF, Markdown, MS Word, zihin h
 userGuide-workspaceNoteInfo-title = Not Bilgisi
 userGuide-workspaceNoteInfo-desc = Notunuz hakkındaki etiket, ilişki ve bağlantı bilgilerini görüntüleyebilir ve düzenleyebilirsiniz.
 userGuide-finish-title = Hazırız!
-userGuide-finish-desc = Better Notes ile not alma yolculuğunuzun tadını çıkartın!
+userGuide-finish-desc = better-notes ile not alma yolculuğunuzun tadını çıkartın!
     Bu rehbere her yardım menüsünden her zaman ulaşabilirsiniz.

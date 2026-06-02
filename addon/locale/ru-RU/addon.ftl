@@ -1,4 +1,4 @@
-pref-title=Better Notes
+pref-title=better-notes
 
 menuEditor-resizeImage=Изменить размер изображения
 menuEditor-copy = Копировать ссылку на заметку...
@@ -60,7 +60,7 @@ sync-running-hint-diff=Подтвердить слияние
 sync-running-hint-finish=Финиш
 sync-running-hint-synced=Синхронизировано
 sync-running-hint-upToDate=Обновить
-sync-autoLink-selectFolder-title=Better Notes — Авто-синхронизация связанной заметки
+sync-autoLink-selectFolder-title=better-notes — Авто-синхронизация связанной заметки
 sync-autoLink-selectFolder-text=Связанные заметки синхронизируются в несколько разных папок. Выберите, в какую папку синхронизировать новые связанные заметки:
 sync-autoLink-added-hint=Связанная заметка «{ $title }» добавлена в синхронизацию: { $dir }
 
@@ -96,8 +96,8 @@ alert-linkCreator-emptyNote = Cannot create link from/to an empty note.
 alert-templateEditor-shouldImport = Вы пытаетесь сохранить код шаблона заметки. Хотите импортировать его как шаблон?
 alert-templateEditor-unsaved = You have unsaved changes in the template editor. Do you want to save them?
 
-userGuide-start-title = Welcome to Better Notes!
-userGuide-start-desc = Better Notes is a powerful note-taking tool that helps you organize your thoughts and ideas while reading papers. This guide will help you get started with Better Notes and show you how to make the most of its features.
+userGuide-start-title = Welcome to better-notes!
+userGuide-start-desc = better-notes is a powerful note-taking tool that helps you organize your thoughts and ideas while reading papers. This guide will help you get started with better-notes and show you how to make the most of its features.
 userGuide-start-close = Remind me later
 userGuide-createNoteButton-title = Create a New Note
 userGuide-createNoteButton-desc = You can create a note here: blank or from a template.
@@ -105,7 +105,7 @@ userGuide-createNote-title = Create a New Note
 userGuide-createNote-desc = Seems like you don't have any notes yet, let's create one.
 userGuide-createNoteFound-desc = Found notes in your library. Let's open one as an example.
 userGuide-openNote-title = Open note
-userGuide-openNote-desc = You can open a note in Better Notes workspace tab by double-clicking it.
+userGuide-openNote-desc = You can open a note in better-notes workspace tab by double-clicking it.
 userGuide-openNote-next = Open Note
 userGuide-workspace-title = Note Workspace Tab
 userGuide-workspace-desc = The note tab is where you can edit your note content, view the outline, and manage the relations.
@@ -127,5 +127,5 @@ userGuide-workspaceOutlineSaveAs-desc = You can export the note to multiple form
 userGuide-workspaceNoteInfo-title = Note Info
 userGuide-workspaceNoteInfo-desc = You can view, edit, and manage the note's tags, relations, and links.
 userGuide-finish-title = We are all set!
-userGuide-finish-desc = Enjoy your note-taking journey with Better Notes!
+userGuide-finish-desc = Enjoy your note-taking journey with better-notes!
     You can always run this guide again from the Help menu.

@@ -1,5 +1,5 @@
 title =
-    .title = 使用 Better Notes 导出笔记
+    .title = 使用 better-notes 导出笔记
 
 target =
     .value = 目标: {$title}{ $left ->
@@ -40,7 +40,7 @@ markdown-autoFilename =
 
 useDefaultExport =
     .label = 使用 Zotero 的默认导出
-    .tooltiptext = 导出笔记时不使用 Better Notes 提供的高级选项。
+    .tooltiptext = 导出笔记时不使用 better-notes 提供的高级选项。
 
 latex-merge =
     .label = 合并为一个tex文件

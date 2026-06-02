@@ -1,5 +1,5 @@
 title =
-    .title = Esporta Note con Better Notes
+    .title = Esporta Note con better-notes
 
 target =
     .value = Destinazione: {$title}{ $left ->
@@ -40,7 +40,7 @@ markdown-autoFilename =
 
 useDefaultExport =
     .label = Usa l'esportazione predefinita di Zotero
-    .tooltiptext = Esporta note senza le opzioni avanzate fornite da Better Notes.
+    .tooltiptext = Esporta note senza le opzioni avanzate fornite da better-notes.
 
 latex-merge =
     .label = Unisci in un unico file tex

@@ -85,7 +85,7 @@ async function callSyncing(
     if (!quiet) {
       progress = new ztoolkit.ProgressWindow(
         `[${getString("sync-running-hint-title")}] ${
-          addon.data.env === "development" ? reason : "Better Notes"
+          addon.data.env === "development" ? reason : "better-notes"
         }`,
       )
         .createLine({

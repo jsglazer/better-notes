@@ -1,4 +1,4 @@
-pref-title = Better Notes
+pref-title = better-notes
 
 menuEditor-resizeImage = Bildgröße ändern
 menuEditor-copy = Notizlink kopieren...
@@ -60,7 +60,7 @@ sync-running-hint-diff = Zusammenführung bestätigen
 sync-running-hint-finish = Beenden
 sync-running-hint-synced = Synchronisiert
 sync-running-hint-upToDate = Aktuell
-sync-autoLink-selectFolder-title = Better Notes – Verknüpfte Notiz automatisch synchronisieren
+sync-autoLink-selectFolder-title = better-notes – Verknüpfte Notiz automatisch synchronisieren
 sync-autoLink-selectFolder-text = Die verknüpften Notizen werden in mehrere verschiedene Ordner synchronisiert. Wählen Sie, in welchen Ordner die neu verknüpften Notizen synchronisiert werden sollen:
 sync-autoLink-added-hint = Verknüpfte Notiz „{ $title }“ zur Synchronisierung hinzugefügt: { $dir }
 
@@ -96,8 +96,8 @@ alert-linkCreator-emptyNote = Kann keinen Link von/zu leerer Notiz erstellen.
 alert-templateEditor-shouldImport = Es scheint als würdest Du versuchen, einen Notizenvorlagen-Freigabecode direkt zu speichern. Möchtest du stattdessen die Vorlage importieren?
 alert-templateEditor-unsaved = Du hast ungespeicherte Änderungen in deinem Vorlagen-Editor. Möchtest Du sie speichern?
 
-userGuide-start-title = Willkommen bei Better Notes!
-userGuide-start-desc = Better Notes ist ein leistungsstarkes Tool zum Erstellen von Notizen, mit dem Du Deine Gedanken und Ideen beim Lesen von Dokumenten organisieren kannst. Dieser Leitfaden hilft Dir beim Einstieg in Better Notes und zeigt Dir, wie Du die Funktionen optimal nutzen kannst.
+userGuide-start-title = Willkommen bei better-notes!
+userGuide-start-desc = better-notes ist ein leistungsstarkes Tool zum Erstellen von Notizen, mit dem Du Deine Gedanken und Ideen beim Lesen von Dokumenten organisieren kannst. Dieser Leitfaden hilft Dir beim Einstieg in better-notes und zeigt Dir, wie Du die Funktionen optimal nutzen kannst.
 userGuide-start-close = Später erinnern
 userGuide-createNoteButton-title = Neue Notiz erstellen
 userGuide-createNoteButton-desc = Du kannst hier eine neue Notiz erstellen, leer oder aus einer Vorlage.
@@ -105,7 +105,7 @@ userGuide-createNote-title = Neue Notiz erstellen
 userGuide-createNote-desc = Es scheint, als hättest Du noch keine Notizen. Lass uns eine erstellen.
 userGuide-createNoteFound-desc = Notizen in deiner Bibliothek gefunden. Lass uns eine als Beispiel öffnen.
 userGuide-openNote-title = Notiz öffnen
-userGuide-openNote-desc = Du kannst mit Doppelklick eine Notiz im Better Notes Workspace-Tab öffnen.
+userGuide-openNote-desc = Du kannst mit Doppelklick eine Notiz im better-notes Workspace-Tab öffnen.
 userGuide-openNote-next = Notiz öffnen
 userGuide-workspace-title = Notiz Workspace-Tab
 userGuide-workspace-desc = Im Notizen-Tab kannst du den Inhalt deiner Notiz bearbeiten, die Gliederung einsehen und die Verbindungen verwalten.
@@ -127,5 +127,5 @@ userGuide-workspaceOutlineSaveAs-desc = Du kannst die Notiz in mehrere Formate e
 userGuide-workspaceNoteInfo-title = Notizinfo
 userGuide-workspaceNoteInfo-desc = Du kannst die Tags, Verbindungen und Links der Notiz ansehen, bearbeiten und vewalten.
 userGuide-finish-title = Wir sind fertig!
-userGuide-finish-desc = Viel Spaß beim Notieren mit Better Notes!
+userGuide-finish-desc = Viel Spaß beim Notieren mit better-notes!
     Du kannst dieses Tutorial über das Hilfe-Menü jederzeit erneut starten.

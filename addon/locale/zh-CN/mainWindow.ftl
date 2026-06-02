@@ -9,7 +9,7 @@ menuFile-exportTemplate =
     .label = 导出模板...
 
 menuHelp-openUserGuide =
-    .label = 打开 Better Notes 用户指南
+    .label = 打开 better-notes 用户指南
 
 menuAddNote-importMD =
     .label = 从 Markdown 文件导入

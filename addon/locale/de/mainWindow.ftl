@@ -9,7 +9,7 @@ menuFile-exportTemplate =
     .label = Vorlage exportieren...
 
 menuHelp-openUserGuide =
-    .label = Better Notes Nutzerhandbuch öffnen
+    .label = better-notes Nutzerhandbuch öffnen
 
 menuAddNote-importMD =
     .label = Aus Markdown-Datei importieren
