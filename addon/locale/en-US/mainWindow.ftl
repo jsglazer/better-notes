@@ -1,7 +1,7 @@
 menuTools-syncManager =
-    .label = Sync Manager
+    .label = Sync Manager  ⌃⌥M
 menuTools-templateEditor =
-    .label = Template Editor
+    .label = Template Editor  ⌃⌥T
 menuTools-importTemplateFromClipboard =
     .label = New Template from Clipboard
 

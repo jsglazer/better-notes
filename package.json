@@ -1,9 +1,9 @@
 {
   "name": "zotero-better-notes",
-  "version": "1.0.1",
-  "description": "Everything about note management. All in Zotero.",
+  "version": "1.0.2",
+  "description": "A Zotero plugin to expand the capability of notes and sync notes to other locations. This is a fork of Windingwing's excellent zotero-better-notes plugin.",
   "config": {
-    "addonName": "better-notes",
+    "addonName": "Better Notes",
     "addonID": "Knowledge4Zotero@windingwind.com",
     "addonRef": "BetterNotes",
     "prefsPrefix": "extensions.zotero.Knowledge4Zotero",
@@ -23,14 +23,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/windingwind/zotero-better-notes.git"
+    "url": "git+https://github.com/jsglazer/better-notes.git"
   },
-  "author": "windingwind",
+  "author": "Josh Glazer",
   "license": "AGPL-3.0-or-later",
   "bugs": {
-    "url": "https://github.com/windingwind/zotero-better-notes/issues"
+    "url": "https://github.com/jsglazer/better-notes/issues"
   },
-  "homepage": "https://github.com/windingwind/zotero-better-notes#readme",
+  "homepage": "https://github.com/jsglazer/better-notes",
   "dependencies": {
     "asciidoctor": "^3.0.4",
     "dexie": "^4.0.11",

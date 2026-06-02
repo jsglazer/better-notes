@@ -1,7 +1,7 @@
 menuTools-syncManager =
-    .label = Менеджер синхронизации
+    .label = Менеджер синхронизации  ⌃⌥M
 menuTools-templateEditor =
-    .label = Редактор шаблонов
+    .label = Редактор шаблонов  ⌃⌥T
 menuTools-importTemplateFromClipboard =
     .label = Новый шаблон из буфера обмена
 

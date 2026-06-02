@@ -3,12 +3,12 @@ const _listeners = new Map<Window, (e: KeyboardEvent) => void>();
 export function registerKeyboardShortcuts(win: Window) {
   const listener = (e: KeyboardEvent) => {
     if (!e.ctrlKey || !e.altKey) return;
-    switch (e.key.toLowerCase()) {
-      case "s":
+    switch (e.code) {
+      case "KeyM":
         e.preventDefault();
         addon.hooks.onShowSyncManager();
         break;
-      case "t":
+      case "KeyT":
         e.preventDefault();
         addon.hooks.onShowTemplateEditor();
         break;

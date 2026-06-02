@@ -1,7 +1,7 @@
 menuTools-syncManager =
-    .label = Sync-Manager
+    .label = Sync-Manager  ⌃⌥M
 menuTools-templateEditor =
-    .label = Vorlagen-Editor
+    .label = Vorlagen-Editor  ⌃⌥T
 menuTools-importTemplateFromClipboard =
     .label = Neue Vorlage aus der Zwischenablage
 
