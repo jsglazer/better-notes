@@ -1,0 +1,12 @@
+dialog {
+  -moz-window-dragging: drag;
+}
+
+#markdown-autoSync {
+  margin-inline-start: 18px;
+  margin-block-end: 24px;
+}
+
+#buttons {
+  margin-block-start: 24px;
+}

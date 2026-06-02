@@ -1,0 +1,178 @@
+<linkset>
+  <html:link rel="localization" href="__addonRef__-preferences.ftl" />
+</linkset>
+<script>
+  Zotero.__addonInstance__.hooks.onPrefsEvent("load", { window });
+</script>
+<groupbox>
+  <label><html:h2 data-l10n-id="basic-title"></html:h2></label>
+  <checkbox
+    data-l10n-id="basic-exportNotes-takeover"
+    native="true"
+    preference="__prefsPrefix__.exportNotes.takeover"
+  />
+</groupbox>
+<groupbox>
+  <label><html:h2 data-l10n-id="editor-title"></html:h2></label>
+  <hbox align="center">
+    <html:label
+      for="__addonRef__-editor-expandLevel"
+      data-l10n-id="editor-expandLevel-label"
+    ></html:label>
+    <html:input
+      type="number"
+      min="1"
+      max="6"
+      step="1"
+      id="__addonRef__-editor-expandLevel"
+      preference="__prefsPrefix__.workspace.outline.expandLevel"
+    ></html:input>
+  </hbox>
+  <checkbox
+    data-l10n-id="editor-keepLinks"
+    native="true"
+    preference="__prefsPrefix__.workspace.outline.keepLinks"
+  />
+  <hbox align="center">
+    <html:label
+      data-l10n-id="editor-noteLinkPreviewType"
+      for="__addonRef__-editor-noteLinkPreviewType"
+    ></html:label>
+    <radiogroup
+      id="__addonRef__-editor-noteLinkPreviewType"
+      preference="__prefsPrefix__.editor.noteLinkPreviewType"
+      orient="horizontal"
+      oncommand="Zotero.__addonInstance__.api.utils.requireRestart();"
+    >
+      <radio data-l10n-id="editor-noteLinkPreview-hover" value="hover" />
+      <radio data-l10n-id="editor-noteLinkPreview-ctrl" value="ctrl" />
+      <radio data-l10n-id="editor-noteLinkPreview-disable" value="disable" />
+    </radiogroup>
+  </hbox>
+  <checkbox
+    data-l10n-id="editor-useMagicKey"
+    native="true"
+    preference="__prefsPrefix__.editor.useMagicKey"
+  />
+  <checkbox
+    data-l10n-id="editor-useMagicKeyShortcut"
+    native="true"
+    preference="__prefsPrefix__.editor.useMagicKeyShortcut"
+  />
+  <checkbox
+    data-l10n-id="editor-useMarkdownPaste"
+    native="true"
+    preference="__prefsPrefix__.editor.useMarkdownPaste"
+  />
+  <hbox align="center">
+    <html:label
+      for="__addonRef__-editor-pinTable"
+      data-l10n-id="editor-pinTable-label"
+    ></html:label>
+    <checkbox
+      data-l10n-id="__addonRef__-editor-pinTableLeft"
+      native="true"
+      preference="__prefsPrefix__.editor.pinTableLeft"
+    />
+    <checkbox
+      data-l10n-id="__addonRef__-editor-pinTableTop"
+      native="true"
+      preference="__prefsPrefix__.editor.pinTableTop"
+    />
+  </hbox>
+</groupbox>
+<groupbox>
+  <label><html:h2 data-l10n-id="sync-title"></html:h2></label>
+  <hbox align="center">
+    <html:label
+      for="__addonRef__-sync-period"
+      data-l10n-id="sync-period-label"
+    ></html:label>
+    <html:input
+      type="number"
+      min="-1"
+      max="3600"
+      step="1"
+      placeholder="-1 for disable"
+      id="__addonRef__-sync-period"
+      preference="__prefsPrefix__.syncPeriodSeconds"
+      onchange="Zotero.__addonInstance__.api.utils.requireRestart();"
+    ></html:input>
+  </hbox>
+  <hbox align="center">
+    <html:label
+      for="__addonRef__-sync-attachmentFolder"
+      data-l10n-id="sync-attachmentFolder-label"
+    ></html:label>
+    <html:input
+      id="__addonRef__-sync-attachmentFolder"
+      preference="__prefsPrefix__.syncAttachmentFolder"
+    ></html:input>
+  </hbox>
+  <checkbox
+    data-l10n-id="sync-autoSyncLinkedNotes"
+    native="true"
+    preference="__prefsPrefix__.sync.autoSyncLinkedNotes"
+  />
+  <hbox align="center">
+    <button
+      onclick="Zotero.__addonInstance__.hooks.onShowSyncManager()"
+      data-l10n-id="sync-manager"
+    ></button>
+  </hbox>
+</groupbox>
+<groupbox>
+  <label><html:h2 data-l10n-id="template-title"></html:h2></label>
+  <hbox align="center">
+    <button
+      onclick="Zotero.__addonInstance__.hooks.onShowTemplateEditor()"
+      data-l10n-id="template-editor"
+    ></button>
+  </hbox>
+</groupbox>
+<groupbox>
+  <label><html:h2 data-l10n-id="annotationNote-title"></html:h2></label>
+  <checkbox
+    data-l10n-id="annotationNote-enableCreateNoteButton"
+    native="true"
+    preference="__prefsPrefix__.annotationNote.enableCreateNoteButton"
+  />
+  <checkbox
+    data-l10n-id="annotationNote-enableTagSync"
+    native="true"
+    preference="__prefsPrefix__.annotationNote.enableTagSync"
+  />
+</groupbox>
+<groupbox>
+  <label><html:h2 data-l10n-id="about-title"></html:h2></label>
+
+  <hbox>
+    <label
+      class="zotero-text-link keyboard-clickable"
+      is="zotero-text-link"
+      role="link"
+      href="https://github.com/windingwind/zotero-better-notes"
+      value="Homepage - GitHub"
+    ></label>
+    <label value="|"></label>
+    <label
+      class="zotero-text-link keyboard-clickable"
+      is="zotero-text-link"
+      role="link"
+      href="https://github.com/windingwind/zotero-better-notes/issues"
+      value="Bug Report, Feature Request"
+    ></label>
+    <label value="|"></label>
+    <label
+      class="zotero-text-link keyboard-clickable"
+      is="zotero-text-link"
+      role="link"
+      href="https://github.com/windingwind/zotero-better-notes/discussions/categories/q-a"
+      value="Q&amp;A"
+    ></label>
+  </hbox>
+  <label
+    data-l10n-id="help"
+    data-l10n-args='{"time": "__buildTime__","name": "__addonName__","version":"__buildVersion__"}'
+  ></label>
+</groupbox>

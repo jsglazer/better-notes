@@ -1,0 +1,168 @@
+<?xml version="1.0"?>
+<!-- prettier-ignore -->
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<!-- prettier-ignore -->
+<?xml-stylesheet href="chrome://zotero/skin/zotero.css" type="text/css"?>
+<!-- prettier-ignore -->
+<?xml-stylesheet href="chrome://zotero-platform/content/zotero-react-client.css" type="text/css"?>
+<!-- prettier-ignore -->
+<?xml-stylesheet href="chrome://zotero-platform/content/zotero.css" type="text/css"?>
+<!-- prettier-ignore -->
+<!DOCTYPE html>
+<html
+  id="__addonRef__-templateEditor"
+  lang="en"
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+  xmlns:html="http://www.w3.org/1999/xhtml"
+  windowtype="__addonRef__-templateEditor"
+  sizemode="normal"
+  scrolling="false"
+  persist="screenX screenY width height sizemode"
+>
+  <head>
+    <title data-l10n-id="title"></title>
+    <meta charset="utf-8" />
+    <meta name="referrer" content="no-referrer" />
+    <xul:linkset>
+      <link rel="localization" href="browser/menubar.ftl" />
+      <link rel="localization" href="browser/browserSets.ftl" />
+      <link rel="localization" href="toolkit/global/textActions.ftl" />
+      <link rel="localization" href="zotero.ftl" />
+      <link rel="localization" href="__addonRef__-templateEditor.ftl" />
+    </xul:linkset>
+    <xul:commandset id="mainCommandSet">
+      <xul:command id="cmd_close" oncommand="window.close();" />
+    </xul:commandset>
+    <xul:keyset id="mainKeyset">
+      <xul:key
+        id="key_close"
+        data-l10n-id="close-shortcut"
+        command="cmd_close"
+        modifiers="accel"
+        reserved="true"
+      />
+    </xul:keyset>
+    <script>
+      document.addEventListener("DOMContentLoaded", (ev) => {
+        Services.scriptloader.loadSubScript(
+          "chrome://zotero/content/include.js",
+          this,
+        );
+        window.arguments[0]._initPromise.resolve();
+      });
+    </script>
+    <link
+      rel="stylesheet"
+      href="chrome://__addonRef__/content/lib/css/github-markdown.css"
+    />
+    <link
+      rel="stylesheet"
+      href="chrome://__addonRef__/content/lib/css/katex.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="chrome://__addonRef__/content/styles/templateEditor.css"
+    />
+  </head>
+  <body class="zotero-window">
+    <div class="viewport-container">
+      <xul:hbox id="list-container" class="viewport list-viewport">
+        <div id="table-container"></div>
+      </xul:hbox>
+      <xul:splitter
+        state="open"
+        collapse="before"
+        orient="horizontal"
+      ></xul:splitter>
+      <xul:hbox class="viewport editor-viewport">
+        <xul:hbox align="center">
+          <div style="flex-shrink: 0" data-l10n-id="templateType"></div>
+          <xul:menulist id="editor-type" native="true">
+            <xul:menupopup>
+              <xul:menuitem
+                data-l10n-id="templateType-unknown"
+                value="unknown"
+              ></xul:menuitem>
+              <xul:menuitem
+                data-l10n-id="templateType-system"
+                value="system"
+                hidden="true"
+              ></xul:menuitem>
+              <xul:menuitem
+                data-l10n-id="templateType-item"
+                value="item"
+              ></xul:menuitem>
+              <xul:menuitem
+                data-l10n-id="templateType-text"
+                value="text"
+              ></xul:menuitem>
+            </xul:menupopup>
+          </xul:menulist>
+          <xul:button
+            id="templateType-help"
+            data-l10n-id="templateType-help"
+            class="help-button"
+          ></xul:button>
+        </xul:hbox>
+        <xul:hbox align="center">
+          <div style="flex-shrink: 0" data-l10n-id="templateName"></div>
+          <input id="editor-name" type="text" style="width: 100%" />
+        </xul:hbox>
+        <div id="formats-container" class="editor-button-container"></div>
+        <div style="display: flex; flex-direction: column; height: 100%">
+          <iframe
+            id="editor"
+            src="chrome://scaffold/content/monaco/monaco.html"
+            style="width: 100%; height: 100%; border: none"
+            onmousedown="this.focus()"
+          ></iframe>
+        </div>
+        <div id="snippets-container" class="editor-button-container"></div>
+      </xul:hbox>
+      <xul:splitter
+        state="open"
+        collapse="after"
+        orient="horizontal"
+      ></xul:splitter>
+      <xul:hbox class="viewport preview-viewport">
+        <div style="display: flex">
+          <div style="flex-shrink: 0" data-l10n-id="previewContainer"></div>
+        </div>
+        <article id="preview-container" class="markdown-body"></article>
+      </xul:hbox>
+    </div>
+    <div
+      class="footer-container"
+      style="justify-content: flex-start; padding: 10px; gap: 8px"
+      xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+    >
+      <button id="create" data-l10n-id="create"></button>
+      <button id="save" data-l10n-id="save"></button>
+      <button id="delete" data-l10n-id="delete"></button>
+      <button id="reset" data-l10n-id="reset"></button>
+      <button id="share" data-l10n-id="share"></button>
+      <button id="more" data-l10n-id="more"></button>
+      <button
+        id="options"
+        data-l10n-id="options"
+        tabindex="-1"
+        type="menu"
+        wantdropmarker="true"
+      >
+        <menupopup>
+          <menuitem
+            id="importClipboard"
+            data-l10n-id="importClipboard"
+          ></menuitem>
+          <menuitem id="importNote" data-l10n-id="importNote"></menuitem>
+          <menuseparator />
+          <menuitem id="backup" data-l10n-id="backup"></menuitem>
+          <menuitem id="restore" data-l10n-id="restore"></menuitem>
+          <menuseparator />
+          <menuitem id="help" data-l10n-id="help"></menuitem>
+        </menupopup>
+      </button>
+    </div>
+  </body>
+</html>

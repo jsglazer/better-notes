@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "module": "commonjs",
+    "lib": ["ESNext", "DOM"],
+    "target": "ES2016",
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "alwaysStrict": false,
+    "strict": true,
+    "types": ["zotero-types"]
+  },
+  "include": ["src", "typings"],
+  "exclude": ["build", "addon", "test"]
+}

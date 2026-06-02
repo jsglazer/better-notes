@@ -1,0 +1,179 @@
+import { config } from "../../../package.json";
+import { waitUtilAsync } from "../../utils/wait";
+import { getWorkspaceByUID, getWorkspaceUID } from "../../utils/workspace";
+
+export function openNotePreview(
+  noteItem: Zotero.Item,
+  workspaceUID: string,
+  options: {
+    lineIndex?: number;
+    sectionName?: string;
+  } = {},
+) {
+  const key = Zotero.ItemPaneManager.registerSection({
+    paneID: `bn-note-preview-${workspaceUID}-${noteItem.id}`,
+    pluginID: config.addonID,
+    header: {
+      icon: "chrome://zotero/skin/16/universal/note.svg",
+      l10nID: `${config.addonRef}-note-preview-header`,
+    },
+    sidenav: {
+      icon: "chrome://zotero/skin/20/universal/note.svg",
+      l10nID: `${config.addonRef}-note-preview-sidenav`,
+      l10nArgs: JSON.stringify({ title: noteItem.getNoteTitle() }),
+    },
+    bodyXHTML: `
+<linkset>
+  <html:link
+    rel="localization"
+    href="${config.addonRef}-notePreview.ftl"
+  ></html:link>
+  <html:link
+    rel="stylesheet"
+    href="chrome://${config.addonRef}/content/styles/workspace/workspace.css"
+  ></html:link>
+</linkset>
+<note-editor data-id="${noteItem.id}" class="bn-note-preview"></note-editor>`,
+    sectionButtons: [
+      {
+        type: "openNote",
+        icon: "chrome://zotero/skin/16/universal/open-link.svg",
+        l10nID: `${config.addonRef}-note-preview-open`,
+        onClick: ({ event }) => {
+          const position = (event as MouseEvent).shiftKey ? "window" : "tab";
+          // @ts-ignore - plugin instance
+          Zotero[config.addonRef].hooks.onOpenNote(noteItem.id, position);
+        },
+      },
+      {
+        type: "closePreview",
+        icon: "chrome://zotero/skin/16/universal/minus.svg",
+        l10nID: `${config.addonRef}-note-preview-close`,
+        onClick: () => {
+          Zotero.ItemPaneManager.unregisterSection(key || "");
+        },
+      },
+      {
+        type: "fullHeight",
+        icon: `chrome://${config.addonRef}/content/icons/full-16.svg`,
+        l10nID: `${config.addonRef}-note-preview-full`,
+        onClick: ({ body }) => {
+          const iframe = body.querySelector("iframe");
+          const details = getItemDetails(body);
+          const head = body
+            .closest("item-pane-custom-section")
+            ?.querySelector(".head");
+          const heightKey = "--details-height";
+          if (iframe?.style.getPropertyValue(heightKey)) {
+            iframe.style.removeProperty(heightKey);
+            // @ts-ignore
+            if (details.pinnedPane === key) {
+              // @ts-ignore
+              details.pinnedPane = "";
+            }
+          } else {
+            iframe?.style.setProperty(
+              heightKey,
+              `${details!.clientHeight - head!.clientHeight - 8}px`,
+            );
+            // @ts-ignore
+            details.pinnedPane = key;
+            // @ts-ignore
+            details.scrollToPane(key);
+          }
+        },
+      },
+    ],
+    onItemChange: ({ body, setEnabled }) => {
+      if (getWorkspaceUID(body) !== workspaceUID) {
+        setEnabled(false);
+        return;
+      }
+      body.dataset.enabled = "true";
+      setEnabled(true);
+    },
+    onRender: ({ body, setSectionSummary }) => {
+      setSectionSummary(noteItem.getNoteTitle());
+    },
+    onAsyncRender: async ({ body, item }) => {
+      if (!item?.isNote()) return;
+      const editorElement = body.querySelector("note-editor")! as EditorElement;
+      await waitUtilAsync(() => Boolean(editorElement._initialized));
+      if (!editorElement._initialized) {
+        throw new Error("initNoteEditor: waiting initialization failed");
+      }
+      editorElement.mode = "edit";
+      editorElement.viewMode = "library";
+      editorElement.parent = noteItem?.parentItem;
+      editorElement.item = noteItem;
+      await waitUtilAsync(() => Boolean(editorElement._editorInstance));
+      await editorElement._editorInstance._initPromise;
+
+      if (typeof options.lineIndex === "number") {
+        addon.api.editor.scroll(
+          editorElement._editorInstance,
+          options.lineIndex,
+        );
+      }
+      if (typeof options.sectionName === "string") {
+        addon.api.editor.scrollToSection(
+          editorElement._editorInstance,
+          options.sectionName,
+        );
+      }
+    },
+    onDestroy: ({ body }) => {
+      if (!body.dataset.enabled) {
+        return;
+      }
+      Zotero.ItemPaneManager.unregisterSection(key || "");
+    },
+  });
+
+  const workspace = getWorkspaceByUID(workspaceUID);
+  workspace?.toggleContext(true);
+
+  setTimeout(() => {
+    workspace?.scrollToPane(String(key));
+  }, 500);
+
+  // If registration failed, it is already opened, just scroll to it
+  if (!key) {
+    scrollPreviewEditorTo(noteItem, workspaceUID, options);
+  }
+}
+
+function getItemDetails(elem: HTMLElement) {
+  if (elem.ownerGlobal?.Zotero_Tabs) {
+    return elem.ownerGlobal.ZoteroContextPane.context._getItemContext(
+      elem.ownerGlobal.Zotero_Tabs.selectedID,
+    );
+  }
+  return elem.closest("bn-details");
+}
+
+function scrollPreviewEditorTo(
+  item: Zotero.Item,
+  workspaceUID: string,
+  options: {
+    lineIndex?: number;
+    sectionName?: string;
+  } = {},
+) {
+  const workspace = getWorkspaceByUID(workspaceUID);
+  if (!workspace) return;
+  const editor = workspace.getPreviewEditor(item.id);
+  if (!editor) return;
+  const section = editor.closest("item-pane-custom-section");
+  // @ts-ignore
+  getItemDetails(editor)?.scrollToPane(section.dataset.pane);
+  if (typeof options.lineIndex === "number") {
+    addon.api.editor.scroll(editor._editorInstance, options.lineIndex);
+  }
+  if (typeof options.sectionName === "string") {
+    addon.api.editor.scrollToSection(
+      editor._editorInstance,
+      options.sectionName,
+    );
+  }
+}

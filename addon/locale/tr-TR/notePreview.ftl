@@ -1,0 +1,10 @@
+note-preview-header =
+    .label = Not Ön İzlemesi
+note-preview-sidenav =
+    .tooltiptext = {$title}
+note-preview-open =
+    .tooltiptext = Notu Aç
+note-preview-close =
+    .tooltiptext = Kapat
+note-preview-full =
+    .tooltiptext = Genişlet
