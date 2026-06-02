@@ -5,6 +5,13 @@ export function registerKeyboardShortcuts(win: Window) {
     if (!e.ctrlKey || !e.altKey) return;
     switch (e.code) {
       case "KeyS":
+        e.preventDefault();
+        addon.hooks.onSyncing([], {
+          quiet: false,
+          skipActive: false,
+          reason: "keyboard-shortcut",
+        });
+        break;
       case "KeyM":
         e.preventDefault();
         addon.hooks.onShowSyncManager();

@@ -1,5 +1,5 @@
 menuTools-syncManager =
-    .label = Senkronizasyon Yöneticisi  ⌃⌥S / ⌃⌥M
+    .label = Senkronizasyon Yöneticisi  ⌃⌥M
 menuTools-templateEditor =
     .label = Şablon Düzenleyici  ⌃⌥T
 menuTools-importTemplateFromClipboard =

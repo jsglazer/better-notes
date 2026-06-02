@@ -1,5 +1,5 @@
 menuTools-syncManager =
-    .label = Gestione Sincronizzazione  ⌃⌥S / ⌃⌥M
+    .label = Gestione Sincronizzazione  ⌃⌥M
 menuTools-templateEditor =
     .label = Editor Template  ⌃⌥T
 menuTools-importTemplateFromClipboard =
