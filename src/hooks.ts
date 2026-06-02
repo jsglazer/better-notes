@@ -47,6 +47,10 @@ import { patchExportItems } from "./modules/patches/exportItems";
 import { closeConvertServer } from "./utils/convert";
 import { patchNoteEditorCE } from "./modules/patches/noteEditor";
 import { patchNotes } from "./modules/patches/notes";
+import {
+  registerKeyboardShortcuts,
+  unregisterKeyboardShortcuts,
+} from "./modules/shortcuts";
 
 async function onStartup() {
   await Promise.all([
@@ -108,6 +112,8 @@ async function onMainWindowLoad(win: _ZoteroTypes.MainWindow): Promise<void> {
 
   patchNoteEditorCE(win);
 
+  registerKeyboardShortcuts(win);
+
   showUserGuide(win);
 }
 
@@ -118,6 +124,7 @@ async function onMainWindowUnload(win: Window): Promise<void> {
     `${config.addonRef}-noteRelation.ftl`,
     `${config.addonRef}-outline.ftl`,
   ]);
+  unregisterKeyboardShortcuts(win);
   ztoolkit.unregisterAll();
 }
 
