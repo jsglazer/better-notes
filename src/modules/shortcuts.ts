@@ -4,6 +4,7 @@ export function registerKeyboardShortcuts(win: Window) {
   const listener = (e: KeyboardEvent) => {
     if (!e.ctrlKey || !e.altKey) return;
     switch (e.code) {
+      case "KeyS":
       case "KeyM":
         e.preventDefault();
         addon.hooks.onShowSyncManager();

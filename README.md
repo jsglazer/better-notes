@@ -14,7 +14,7 @@ This is a fork of [windingwind's zotero-better-notes](https://github.com/winding
 
 | Shortcut | Action |
 |---|---|
-| `⌃⌥M` | Open Sync Manager |
+| `⌃⌥S` or `⌃⌥M` | Open Sync Manager |
 | `⌃⌥T` | Open Template Editor |
 
 ## Features

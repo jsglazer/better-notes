@@ -1,7 +1,7 @@
 menuTools-syncManager =
-    .label = Gestione Sincronizzazione
+    .label = Gestione Sincronizzazione  ⌃⌥S / ⌃⌥M
 menuTools-templateEditor =
-    .label = Editor Template
+    .label = Editor Template  ⌃⌥T
 menuTools-importTemplateFromClipboard =
     .label = Nuovo Template dagli Appunti
 

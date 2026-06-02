@@ -1,5 +1,5 @@
 menuTools-syncManager =
-    .label = Sync-Manager  ⌃⌥M
+    .label = Sync-Manager  ⌃⌥S / ⌃⌥M
 menuTools-templateEditor =
     .label = Vorlagen-Editor  ⌃⌥T
 menuTools-importTemplateFromClipboard =
