@@ -43,7 +43,7 @@ async function getSyncNoteIds() {
     return [];
   }
   return (await Zotero.Items.getAsync(keys))
-    .filter((item) => item.isNote())
+    .filter((item) => item.isNote() && !item.deleted)
     .map((item) => item.id);
 }
 

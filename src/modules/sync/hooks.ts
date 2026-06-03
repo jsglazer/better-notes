@@ -216,9 +216,11 @@ async function doCompare(
   mdStatus: MDStatus,
 ): Promise<SyncCode> {
   const syncStatus = addon.api.sync.getSyncStatus(noteItem.id);
-  // No file found — do not auto-recreate deleted destination files
+  // No file found
   if (!mdStatus.meta) {
-    return SyncCode.UpToDate;
+    // lastsync === 0 means this is the first export — create the file.
+    // lastsync > 0 means the file existed before but was deleted — do not recreate.
+    return syncStatus.lastsync === 0 ? SyncCode.NoteAhead : SyncCode.UpToDate;
   }
   // File meta is unavailable
   if (mdStatus.meta.$version < 0) {
