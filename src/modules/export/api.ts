@@ -33,8 +33,9 @@ async function exportNotes(
   if ((options.embedLink || options.exportNote) && !options.setAutoSync) {
     inputNoteItems = [];
     for (const noteItem of noteItems) {
-      const noteID = await ZoteroPane.newNote();
-      const newNote = Zotero.Items.get(noteID);
+      const newNote = new Zotero.Item("note");
+      newNote.libraryID = noteItem.libraryID;
+      await newNote.saveTx({ skipSelect: true } as any);
       newNote.setNote(noteItem.getNote());
       await newNote.saveTx({
         skipSelect: true,

@@ -1,4 +1,4 @@
-pref-title = better-notes
+pref-title = Better Notes
 
 menuEditor-resizeImage = Resmi Boyutlandır
 menuEditor-copy = Not Bağlantısını Kopyala...

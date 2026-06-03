@@ -84,6 +84,7 @@ async function insertTemplateCallback(name: string) {
 async function createTemplateNoteCallback(name: string) {
   addon.data.template.picker.data.librarySelectedIds =
     Zotero.getMainWindow().ZoteroPane.getSelectedItems(true);
+  let createdNoteId: number | undefined;
   switch (addon.data.template.picker.data.noteType) {
     case "standalone": {
       const noteItem = await addon.hooks.onCreateNote();
@@ -91,6 +92,7 @@ async function createTemplateNoteCallback(name: string) {
         return;
       }
       addon.data.template.picker.data.noteId = noteItem.id;
+      createdNoteId = noteItem.id;
       break;
     }
     case "item": {
@@ -100,12 +102,16 @@ async function createTemplateNoteCallback(name: string) {
       noteItem.parentID = parentID;
       await noteItem.saveTx();
       addon.data.template.picker.data.noteId = noteItem.id;
+      createdNoteId = noteItem.id;
       break;
     }
     default:
       return;
   }
   await insertTemplateCallback(name);
+  if (createdNoteId) {
+    await addon.hooks.onOpenNote(createdNoteId, "tab");
+  }
 }
 
 async function exportTemplateCallback(name: string) {

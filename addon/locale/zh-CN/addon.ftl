@@ -1,4 +1,4 @@
-pref-title=better-notes
+pref-title = Better Notes
 
 menuEditor-resizeImage=缩放图片
 menuEditor-copy = 复制笔记链接...

@@ -1,4 +1,4 @@
-pref-title = better-notes
+pref-title = Better Notes
 
 menuEditor-resizeImage = Bildgröße ändern
 menuEditor-copy = Notizlink kopieren...
