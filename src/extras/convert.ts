@@ -338,6 +338,7 @@ function remark2md(remark: MRoot) {
       .use(remarkGfm)
       .use(remarkMath)
       .use(remarkStringify, {
+        bullet: "-",
         // Prevent recursive call
         handlers: Object.assign({}, handlers, {
           table: tableHandler,

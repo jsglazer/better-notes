@@ -66,6 +66,11 @@ function initTable() {
     .setProp("getRowCount", () => templateData.length)
     .setProp("getRowData", getRowData)
     .setProp("getRowString", (index) => templateData[index] || "")
+    .setProp("onActivate", (_e: MouseEvent) => {
+      accept();
+      window.close();
+      return true;
+    })
     .setProp("renderItem", (index, selection, oldElem, columns) => {
       let div;
       if (oldElem) {
