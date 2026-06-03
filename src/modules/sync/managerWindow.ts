@@ -1,7 +1,7 @@
 import { config } from "../../../package.json";
 import { getLinkedNotesRecursively, getNoteLink } from "../../utils/link";
 import { getString } from "../../utils/locale";
-import { fileExists, jointPath } from "../../utils/str";
+import { fileExists, formatPath, jointPath } from "../../utils/str";
 import { isWindowAlive } from "../../utils/window";
 
 export interface SyncDataType {
@@ -9,6 +9,7 @@ export interface SyncDataType {
   noteName: string;
   lastSync: string;
   filePath: string;
+  isOrphaned: boolean;
 }
 
 export async function showSyncManager() {
@@ -27,7 +28,7 @@ export async function showSyncManager() {
     )!;
     await windowArgs._initPromise.promise;
     addon.data.sync.manager.window = win;
-    updateData();
+    await updateData();
     addon.data.sync.manager.tableHelper = new ztoolkit.VirtualizedTable(win!)
       .setContainerId("table-container")
       .setProp({
@@ -90,8 +91,44 @@ export async function showSyncManager() {
       })
       .setProp("onActivate", (ev) => {
         const noteIds = getSelectedNoteIds();
-        noteIds.forEach((noteId) => addon.hooks.onOpenNote(noteId, "builtin"));
+        for (const noteId of noteIds) {
+          const row = addon.data.sync.manager.data.find(
+            (d) => d.noteId === noteId,
+          );
+          if (row?.isOrphaned) {
+            handleOrphanedNoteClick(noteId);
+            return false;
+          }
+          addon.hooks.onOpenNote(noteId, "builtin");
+        }
         return true;
+      })
+      .setProp("renderItem", (index, selection, oldElem, columns) => {
+        const row = addon.data.sync.manager.data[index];
+        const managerDoc = addon.data.sync.manager.window!.document;
+        let div: HTMLElement;
+        if (oldElem) {
+          div = oldElem;
+          div.innerHTML = "";
+        } else {
+          div = managerDoc.createElement("div");
+          div.className = "row";
+        }
+        div.classList.toggle("selected", selection.isSelected(index));
+        div.classList.toggle("focused", selection.focused === index);
+        for (const column of columns) {
+          const span = managerDoc.createElement("span");
+          // @ts-ignore
+          span.className = `cell ${column?.className || ""}`;
+          span.textContent = String(
+            row?.[column.dataKey as keyof SyncDataType] || "",
+          );
+          if (row?.isOrphaned) {
+            span.style.color = "red";
+          }
+          div.appendChild(span);
+        }
+        return div;
       })
       .setProp(
         "getRowString",
@@ -149,26 +186,32 @@ const sortDataKeys = ["noteName", "lastSync", "filePath"] as Array<
 
 async function updateData() {
   const sortKey = sortDataKeys[addon.data.sync.manager.columnIndex];
-  addon.data.sync.manager.data = (await addon.api.sync.getSyncNoteIds())
-    .map((noteId) => {
-      const syncStatus = addon.api.sync.getSyncStatus(noteId);
-      return {
-        noteId: noteId,
-        noteName: Zotero.Items.get(noteId).getNoteTitle(),
-        lastSync: new Date(syncStatus.lastsync).toLocaleString(),
-        filePath: jointPath(syncStatus.path, syncStatus.filename),
-      };
-    })
-    .sort((a, b) => {
-      if (!a || !b) {
-        return 0;
-      }
-      const valueA = String(a[sortKey] || "");
-      const valueB = String(b[sortKey] || "");
-      return addon.data.sync.manager.columnAscending
-        ? valueA.localeCompare(valueB)
-        : valueB.localeCompare(valueA);
+  const noteIds = await addon.api.sync.getSyncNoteIds();
+  const rows: SyncDataType[] = [];
+  for (const noteId of noteIds) {
+    const syncStatus = addon.api.sync.getSyncStatus(noteId);
+    const fullPath = jointPath(syncStatus.path, syncStatus.filename);
+    const isOrphaned = !!(
+      syncStatus.path &&
+      syncStatus.filename &&
+      !(await fileExists(fullPath))
+    );
+    rows.push({
+      noteId,
+      noteName: Zotero.Items.get(noteId).getNoteTitle(),
+      lastSync: new Date(syncStatus.lastsync).toLocaleString(),
+      filePath: fullPath,
+      isOrphaned,
     });
+  }
+  addon.data.sync.manager.data = rows.sort((a, b) => {
+    if (!a || !b) return 0;
+    const valueA = String(a[sortKey] || "");
+    const valueB = String(b[sortKey] || "");
+    return addon.data.sync.manager.columnAscending
+      ? valueA.localeCompare(valueB)
+      : valueB.localeCompare(valueA);
+  });
 }
 
 async function updateTable() {
@@ -197,7 +240,7 @@ function updateButtons() {
 }
 
 async function refresh() {
-  updateData();
+  await updateData();
   await updateTable();
   updateButtons();
 }
@@ -249,6 +292,74 @@ async function cleanupOrphanedSyncNotes() {
   addon.data.sync.manager.window?.alert(
     `Removed ${removed} orphaned sync ${removed === 1 ? "entry" : "entries"}.`,
   );
+  await refresh();
+}
+
+async function handleOrphanedNoteClick(noteId: number) {
+  const syncStatus = addon.api.sync.getSyncStatus(noteId);
+  const filePath = jointPath(syncStatus.path, syncStatus.filename);
+  const win = addon.data.sync.manager.window;
+
+  const choices = [
+    "Delete sync entry",
+    "Recreate sync entry (choose new file location)",
+    "Delete sync entry and note in Zotero",
+    "Delete sync entry, note in Zotero, and destination file",
+    "Exit",
+  ];
+  const selected = { value: 4 };
+  const ok = Services.prompt.select(
+    win as any,
+    "Sync Entry Invalid",
+    `File not found:\n${filePath}\n\nWhat would you like to do?`,
+    choices,
+    selected,
+  );
+
+  if (!ok || selected.value === 4) return;
+
+  switch (selected.value) {
+    case 0: {
+      addon.api.sync.removeSyncNote(noteId);
+      break;
+    }
+    case 1: {
+      const newFile = await new addon.data.ztoolkit.FilePicker(
+        "Select new destination for this note",
+        "open",
+        [["Markdown Files", "*.md"]],
+      ).open();
+      if (newFile) {
+        const splitPath = PathUtils.split(formatPath(newFile as string));
+        const filename = splitPath.pop()!;
+        const dir = formatPath(splitPath.join("/"));
+        addon.api.sync.updateSyncStatus(noteId, {
+          ...syncStatus,
+          path: dir,
+          filename,
+        });
+      }
+      break;
+    }
+    case 2: {
+      addon.api.sync.removeSyncNote(noteId);
+      const noteItem2 = Zotero.Items.get(noteId);
+      if (noteItem2) await noteItem2.eraseTx();
+      break;
+    }
+    case 3: {
+      addon.api.sync.removeSyncNote(noteId);
+      try {
+        await IOUtils.remove(filePath);
+      } catch (e) {
+        // File already gone — ignore
+      }
+      const noteItem3 = Zotero.Items.get(noteId);
+      if (noteItem3) await noteItem3.eraseTx();
+      break;
+    }
+  }
+
   await refresh();
 }
 

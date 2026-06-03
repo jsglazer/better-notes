@@ -333,6 +333,13 @@ function remark2md(remark: MRoot) {
     }
     return txt;
   };
+  // Collapse loose lists to prevent blank lines between list items in output
+  visit(remark as any, "list", (node: any) => {
+    node.spread = false;
+  });
+  visit(remark as any, "listItem", (node: any) => {
+    node.spread = false;
+  });
   return String(
     unified()
       .use(remarkGfm)

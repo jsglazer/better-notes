@@ -216,9 +216,9 @@ async function doCompare(
   mdStatus: MDStatus,
 ): Promise<SyncCode> {
   const syncStatus = addon.api.sync.getSyncStatus(noteItem.id);
-  // No file found
+  // No file found — do not auto-recreate deleted destination files
   if (!mdStatus.meta) {
-    return SyncCode.NoteAhead;
+    return SyncCode.UpToDate;
   }
   // File meta is unavailable
   if (mdStatus.meta.$version < 0) {

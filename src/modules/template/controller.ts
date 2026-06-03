@@ -30,10 +30,13 @@ function initTemplates() {
     });
     setTemplateKeys(Array.from(new Set(keys)));
   }
-  // Add default templates
+  // Add default templates; always reset system templates to their shipped defaults
   const templateKeys = getTemplateKeys();
   for (const defaultTemplate of addon.api.template.DEFAULT_TEMPLATES) {
-    if (!templateKeys.includes(defaultTemplate.name)) {
+    const isSystem = (
+      addon.api.template.SYSTEM_TEMPLATE_NAMES as string[]
+    ).includes(defaultTemplate.name);
+    if (!templateKeys.includes(defaultTemplate.name) || isSystem) {
       setTemplate(defaultTemplate);
     }
   }

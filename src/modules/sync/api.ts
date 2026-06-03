@@ -170,52 +170,16 @@ async function getMDStatus(
   return ret;
 }
 
-async function getMDFileName(noteId: number, searchDir?: string) {
-  const syncStatus = getSyncStatus(noteId);
-  // If the note is already synced, use the filename in sync status
-  if (
-    (!searchDir || searchDir === syncStatus.path) &&
-    syncStatus.filename &&
-    (await fileExists(jointPath(syncStatus.path, syncStatus.filename)))
-  ) {
-    return syncStatus.filename;
-  }
-  // If the note is not synced or the synced file does not exists, search for the latest file with the same key
+async function getMDFileName(noteId: number, _searchDir?: string) {
   const noteItem = Zotero.Items.get(noteId);
-  if (searchDir !== undefined && (await fileExists(searchDir))) {
-    const mdRegex = /\.(md|MD|Md|mD)$/;
-    let matchedFileName = null;
-    let matchedDate = 0;
-    await Zotero.File.iterateDirectory(
-      searchDir,
-      async (entry: OS.File.Entry) => {
-        if (entry.isDir) return;
-        if (mdRegex.test(entry.name)) {
-          if (
-            entry.name.split(".").shift()?.split("-").pop() === noteItem.key
-          ) {
-            const stat = await IOUtils.stat(entry.path);
-            if (stat.lastModified || 0 > matchedDate) {
-              matchedFileName = entry.name;
-              matchedDate = stat.lastModified || 0;
-            }
-          }
-        }
-      },
-    );
-    if (matchedFileName) {
-      return matchedFileName;
-    }
-  }
-  // If no file found, use the template to generate a new filename
+  // Always derive filename from the [ExportMDFileNameV2] template so that
+  // the cite-key-based naming is applied consistently to all notes.
   let filename = await addon.api.template.runTemplate(
     "[ExportMDFileNameV2]",
     "noteItem",
     [noteItem],
   );
-  // trim the filename to remove any leading or trailing spaces or line breaks
-  filename = filename.trim();
-  return filename;
+  return filename.trim();
 }
 
 async function findAllSyncedFiles(searchDir: string) {
