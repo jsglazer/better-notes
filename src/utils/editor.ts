@@ -546,10 +546,10 @@ function initEditorPlugins(editor: Zotero.EditorInstance) {
               addon.hooks.onRefreshTemplatesInNote(editor);
             },
             insertLink: (mode: "inbound" | "outbound") => {
-              openLinkCreator(editor._item, {
-                lineIndex: getLineAtCursor(editor),
-                mode,
-              });
+              const lineIndex = getLineAtCursor(editor);
+              setTimeout(() => {
+                openLinkCreator(editor._item, { lineIndex, mode });
+              }, 0);
             },
             copyLink: (mode: "section" | "line") => {
               copyNoteLink(editor, mode);

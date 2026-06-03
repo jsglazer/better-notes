@@ -44,9 +44,10 @@ export async function initEditorToolbar(editor: Zotero.EditorInstance) {
           type: "click",
           listener: (e) => {
             editor.saveSync();
-            openLinkCreator(noteItem, {
-              lineIndex: getLineAtCursor(editor),
-            });
+            const lineIndex = getLineAtCursor(editor);
+            setTimeout(() => {
+              openLinkCreator(noteItem, { lineIndex });
+            }, 0);
           },
         },
       ],
