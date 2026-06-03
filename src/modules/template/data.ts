@@ -41,7 +41,16 @@ const DEFAULT_TEMPLATES = <NoteTemplate[]>[
   },
   {
     name: "[ExportMDFileNameV2]",
-    text: '${(noteItem.getNoteTitle ? noteItem.getNoteTitle().replace(/[/\\\\?%*:|"<> ]/g, "-") + "-" : "")}${noteItem.key}.md',
+    text: `\${{
+  const parentItem = noteItem.parentItem;
+  if (parentItem) {
+    try {
+      const bbtKey = Zotero.BetterBibTeX.KeyManager.get(parentItem.id).citationKey;
+      if (bbtKey) return bbtKey + ".md";
+    } catch(e) {}
+  }
+  return (noteItem.getNoteTitle ? noteItem.getNoteTitle().replace(/[/\\\\?%*:|"<> ]/g, "-") + "-" : "") + noteItem.key + ".md";
+}}$`,
   },
   {
     name: "[ExportMDFileHeaderV2]",
