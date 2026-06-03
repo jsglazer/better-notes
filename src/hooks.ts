@@ -168,6 +168,14 @@ async function onNotify(
   ) {
     Zotero.Session.debounceSave();
   }
+  if (event === "delete" && type === "item") {
+    for (const id of ids) {
+      const noteId = Number(id);
+      if (addon.api.sync.isSyncNote(noteId)) {
+        addon.api.sync.removeSyncNote(noteId);
+      }
+    }
+  }
   if (event === "modify" && type === "item") {
     const modifiedNotes = Zotero.Items.get(ids).filter((item) => item.isNote());
     if (modifiedNotes.length) {
