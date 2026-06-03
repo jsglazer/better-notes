@@ -2,13 +2,12 @@
 # notes 'import from clipboard': copy the content and
 # goto Zotero menu bar, click Tools->New Template from Clipboard.
 # Do not copy-paste this to better notes template editor directly.
-
-name: "[item]Dissertation Note"
+name: "[item]Notev6"
 zoteroVersion: "7.0.11"
 pluginVersion: "1.0.5"
-savedAt: "2025-01-01T00:00:00.000Z"
+savedAt: "2026-06-03T13:53:00.000Z"
 content: |-
-  <h1>${topItem.getField("title")}</h1>
+  <h1>Note-${topItem.getField("citationKey")}</h1>
 
   <h2>Metadata</h2>
 
@@ -82,89 +81,63 @@ content: |-
   </ul>
 
   <h2>Dissertation Classification</h2>
-
-  <ul>
-    <li><b>Source Type:</b>
-      <br/>☐ Academic literature
-      <br/>☐ Primary law / statute
-      <br/>☐ Regulation / rule
-      <br/>☐ Agency guidance / report
-      <br/>☐ Congressional record / testimony
-      <br/>☐ International / comparative instrument
-      <br/>☐ Think tank / policy report
-      <br/>☐ Other: ___
-    </li>
-    <li><b>Industry / Sector:</b>
-      <br/>☐ Finance / securities
-      <br/>☐ Pharmaceuticals / FDA
-      <br/>☐ Nuclear / NRC
-      <br/>☐ Aviation / FAA
-      <br/>☐ Environmental / NEPA
-      <br/>☐ Telecommunications
-      <br/>☐ AI / tech (direct)
-      <br/>☐ Cross-sector / general
-      <br/>☐ Other: ___
-    </li>
-    <li><b>AI Safety Goal Mapped To:</b>
-      <br/>☐ Alignment
-      <br/>☐ Explainability / interpretability
-      <br/>☐ Security / robustness
-      <br/>☐ Privacy
-      <br/>☐ Accountability / auditability
-      <br/>☐ Multiple / general
-      <br/>☐ Not directly applicable
-    </li>
-    <li><b>Regulatory Mechanism Type:</b>
-      <br/>☐ Command-and-control (prescriptive rules)
-      <br/>☐ Performance-based standards
-      <br/>☐ Ex ante approval / licensing
-      <br/>☐ Ex post liability / enforcement
-      <br/>☐ Disclosure / transparency requirement
-      <br/>☐ Self-regulation / co-regulation
-      <br/>☐ International coordination mechanism
-      <br/>☐ Other: ___
-    </li>
-    <li><b>Policy Transfer Relevance (Dolowitz &amp; Marsh):</b>
-      <br/>☐ Lesson-drawing
-      <br/>☐ Voluntary transfer
-      <br/>☐ Mixed / negotiated
-      <br/>☐ Coercive transfer
-      <br/>☐ Not applicable
-    </li>
-    <li><b>Transferability Assessment (preliminary):</b>
-      <br/>☐ High — mechanism maps cleanly
-      <br/>☐ Medium — partial fit, adaptation needed
-      <br/>☐ Low — significant structural barriers
-      <br/>☐ Unclear — needs further analysis
-    </li>
-  </ul>
+  AI<p>Budget
+  <p></p>
 
   <h2>Abstract</h2>
 
   ${topItem.getField('abstractNote')}
+  <p></p>
 
   <h2>Personal Summary</h2>
+  <p></p>
 
-  <h3>Argument / Core Claim</h3>
-  <blockquote>What is the central argument or finding? What problem does it address?</blockquote>
+  <h3>Argument or Core Claim</h3>
+  <ul>
+    <li>What is the central argument or finding? What problem does it address?</li>
+  </ul>
   <p></p>
 
   <h3>Methodology</h3>
-  <blockquote>How was this research conducted? What analytical framework or method is used?</blockquote>
+  <ul>
+    <li>How was this research conducted? What analytical framework or method is used?</li>
+  </ul>
   <p></p>
 
   <h3>Regulatory Mechanisms Identified</h3>
-  <blockquote>What specific regulatory tools, structures, or instruments are described or analyzed?</blockquote>
+  <ul>
+    <li>What specific regulatory tools, structures, or instruments are described or analyzed?</li>
+  </ul>
   <p></p>
 
   <h3>Transferability Notes</h3>
-  <blockquote>What conditions make this mechanism transferable (or not) to AI governance? Reference Baldwin-Cave-Lodge, Hood-Rothstein-Baldwin, or Gilardi criteria as applicable.</blockquote>
+  <ul>
+    <li>What conditions make this mechanism transferable (or not) to AI governance? Reference Baldwin-Cave-Lodge, Hood-Rothstein-Baldwin, or Gilardi criteria as applicable.</li>
+  </ul>
+  <p></p>
+
+  <h3>Budget Issue 1</h3>
+  <ul>
+    <li>Text here</li>
+  </ul>
+  <p></p>
+
+  <h3>Budget Issue 2</h3>
+  <ul>
+    <li>Text here</li>
+  </ul>
   <p></p>
 
   <h3>Connections to Other Sources</h3>
-  <blockquote>How does this relate to other literature in your review? Any contradictions, confirmations, or gaps?</blockquote>
+  <ul>
+    <li>How does this relate to other literature in your review?</li>
+    <li>Any contradictions, confirmations, or gaps?</li>
+  </ul>
   <p></p>
 
-  <h3>Questions / Critiques</h3>
-  <blockquote>What do you push back on? What would you need to verify or extend?</blockquote>
+  <h3>Questions or Critiques</h3>
+  <ul>
+    <li>What do you push back on?</li>
+    <li>What would you need to verify or extend?</li>
+  </ul>
   <p></p>

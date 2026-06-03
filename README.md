@@ -1,13 +1,13 @@
 # Better Notes
 
-A Zotero plugin to expand the capability of notes and sync notes to other locations.
-
+A Zotero plugin to expand the capability of notes and to sync notes to other locations (e.g., Obsidian). 
 This is a fork of [windingwind's zotero-better-notes](https://github.com/windingwind/zotero-better-notes).
+
 
 ## Installation
 
-1. Download `better-notes.xpi` from the [releases page](https://github.com/jsglazer/better-notes/releases)
-2. In Zotero: **Tools → Add-ons → gear icon → Install Add-on From File**
+1. Download `better-notes.xpi` from above or from the [releases page](https://github.com/jsglazer/better-notes/releases)
+2. In Zotero: **Tools → Plugins → gear icon → Install Plugin From File**
 3. Select the downloaded `.xpi` file and restart Zotero
 
 ## Keyboard Shortcuts
@@ -20,15 +20,15 @@ This is a fork of [windingwind's zotero-better-notes](https://github.com/winding
 
 ## Features
 
-- **Workspace** — dedicated note workspace with outline, context, and relation panes
 - **Templates** — create and apply note templates with a Monaco-based editor
-- **Note Linking** — bidirectional inbound/outbound links between notes
 - **File Sync** — sync notes to markdown files on disk with diff view
+- **Note Linking** — bidirectional inbound/outbound links between notes
 - **Export** — export notes to Markdown, PDF, DOCX, LaTeX, FreeMind, or AsciiDoc
 - **Import** — import Markdown files as Zotero notes
 - **Math** — KaTeX math rendering in notes
-- **Relation Graph** — visualize connections between notes
 - **Command Palette** — type `/` in any note to access formatting and linking commands
+- **Workspace** — dedicated note workspace with outline, context, and relation panes
+- **Relation Graph** — visualize connections between notes
 
 ## Command Palette
 
@@ -61,4 +61,6 @@ Original plugin by [windingwind](https://github.com/windingwind/zotero-better-no
 
 ## License
 
-AGPL-3.0-or-later
+MIT
+
+(Re) Built with Claude!
