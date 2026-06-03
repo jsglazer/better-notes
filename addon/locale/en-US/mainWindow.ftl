@@ -1,3 +1,5 @@
+menuTools-linkCreator =
+    .label = Link Creator  ⌃⌥L
 menuTools-syncManager =
     .label = Sync Manager  ⌃⌥M
 menuTools-templateEditor =
@@ -25,3 +27,10 @@ menuTab-moveNewWindow =
     .label = Move to BN New Window
 menu-openNoteAsBNWindow =
     .label = Open Note in BN New Window
+
+menuItem-betterNotes =
+    .label = Better Notes
+menuItem-newItemNoteFromTemplate =
+    .label = New Item Note from Template
+menuItem-exportCurrentNote =
+    .label = Export Current Note

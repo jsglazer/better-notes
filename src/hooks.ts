@@ -1,5 +1,5 @@
 import { config } from "../package.json";
-import { initLocale } from "./utils/locale";
+import { initLocale, getString } from "./utils/locale";
 import { registerPrefsWindow } from "./modules/preferenceWindow";
 import { registerNoteLinkProxyHandler } from "./modules/noteLink";
 import {
@@ -46,6 +46,8 @@ import { closeParsingServer } from "./utils/parsing";
 import { patchExportItems } from "./modules/patches/exportItems";
 import { closeConvertServer } from "./utils/convert";
 import { patchNoteEditorCE } from "./modules/patches/noteEditor";
+import { openLinkCreator } from "./utils/linkCreator";
+import { showHint } from "./utils/hint";
 import { patchNoteCreation, patchNotes } from "./modules/patches/notes";
 import {
   registerKeyboardShortcuts,
@@ -324,6 +326,16 @@ const onCreateNoteFromMD = createNoteFromMD;
 
 const onShowUserGuide = showUserGuide;
 
+function onShowLinkCreator() {
+  const editors = Zotero.Notes._editorInstances.filter((e) => e._item);
+  if (!editors.length) {
+    showHint(getString("alert-linkCreator-emptyNote"));
+    return;
+  }
+  const noteItem = editors[0]._item;
+  setTimeout(() => openLinkCreator(noteItem), 0);
+}
+
 // Add your hooks here. For element click, etc.
 // Keep in mind hooks only do dispatch. Don't add code that does real jobs in hooks.
 // Otherwise the code would be hard to read and maintain.
@@ -351,4 +363,5 @@ export default {
   onCreateNoteFromMD,
   onCreateNote,
   onShowUserGuide,
+  onShowLinkCreator,
 };

@@ -1,7 +1,7 @@
 import { config } from "../../../package.json";
 import { getLinkedNotesRecursively, getNoteLink } from "../../utils/link";
 import { getString } from "../../utils/locale";
-import { jointPath } from "../../utils/str";
+import { fileExists, jointPath } from "../../utils/str";
 import { isWindowAlive } from "../../utils/window";
 
 export interface SyncDataType {
@@ -134,6 +134,12 @@ export async function showSyncManager() {
     detectButton.addEventListener("click", () => {
       detectSyncedNotes();
     });
+    const cleanupButton = win.document.querySelector(
+      "#cleanup",
+    ) as HTMLButtonElement;
+    cleanupButton.addEventListener("click", async () => {
+      await cleanupOrphanedSyncNotes();
+    });
   }
 }
 
@@ -224,6 +230,25 @@ async function unSyncNotes(itemIds: number[]) {
   for (const itemId of itemIds) {
     await addon.api.sync.removeSyncNote(itemId);
   }
+  await refresh();
+}
+
+async function cleanupOrphanedSyncNotes() {
+  const noteIds = await addon.api.sync.getSyncNoteIds();
+  let removed = 0;
+  for (const noteId of noteIds) {
+    const status = addon.api.sync.getSyncStatus(noteId);
+    if (!status.path || !status.filename) continue;
+    const filepath = jointPath(status.path, status.filename);
+    const exists = await fileExists(filepath);
+    if (!exists) {
+      addon.api.sync.removeSyncNote(noteId);
+      removed++;
+    }
+  }
+  addon.data.sync.manager.window?.alert(
+    `Removed ${removed} orphaned sync ${removed === 1 ? "entry" : "entries"}.`,
+  );
   await refresh();
 }
 

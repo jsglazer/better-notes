@@ -11,6 +11,14 @@ export function registerMenus() {
       },
       {
         menuType: "menuitem",
+        l10nID: `${config.addonRef}-menuTools-linkCreator`,
+        icon: `chrome://${config.addonRef}/content/icons/favicon.png`,
+        onCommand: () => {
+          addon.hooks.onShowLinkCreator();
+        },
+      },
+      {
+        menuType: "menuitem",
         l10nID: `${config.addonRef}-menuTools-syncManager`,
         icon: `chrome://${config.addonRef}/content/icons/favicon.png`,
         onCommand: () => {
@@ -171,6 +179,48 @@ export function registerMenus() {
             context.menuElem.ownerGlobal as _ZoteroTypes.MainWindow
           ).Zotero_Tabs.close(context.tabID);
         },
+      },
+    ],
+  });
+
+  Zotero.MenuManager.registerMenu({
+    menuID: `${config.addonRef}-menuItemBetterNotes`,
+    pluginID: config.addonID,
+    target: "main/library/item",
+    menus: [
+      {
+        menuType: "submenu",
+        l10nID: `${config.addonRef}-menuItem-betterNotes`,
+        icon: `chrome://${config.addonRef}/content/icons/favicon.png`,
+        menus: [
+          {
+            menuType: "menuitem",
+            l10nID: `${config.addonRef}-menuItem-newItemNoteFromTemplate`,
+            onShowing: (_, context) => {
+              context.setVisible(
+                !!context.items?.some((item) => !item.isNote()),
+              );
+            },
+            onCommand: (_, context) => {
+              addon.hooks.onCreateNoteFromTemplate("item", "library");
+            },
+          },
+          {
+            menuType: "menuitem",
+            l10nID: `${config.addonRef}-menuItem-exportCurrentNote`,
+            onShowing: (_, context) => {
+              context.setVisible(
+                !!context.items?.every((item) => item.isNote()),
+              );
+            },
+            onCommand: (_, context) => {
+              const noteIds = (context.items || []).map((item) => item.id);
+              if (noteIds.length) {
+                addon.hooks.onShowExportNoteOptions(noteIds);
+              }
+            },
+          },
+        ],
       },
     ],
   });
