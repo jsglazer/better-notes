@@ -78,29 +78,47 @@ function importTemplateFromClipboard(
     return;
   }
   let template: Record<string, string>;
+  let parseError: string | undefined;
   try {
     template = YAML.parse(text);
   } catch (e) {
     try {
       template = JSON.parse(text);
-    } catch (e) {
+    } catch (e2) {
+      parseError = String(e);
       template = { name: "", text: "" };
     }
   }
-  if (!template.name) {
-    showHint("The copied template is invalid");
+  if (!template || !template.name) {
+    const msg = parseError
+      ? `Template Invalid\n\n${parseError}`
+      : "The copied template is invalid.";
+    Services.prompt.alert(window as any, "Template Invalid", msg);
     return;
   }
   if (
     !options.quiet &&
-    !window.confirm(`Import template "${template.name}"?`)
+    !Services.prompt.confirm(
+      window as any,
+      "New Template from Clipboard",
+      `Import template "${template.name}"?`,
+    )
   ) {
     return;
   }
-  setTemplate({ name: template.name, text: template.content });
-  showHint(`Template ${template.name} saved.`);
-  if (addon.data.template.editor.window) {
-    addon.data.template.editor.window.refresh();
+  try {
+    setTemplate({ name: template.name, text: template.content });
+    showHint(`Template ${template.name} saved.`);
+    if (addon.data.template.editor.window) {
+      addon.data.template.editor.window.refresh();
+    }
+  } catch (e) {
+    Services.prompt.alert(
+      window as any,
+      "Template Invalid",
+      `Failed to import template "${template.name}":\n\n${String(e)}`,
+    );
+    return;
   }
   return template.name;
 }
