@@ -77,7 +77,8 @@ function importTemplateFromClipboard(
   if (!text) {
     return;
   }
-  let template: Record<string, string>;
+
+  let template: Record<string, any>;
   let parseError: string | undefined;
   try {
     template = YAML.parse(text);
@@ -86,39 +87,59 @@ function importTemplateFromClipboard(
       template = JSON.parse(text);
     } catch (e2) {
       parseError = String(e);
-      template = { name: "", text: "" };
+      template = { name: "", content: "" };
     }
   }
-  if (!template || !template.name) {
+
+  // Ensure we got a plain object with a name string
+  if (
+    !template ||
+    typeof template !== "object" ||
+    typeof template.name !== "string" ||
+    !template.name
+  ) {
     const msg = parseError
-      ? `Template Invalid\n\n${parseError}`
-      : "The copied template is invalid.";
-    Services.prompt.alert(window as any, "Template Invalid", msg);
+      ? `The template could not be parsed.\n\n${parseError}`
+      : "The copied template is invalid (no name found).";
+    Services.prompt.alert(null as unknown as mozIDOMWindowProxy, "Template Invalid", msg);
     return;
   }
+
+  // Ensure content is a string — YAML may parse nested JS-like tokens as objects
+  if (typeof template.content !== "string") {
+    Services.prompt.alert(
+      null as unknown as mozIDOMWindowProxy,
+      "Template Invalid",
+      `Template "${template.name}" has malformed content (expected a string).`,
+    );
+    return;
+  }
+
   if (
     !options.quiet &&
     !Services.prompt.confirm(
-      window as any,
+      null as unknown as mozIDOMWindowProxy,
       "New Template from Clipboard",
       `Import template "${template.name}"?`,
     )
   ) {
     return;
   }
+
   try {
     setTemplate({ name: template.name, text: template.content });
-    showHint(`Template ${template.name} saved.`);
-    if (addon.data.template.editor.window) {
-      addon.data.template.editor.window.refresh();
-    }
   } catch (e) {
     Services.prompt.alert(
-      window as any,
+      null as unknown as mozIDOMWindowProxy,
       "Template Invalid",
-      `Failed to import template "${template.name}":\n\n${String(e)}`,
+      `Failed to save template "${template.name}":\n\n${String(e)}`,
     );
     return;
   }
+
+  showHint(`Template ${template.name} saved.`);
+  // Do NOT call refresh() here — it runs updatePreview() which executes the
+  // template JS and can crash Zotero if the content is malformed. The editor
+  // will pick up the new template the next time it is opened or refreshed.
   return template.name;
 }
