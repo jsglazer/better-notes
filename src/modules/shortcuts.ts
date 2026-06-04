@@ -24,6 +24,17 @@ export function registerKeyboardShortcuts(win: Window) {
         e.preventDefault();
         addon.hooks.onShowTemplateEditor();
         break;
+      case "KeyP":
+        e.preventDefault();
+        Zotero.openInViewer(
+          "chrome://mozapps/content/extensions/aboutaddons.html",
+          {
+            onLoad: (
+              Zotero.getMainWindow() as any
+            ).ZoteroStandalone?.updateAddonsPane,
+          },
+        );
+        break;
     }
   };
   win.document.addEventListener("keydown", listener);
