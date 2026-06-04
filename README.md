@@ -17,6 +17,7 @@ This is a fork of [windingwind's zotero-better-notes](https://github.com/winding
 | `⌃⌥S` | Run sync (syncs all notes immediately) |
 | `⌃⌥M` | Open Sync Manager |
 | `⌃⌥T` | Open Template Editor |
+| `⌃⌥P` | Open Zotero Plugins window |
 
 ## Features
 
