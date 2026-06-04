@@ -1,7 +1,7 @@
 # Better Notes
 
 A Zotero plugin to expand the capability of notes and to sync notes to other locations (e.g., Obsidian). 
-This is a fork of [windingwind's zotero-better-notes](https://github.com/windingwind/zotero-better-notes).
+This is a fork of [windingwind's zotero-better-notes](https://github.com/windingwind/zotero-better-notes).  This fork includes: keyboard shortcuts, more sync management options, cleaner exports to Obsidian, better error handling on invalid template imports, more menu items, and other enhancements.
 
 
 ## Installation
