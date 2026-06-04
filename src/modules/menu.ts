@@ -13,6 +13,9 @@ export function registerMenus() {
         menuType: "menuitem",
         l10nID: `${config.addonRef}-menuTools-linkCreator`,
         icon: `chrome://${config.addonRef}/content/icons/favicon.png`,
+        onShowing: (_, context) => {
+          context.menuElem.setAttribute("acceltext", "⌃⌥L");
+        },
         onCommand: () => {
           addon.hooks.onShowLinkCreator();
         },
@@ -21,6 +24,9 @@ export function registerMenus() {
         menuType: "menuitem",
         l10nID: `${config.addonRef}-menuTools-syncManager`,
         icon: `chrome://${config.addonRef}/content/icons/favicon.png`,
+        onShowing: (_, context) => {
+          context.menuElem.setAttribute("acceltext", "⌃⌥M");
+        },
         onCommand: () => {
           addon.hooks.onShowSyncManager();
         },
@@ -29,6 +35,9 @@ export function registerMenus() {
         menuType: "menuitem",
         l10nID: `${config.addonRef}-menuTools-templateEditor`,
         icon: `chrome://${config.addonRef}/content/icons/favicon.png`,
+        onShowing: (_, context) => {
+          context.menuElem.setAttribute("acceltext", "⌃⌥T");
+        },
         onCommand: () => {
           addon.hooks.onShowTemplateEditor();
         },

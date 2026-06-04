@@ -3,7 +3,7 @@
 # goto Zotero menu bar, click Tools->New Template from Clipboard.
 # Do not copy-paste this to better notes template editor directly.
 
-name: "[item]ItemNoteMD02"
+name: "[item]ItemNoteMD04"
 zoteroVersion: "7.0.11"
 pluginVersion: "1.0.11"
 savedAt: "2026-06-03T00:00:00.000Z"
@@ -16,6 +16,15 @@ content: |-
     }
     return "";
   }}$
+  # ${(() => {
+      try {
+        const bbtKey = Zotero.BetterBibTeX.KeyManager.get(topItem.id).citationKey;
+        if (bbtKey) return bbtKey;
+      } catch(e) {}
+      const match = (topItem.getField("extra") || "").match(/Citation Key:\s*(.*?)($|\n)/);
+      return match ? match[1].trim() : topItem.getField("citationKey") || "";
+    })()}
+
   ## Summary
   - CiteKey: ${(() => {
       try {
@@ -52,3 +61,6 @@ content: |-
 
 
   ## Questions or Critiques
+
+
+  ## Running Notes

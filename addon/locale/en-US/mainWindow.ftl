@@ -1,9 +1,9 @@
 menuTools-linkCreator =
-    .label = Link Creator  ⌃⌥L
+    .label = Link Creator
 menuTools-syncManager =
-    .label = Sync Manager  ⌃⌥M
+    .label = Sync Manager
 menuTools-templateEditor =
-    .label = Template Editor  ⌃⌥T
+    .label = Template Editor
 menuTools-importTemplateFromClipboard =
     .label = New Template from Clipboard
 

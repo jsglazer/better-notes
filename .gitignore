@@ -3,3 +3,5 @@ build/
 logs/
 .env
 *.bak
+
+ClaudeStatus.md

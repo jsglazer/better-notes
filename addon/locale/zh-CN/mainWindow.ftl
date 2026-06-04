@@ -1,7 +1,7 @@
 menuTools-syncManager =
-    .label = 同步管理器  ⌃⌥M
+    .label = 同步管理器
 menuTools-templateEditor =
-    .label = 模板编辑器  ⌃⌥T
+    .label = 模板编辑器
 menuTools-importTemplateFromClipboard =
     .label = 从剪贴板新建模板
 
