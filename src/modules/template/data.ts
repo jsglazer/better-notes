@@ -65,6 +65,13 @@ const DEFAULT_TEMPLATES = <NoteTemplate[]>[
       (noteItem.parentItem || noteItem).id,
     ])
   ).map((c) => c.name);
+  try {
+    const parentItem = noteItem.parentItem;
+    if (parentItem) {
+      const bbtKey = Zotero.BetterBibTeX.KeyManager.get(parentItem.id).citationKey;
+      if (bbtKey) header.CitationKey = bbtKey;
+    }
+  } catch(e) {}
   return JSON.stringify(header);
 }}$`,
   },

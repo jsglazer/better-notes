@@ -192,6 +192,7 @@ async function note2md(
         const isGenerated =
           key === "tags" ||
           key === "itemKey" ||
+          key === "CitationKey" ||
           key === "libraryID" ||
           key === "version" ||
           key.startsWith("$");
@@ -209,6 +210,7 @@ async function note2md(
     // Build YAML in canonical field order (no $ prefixes)
     const orderedHeader: Record<string, any> = {
       itemKey: noteItem.key,
+      CitationKey: header.CitationKey,
       libraryID: noteItem.libraryID,
       version: noteItem.version,
       tags: header.tags,
