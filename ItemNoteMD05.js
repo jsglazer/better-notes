@@ -3,10 +3,10 @@
 # goto Zotero menu bar, click Tools->New Template from Clipboard.
 # Do not copy-paste this to better notes template editor directly.
 
-name: "[item]ItemNoteMD04"
+name: "[item]ItemNoteMD05"
 zoteroVersion: "7.0.11"
-pluginVersion: "1.0.11"
-savedAt: "2026-06-03T00:00:00.000Z"
+pluginVersion: "1.0.17"
+savedAt: "2026-06-10T00:00:00.000Z"
 content: |-
   // @use-markdown
   ${{
@@ -16,23 +16,16 @@ content: |-
     }
     return "";
   }}$
-  # ${(() => {
+  ${(() => {
+      let key = "";
       try {
-        const bbtKey = Zotero.BetterBibTeX.KeyManager.get(topItem.id).citationKey;
-        if (bbtKey) return bbtKey;
+        key = Zotero.BetterBibTeX.KeyManager.get(topItem.id).citationKey || "";
       } catch(e) {}
-      const match = (topItem.getField("extra") || "").match(/Citation Key:\s*(.*?)($|\n)/);
-      return match ? match[1].trim() : topItem.getField("citationKey") || "";
-    })()}
-
-  ## Summary
-  - CiteKey: ${(() => {
-      try {
-        const bbtKey = Zotero.BetterBibTeX.KeyManager.get(topItem.id).citationKey;
-        if (bbtKey) return bbtKey;
-      } catch(e) {}
-      const match = (topItem.getField("extra") || "").match(/Citation Key:\s*(.*?)($|\n)/);
-      return match ? match[1].trim() : topItem.getField("citationKey") || "";
+      if (!key) {
+        const match = (topItem.getField("extra") || "").match(/Citation Key:[ \t]*(.*?)(?:$|\n)/);
+        key = (match && match[1].trim()) || topItem.getField("citationKey") || "";
+      }
+      return `# ${key}\n\n## Summary\n- CiteKey: ${key}`;
     })()}
   - Title: ${topItem.getField("title")}
   ${(()=>{
@@ -54,13 +47,18 @@ content: |-
   ## Persistent Notes
 
 
-  ## Argument or Core Claim
+  ## Core Claims
 
 
   ## Methodology
 
 
-  ## Questions or Critiques
+  ## Critiques
 
 
-  ## Running Notes
+  ## Questions
+
+
+  ## General Notes
+
+  ## References
