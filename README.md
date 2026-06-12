@@ -1,5 +1,9 @@
 # Better Notes
 
+[![GitHub release](https://img.shields.io/github/v/release/jsglazer/better-notes?logo=github)](https://github.com/jsglazer/better-notes/releases)
+[![GitHub license](https://img.shields.io/github/license/jsglazer/better-notes)](https://github.com/jsglazer/better-notes/blob/main/LICENSE)
+[![Made with Claude](https://img.shields.io/badge/Made_with-Claude-D97756?logo=anthropic)](https://claude.ai)
+
 A Zotero plugin to expand the capability of notes and to sync notes to other locations (e.g., Obsidian). 
 This is a fork of [windingwind's zotero-better-notes](https://github.com/windingwind/zotero-better-notes).  This fork includes: keyboard shortcuts, more sync management options, cleaner exports to Obsidian, better error handling on invalid template imports, more menu items, and other enhancements.
 
