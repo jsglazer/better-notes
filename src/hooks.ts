@@ -133,17 +133,29 @@ async function onMainWindowUnload(win: Window): Promise<void> {
 }
 
 function onShutdown(): void {
-  closeRelationServer();
-  closeParsingServer();
-  closeConvertServer();
+  // Each teardown step is isolated: a failure in one (e.g. a worker that's
+  // already gone) must not prevent the others — or the caller's chrome
+  // teardown — from running, which would leave the plugin un-removable
+  // without a restart.
+  const step = (fn: () => void) => {
+    try {
+      fn();
+    } catch (e) {
+      ztoolkit.log("onShutdown step failed", e);
+    }
+  };
 
-  unregisterEditorInstanceHook();
+  step(() => closeRelationServer());
+  step(() => closeParsingServer());
+  step(() => closeConvertServer());
+
+  step(() => unregisterEditorInstanceHook());
 
   Zotero.getMainWindows().forEach((win) => {
-    onMainWindowUnload(win);
+    step(() => onMainWindowUnload(win));
   });
 
-  ztoolkit.unregisterAll();
+  step(() => ztoolkit.unregisterAll());
   // Remove addon object
   addon.data.alive = false;
   // @ts-ignore plugin instance

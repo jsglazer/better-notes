@@ -53,10 +53,22 @@ function shutdown({ id, version, resourceURI, rootURI }, reason) {
     return;
   }
 
-  Zotero.__addonInstance__.hooks.onShutdown();
+  // Run the plugin's own cleanup, but never let a failure in it abort the
+  // teardown below. If onShutdown() threw, chromeHandle.destruct() would be
+  // skipped, the chrome registration would leak, and Zotero would refuse to
+  // remove the (still-active) plugin without a deactivate + restart.
+  try {
+    Zotero.__addonInstance__?.hooks?.onShutdown?.();
+  } catch (e) {
+    Zotero.debug("[better-notes] onShutdown failed during teardown: " + e);
+  }
 
   if (chromeHandle) {
-    chromeHandle.destruct();
+    try {
+      chromeHandle.destruct();
+    } catch (e) {
+      Zotero.debug("[better-notes] chromeHandle.destruct failed: " + e);
+    }
     chromeHandle = null;
   }
 }
