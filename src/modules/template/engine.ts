@@ -35,6 +35,13 @@ function getEngine(): Liquid {
       fn as (value: unknown, ...args: unknown[]) => unknown,
     );
   }
+  // Async `md` filter: Markdown → note HTML via the convert worker. Registered
+  // lazily (engine is built on first use, when `addon` is available); the fn is
+  // only invoked when a template actually pipes through `| md`, so it stays
+  // inert in non-Zotero contexts (e.g. unit tests).
+  engine.registerFilter("md", async (value: unknown) => {
+    return await addon.api.convert.md2html(value == null ? "" : String(value));
+  });
   return engine;
 }
 

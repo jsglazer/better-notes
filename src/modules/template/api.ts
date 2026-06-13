@@ -123,6 +123,16 @@ async function runTextTemplate(
 ) {
   const { targetNoteId, dryRun } = options;
   const targetNoteItem = Zotero.Items.get(targetNoteId || -1);
+
+  // Route sandboxed (Liquid) [text] templates to the engine; legacy falls
+  // through to the AsyncFunction path. Mirrors runItemTemplate (U4).
+  const liquidMeta = parseLiquidTemplate(
+    addon.api.template.getTemplateText(key),
+  );
+  if (liquidMeta.isLiquid) {
+    return await runTextTemplateLiquid(liquidMeta, targetNoteItem, { dryRun });
+  }
+
   const sharedObj = {};
   let renderedString = await runTemplate(
     key,
@@ -287,6 +297,36 @@ async function runItemTemplateLiquid(
 
   if (!options.dryRun && targetNoteItem && meta.directives.addTags.length) {
     await applyDirectives(targetNoteItem, meta.directives);
+  }
+  return html;
+}
+
+/**
+ * Render a `[text]` template through the sandboxed Liquid engine (U4). Context is
+ * the target `note` model (when a target note exists) plus `now`. Markdown
+ * conversion + directives handled as in {@link runItemTemplateLiquid}.
+ */
+async function runTextTemplateLiquid(
+  meta: import("./engine").LiquidTemplateMeta,
+  targetNoteItem: Zotero.Item | undefined,
+  options: { dryRun?: boolean } = {},
+): Promise<string> {
+  const noteItem =
+    targetNoteItem && targetNoteItem.isNote && targetNoteItem.isNote()
+      ? targetNoteItem
+      : undefined;
+  const context = {
+    note: noteItem ? await buildNoteModel(noteItem) : null,
+    now: new Date(),
+  };
+
+  const rendered = await renderTemplate(meta.body, context);
+  const html = meta.markdown
+    ? await addon.api.convert.md2html(rendered)
+    : rendered;
+
+  if (!options.dryRun && noteItem && meta.directives.addTags.length) {
+    await applyDirectives(noteItem, meta.directives);
   }
   return html;
 }

@@ -126,4 +126,11 @@ const DEFAULT_TEMPLATES = <NoteTemplate[]>[
 
 ## References`,
   },
+  {
+    // Sandboxed (Liquid) [text] parity test — exercises the text path, the `now`
+    // context, and Liquid's built-in `date` filter. Coexists with legacy.
+    name: "[text]Current Time-Liquid",
+    text: `<!--liquid-->
+**Current Time**: {{ now | date: "%Y-%m-%d %H:%M" }}`,
+  },
 ];
