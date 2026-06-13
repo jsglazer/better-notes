@@ -1,5 +1,10 @@
 import TreeModel = require("tree-model");
 import { TextSelection } from "prosemirror-state";
+import {
+  findEditorInstance,
+  getEditorCore as adapterGetEditorCore,
+  getEditorAPI as adapterGetEditorAPI,
+} from "../modules/editor/adapter";
 import { getNoteTreeFlattened } from "./note";
 import { getPref } from "./prefs";
 import { openLinkCreator } from "./linkCreator";
@@ -153,22 +158,18 @@ async function scrollToSection(
   scroll(editor, sectionNode.model.lineIndex);
 }
 
+// Editor-internal access is centralized in modules/editor/adapter (U6); these
+// keep their existing signatures for the many call sites that import them.
 function getEditorInstance(noteId: number) {
-  const editor = Zotero.Notes._editorInstances.find(
-    (e) =>
-      e._item.id === noteId && !Components.utils.isDeadWrapper(e._iframeWindow),
-  );
-  return editor;
+  return findEditorInstance(noteId);
 }
 
 function getEditorCore(editor: Zotero.EditorInstance): EditorCore {
-  return (editor._iframeWindow as any).wrappedJSObject._currentEditorInstance
-    ._editorCore;
+  return adapterGetEditorCore(editor);
 }
 
 function getEditorAPI(editor: Zotero.EditorInstance) {
-  return (editor._iframeWindow as any).wrappedJSObject
-    .BetterNotesEditorAPI as EditorAPI;
+  return adapterGetEditorAPI(editor) as EditorAPI;
 }
 
 function getPositionAtCursor(editor: Zotero.EditorInstance) {
