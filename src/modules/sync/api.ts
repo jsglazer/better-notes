@@ -1,4 +1,5 @@
 import * as YAML from "yaml";
+import { createStore } from "../../utils/store";
 import { getPref, setPref } from "../../utils/prefs";
 import { config } from "../../../package.json";
 import { fileExists, formatPath, jointPath } from "../../utils/str";
@@ -24,7 +25,7 @@ function initSyncList() {
     const keys = rawKeys.split(",").map((id) => String(id));
     setPref("syncNoteIds", JSON.stringify(keys));
   }
-  addon.data.sync.data = new ztoolkit.LargePref(
+  addon.data.sync.data = createStore(
     `${config.prefsPrefix}.syncNoteIds`,
     `${config.prefsPrefix}.syncDetail-`,
     "parser",

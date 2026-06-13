@@ -1,4 +1,5 @@
 import * as YAML from "yaml";
+import { createStore } from "../../utils/store";
 import { getPref } from "../../utils/prefs";
 import { showHint } from "../../utils/hint";
 import { config } from "../../../package.json";
@@ -13,7 +14,7 @@ export {
 };
 
 function initTemplates() {
-  addon.data.template.data = new ztoolkit.LargePref(
+  addon.data.template.data = createStore(
     `${config.prefsPrefix}.templateKeys`,
     `${config.prefsPrefix}.template.`,
     "parser",

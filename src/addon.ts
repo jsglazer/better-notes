@@ -1,6 +1,6 @@
 import { VirtualizedTableHelper } from "zotero-plugin-toolkit";
-import { LargePrefHelper } from "zotero-plugin-toolkit";
 
+import type { KVStore } from "./utils/store";
 import { SyncDataType } from "./modules/sync/managerWindow";
 import hooks from "./hooks";
 import api from "./api";
@@ -28,7 +28,7 @@ class Addon {
       pdf: { promise?: _ZoteroTypes.Promise.PromiseObject };
     };
     sync: {
-      data?: LargePrefHelper;
+      data?: KVStore;
       lock: boolean;
       manager: {
         window?: Window;
@@ -58,7 +58,7 @@ class Addon {
       };
     };
     template: {
-      data?: LargePrefHelper;
+      data?: KVStore;
       editor: {
         window?: Window;
         tableHelper?: VirtualizedTableHelper;
