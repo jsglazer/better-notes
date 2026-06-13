@@ -28,8 +28,20 @@ export function sanitizeFilename(value: unknown): string {
   return s.replace(/[/\\?%*:|"<> ]/g, "-");
 }
 
-/** Map of `liquidName → fn`, consumed by U4 to register with the engine. */
+/**
+ * Collapse all runs of newlines into a single space. Matches the existing
+ * `[item]ItemNoteMD05` abstract handling (`.replace(/[\r\n]+/g, ' ')`) exactly —
+ * note this differs from Liquid's built-in `strip_newlines`, which *removes*
+ * newlines with no replacement.
+ */
+export function oneline(value: unknown): string {
+  const s = value == null ? "" : String(value);
+  return s.replace(/[\r\n]+/g, " ");
+}
+
+/** Map of `liquidName → fn`, consumed by the engine to register custom filters. */
 export const CUSTOM_FILTERS = {
   year,
   sanitize_filename: sanitizeFilename,
+  oneline,
 } as const;

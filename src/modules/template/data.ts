@@ -87,4 +87,43 @@ const DEFAULT_TEMPLATES = <NoteTemplate[]>[
   return latexContent;
 }}$`,
   },
+  {
+    // Sandboxed (Liquid) port of the user's [item]ItemNoteMD05 template — U4
+    // parity test. Selectable from the template picker after install; coexists
+    // with the legacy JS template until the cutover is verified.
+    name: "[item]ItemNoteMD-Liquid",
+    text: `<!--liquid-->
+<!--markdown-->
+<!--addTags: ItemNote-->
+# {{ item.citekey }}
+
+## Summary
+- CiteKey: {{ item.citekey }}
+- Title: {{ item.title }}
+- Authors:
+{% for a in item.authors %}    - {{ a.name }}
+{% endfor %}{% if item.authors.size == 0 %}    - (no authors)
+{% endif %}- Year: {{ item.year }}
+- Tags: ItemNote
+- Abstract: {{ item.abstract | oneline }}
+
+## Persistent Notes
+
+
+## Core Claims
+
+
+## Methodology
+
+
+## Critiques
+
+
+## Questions
+
+
+## General Notes
+
+## References`,
+  },
 ];

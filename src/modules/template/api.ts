@@ -2,6 +2,9 @@ import * as YAML from "yaml";
 import { itemPicker } from "../../utils/itemPicker";
 import { getString } from "../../utils/locale";
 import { fill, slice } from "../../utils/str";
+import { parseLiquidTemplate, renderTemplate } from "./engine";
+import { buildItemModel, buildNoteModel } from "./model";
+import { applyDirectives } from "./directives";
 
 export {
   runTemplate,
@@ -172,6 +175,18 @@ async function runItemTemplate(
 
   const items = itemIds?.map((id) => Zotero.Items.get(id)) || [];
 
+  // New sandboxed (Liquid) templates are routed here; legacy JS templates fall
+  // through to the AsyncFunction path below. Detected by the `<!--liquid-->`
+  // sentinel so the two can coexist during the migration (U4).
+  const liquidMeta = parseLiquidTemplate(
+    addon.api.template.getTemplateText(key),
+  );
+  if (liquidMeta.isLiquid) {
+    return await runItemTemplateLiquid(liquidMeta, items, targetNoteItem, {
+      dryRun,
+    });
+  }
+
   const copyImageRefNotes: Zotero.Item[] = [];
   const copyNoteImage = (noteItem: Zotero.Item) => {
     copyImageRefNotes.push(noteItem);
@@ -238,6 +253,42 @@ async function runItemTemplate(
     });
   }
   return renderedString;
+}
+
+/**
+ * Render an `[item]` template through the sandboxed Liquid engine (U4).
+ *
+ * Builds the curated `item`/`items`/`note` context (no raw Zotero API exposed to
+ * the template), renders, converts Markdown → HTML when the template declared
+ * `<!--markdown-->`, and applies any post-render directives (e.g. `addTags`) to
+ * the target note — unless this is a dry-run preview.
+ */
+async function runItemTemplateLiquid(
+  meta: import("./engine").LiquidTemplateMeta,
+  items: Zotero.Item[],
+  targetNoteItem: Zotero.Item | undefined,
+  options: { dryRun?: boolean } = {},
+): Promise<string> {
+  const itemModels = await Promise.all(items.map((it) => buildItemModel(it)));
+  const noteModel = targetNoteItem
+    ? await buildNoteModel(targetNoteItem)
+    : null;
+  const context = {
+    items: itemModels,
+    item: itemModels[0] ?? null,
+    note: noteModel,
+    now: new Date(),
+  };
+
+  const rendered = await renderTemplate(meta.body, context);
+  const html = meta.markdown
+    ? await addon.api.convert.md2html(rendered)
+    : rendered;
+
+  if (!options.dryRun && targetNoteItem && meta.directives.addTags.length) {
+    await applyDirectives(targetNoteItem, meta.directives);
+  }
+  return html;
 }
 
 async function runQuickInsertTemplate(

@@ -1,5 +1,6 @@
 import { Liquid } from "liquidjs";
 import { CUSTOM_FILTERS } from "./filters";
+import { parseDirectives, TemplateDirectives } from "./directives";
 
 /**
  * The sandboxed template rendering engine (U4) — replaces the legacy
@@ -35,6 +36,69 @@ function getEngine(): Liquid {
     );
   }
   return engine;
+}
+
+/**
+ * Metadata + body extracted from a Liquid template's leading sentinel-comment
+ * header. New templates opt into the Liquid engine with a `<!--liquid-->` first
+ * line; further `<!--flag-->` / `<!--key: value-->` lines configure rendering and
+ * carry directives. This keeps new (sandboxed) templates unambiguously
+ * distinguishable from legacy JS templates during the transition.
+ */
+export interface LiquidTemplateMeta {
+  /** True when the template opted into the Liquid engine. */
+  isLiquid: boolean;
+  /** Output is Markdown → convert to HTML after render. */
+  markdown: boolean;
+  /** Post-render side effects (e.g. addTags). */
+  directives: TemplateDirectives;
+  /** Template body with the sentinel header stripped. */
+  body: string;
+}
+
+const SENTINEL_RE = /^<!--\s*([a-zA-Z]+)\s*(?::\s*(.*?))?\s*-->$/;
+
+/**
+ * Parse the leading sentinel-comment header of a template. If the first
+ * non-blank line is not `<!--liquid-->`, the template is treated as legacy
+ * (`isLiquid: false`, body unchanged). Pure — no Zotero access; unit-tested.
+ */
+export function parseLiquidTemplate(text: string): LiquidTemplateMeta {
+  const meta: LiquidTemplateMeta = {
+    isLiquid: false,
+    markdown: false,
+    directives: { addTags: [] },
+    body: text,
+  };
+  const lines = text.split(/\r?\n/);
+  const header: Record<string, unknown> = {};
+  let i = 0;
+  for (; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (line === "") {
+      continue;
+    }
+    const m = line.match(SENTINEL_RE);
+    if (!m) {
+      break;
+    }
+    const key = m[1].toLowerCase();
+    const val = m[2];
+    if (key === "liquid") {
+      meta.isLiquid = true;
+    } else if (key === "markdown") {
+      meta.markdown = true;
+    } else if (key === "addtags" && val) {
+      header.addTags = val.split(",").map((s) => s.trim());
+    }
+    // Unknown sentinels are ignored.
+  }
+  if (!meta.isLiquid) {
+    return meta;
+  }
+  meta.directives = parseDirectives(header);
+  meta.body = lines.slice(i).join("\n");
+  return meta;
 }
 
 /** Render a Liquid template string against a context. May throw on bad markup. */
