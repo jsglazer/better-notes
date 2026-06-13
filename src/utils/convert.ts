@@ -10,7 +10,7 @@ import remarkMath from "remark-math";
 import { visit } from "unist-util-visit";
 import rehypeFormat from "rehype-format";
 import { h } from "hastscript";
-import YAML = require("yamljs");
+import * as YAML from "yaml";
 
 import { Root as HRoot } from "hast";
 import { Root as MRoot } from "mdast";
@@ -222,7 +222,7 @@ async function note2md(
         orderedHeader[key] = header[key];
       }
     }
-    const yamlFrontMatter = `---\n${YAML.stringify(orderedHeader, 10)}\n---`;
+    const yamlFrontMatter = `---\n${YAML.stringify(orderedHeader)}\n---`;
     md = `${yamlFrontMatter}\n${md}`;
   }
   return md;

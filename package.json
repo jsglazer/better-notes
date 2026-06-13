@@ -1,6 +1,6 @@
 {
   "name": "zotero-better-notes",
-  "version": "1.0.17",
+  "version": "1.0.18",
   "description": "A Zotero plugin to expand the capability of notes and sync notes to other locations. This is a fork of Windingwing's excellent zotero-better-notes plugin.",
   "config": {
     "addonName": "Better Notes",
@@ -32,7 +32,6 @@
   },
   "homepage": "https://github.com/jsglazer/better-notes",
   "dependencies": {
-    "asciidoctor": "^3.0.4",
     "dexie": "^4.0.11",
     "diff": "^5.2.0",
     "hast-util-to-html": "^9.0.5",
@@ -40,7 +39,6 @@
     "hast-util-to-text": "^4.0.2",
     "hastscript": "^8.0.0",
     "html-docx-js": "^0.3.1",
-    "html-docx-js-typescript": "^0.1.5",
     "katex": "^0.16.22",
     "linkedom": "^0.18.11",
     "path-browserify": "^1.0.1",
@@ -59,7 +57,7 @@
     "unified": "^10.1.2",
     "unist-util-visit": "^5.0.0",
     "unist-util-visit-parents": "^6.0.1",
-    "yamljs": "^0.3.0",
+    "yaml": "^2.8.1",
     "zotero-plugin-toolkit": "^5.1.0-beta.4"
   },
   "devDependencies": {
@@ -74,7 +72,6 @@
     "@types/node": "^20.19.9",
     "@types/path-browserify": "^1.0.3",
     "@types/seedrandom": "^3.0.8",
-    "@types/yamljs": "^0.2.34",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
     "chokidar-cli": "^3.0.0",

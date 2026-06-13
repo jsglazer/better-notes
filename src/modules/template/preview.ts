@@ -1,4 +1,4 @@
-import YAML = require("yamljs");
+import * as YAML from "yaml";
 import { getNoteLink } from "../../utils/link";
 import { renderNoteHTML } from "../../utils/note";
 
@@ -60,7 +60,7 @@ async function renderTemplatePreview(
           libraryID: data.libraryID,
           itemKey: data.key,
         });
-        html = `<pre>${YAML.stringify(header, 10)}</pre>`;
+        html = `<pre>${YAML.stringify(header)}</pre>`;
       }
     } else if (templateName.includes("ExportMDFileContent")) {
       // noteItem

@@ -1,4 +1,4 @@
-import YAML = require("yamljs");
+import * as YAML from "yaml";
 import { htmlUnescape } from "../../utils/str";
 
 export { refreshTemplatesInNote };

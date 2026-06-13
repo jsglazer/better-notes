@@ -1,4 +1,4 @@
-import YAML = require("yamljs");
+import * as YAML from "yaml";
 import { itemPicker } from "../../utils/itemPicker";
 import { getString } from "../../utils/locale";
 import { fill, slice } from "../../utils/str";
@@ -344,7 +344,7 @@ async function getItemTemplateData() {
 }
 
 function wrapYAMLData(str: string, data: any) {
-  const yamlContent = YAML.stringify(data, 4);
+  const yamlContent = YAML.stringify(data);
   return `<hr>
 <pre>${yamlContent}</pre>${str}
 <hr>`;

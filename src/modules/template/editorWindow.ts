@@ -1,4 +1,4 @@
-import YAML = require("yamljs");
+import * as YAML from "yaml";
 import { config, version } from "../../../package.json";
 import { showHint } from "../../utils/hint";
 import { itemPicker } from "../../utils/itemPicker";
