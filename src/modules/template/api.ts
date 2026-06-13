@@ -2,6 +2,7 @@ import * as YAML from "yaml";
 import { itemPicker } from "../../utils/itemPicker";
 import { getString } from "../../utils/locale";
 import { fill, slice } from "../../utils/str";
+import { showHint } from "../../utils/hint";
 import { parseLiquidTemplate, renderTemplate } from "./engine";
 import { buildItemModel, buildNoteModel } from "./model";
 import { applyDirectives } from "./directives";
@@ -266,12 +267,39 @@ async function runItemTemplate(
 }
 
 /**
+ * Render a Liquid template body to HTML, never throwing. On error: a dry-run
+ * (preview) returns the error text (Liquid messages include line/column), while
+ * a live render shows a non-blocking hint and returns "" — vs the legacy engine's
+ * blocking `alert()`. Returns `ok` so callers can skip post-render side effects
+ * (e.g. directives) when the render failed.
+ */
+async function renderLiquid(
+  meta: import("./engine").LiquidTemplateMeta,
+  context: Record<string, unknown>,
+  dryRun?: boolean,
+): Promise<{ ok: boolean; html: string }> {
+  try {
+    const rendered = await renderTemplate(meta.body, context);
+    const html = meta.markdown
+      ? await addon.api.convert.md2html(rendered)
+      : rendered;
+    return { ok: true, html };
+  } catch (e) {
+    if (dryRun) {
+      return { ok: false, html: `Template Preview Error: ${String(e)}` };
+    }
+    showHint(`Template error: ${String(e)}`);
+    return { ok: false, html: "" };
+  }
+}
+
+/**
  * Render an `[item]` template through the sandboxed Liquid engine (U4).
  *
  * Builds the curated `item`/`items`/`note` context (no raw Zotero API exposed to
  * the template), renders, converts Markdown → HTML when the template declared
  * `<!--markdown-->`, and applies any post-render directives (e.g. `addTags`) to
- * the target note — unless this is a dry-run preview.
+ * the target note — unless this is a dry-run preview or the render failed.
  */
 async function runItemTemplateLiquid(
   meta: import("./engine").LiquidTemplateMeta,
@@ -290,12 +318,8 @@ async function runItemTemplateLiquid(
     now: new Date(),
   };
 
-  const rendered = await renderTemplate(meta.body, context);
-  const html = meta.markdown
-    ? await addon.api.convert.md2html(rendered)
-    : rendered;
-
-  if (!options.dryRun && targetNoteItem && meta.directives.addTags.length) {
+  const { ok, html } = await renderLiquid(meta, context, options.dryRun);
+  if (ok && !options.dryRun && targetNoteItem && meta.directives.addTags.length) {
     await applyDirectives(targetNoteItem, meta.directives);
   }
   return html;
@@ -320,12 +344,8 @@ async function runTextTemplateLiquid(
     now: new Date(),
   };
 
-  const rendered = await renderTemplate(meta.body, context);
-  const html = meta.markdown
-    ? await addon.api.convert.md2html(rendered)
-    : rendered;
-
-  if (!options.dryRun && noteItem && meta.directives.addTags.length) {
+  const { ok, html } = await renderLiquid(meta, context, options.dryRun);
+  if (ok && !options.dryRun && noteItem && meta.directives.addTags.length) {
     await applyDirectives(noteItem, meta.directives);
   }
   return html;
