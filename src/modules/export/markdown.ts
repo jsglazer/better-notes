@@ -1,6 +1,6 @@
 import { showHintWithLink } from "../../utils/hint";
 import { getPref } from "../../utils/prefs";
-import { formatPath, jointPath } from "../../utils/str";
+import { formatPath, jointPath, writeFileAtomic } from "../../utils/str";
 
 export async function saveMD(
   filename: string,
@@ -21,7 +21,7 @@ export async function saveMD(
     );
     await IOUtils.makeDirectory(attachmentsDir);
   }
-  await Zotero.File.putContentsAsync(
+  await writeFileAtomic(
     filename,
     await addon.api.convert.note2md(noteItem, dir, options),
   );
@@ -57,7 +57,15 @@ export async function syncMDBatch(
       withYAMLHeader: true,
       cachedYAMLHeader: metaList?.[i],
     });
-    await Zotero.File.putContentsAsync(filePath, content);
+    await writeFileAtomic(filePath, content);
+    // Record the freshly-written file's mtime so the sync stat-gate can skip
+    // re-reading this file next cycle while it stays unchanged.
+    let mdModified = 0;
+    try {
+      mdModified = (await IOUtils.stat(filePath)).lastModified || 0;
+    } catch (e) {
+      ztoolkit.log("syncMDBatch stat after write failed", e);
+    }
     addon.api.sync.updateSyncStatus(noteItem.id, {
       path: saveDir,
       filename,
@@ -68,6 +76,7 @@ export async function syncMDBatch(
       ),
       noteMd5: Zotero.Utilities.Internal.md5(noteItem.getNote(), false),
       lastsync: new Date().getTime(),
+      mdModified,
     });
     i += 1;
   }

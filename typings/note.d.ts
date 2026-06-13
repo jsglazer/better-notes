@@ -21,6 +21,12 @@ declare interface SyncStatus {
   noteMd5: string;
   lastsync: number;
   itemID: number;
+  /**
+   * File mtime (ms) of the MD file at the last sync. Used by the sync stat-gate
+   * to skip re-reading provably-unchanged files. Optional/back-compatible:
+   * absent on records written before U2 → stat-gate falls back to full compare.
+   */
+  mdModified?: number;
 }
 
 declare interface MDStatus {

@@ -106,10 +106,26 @@ async function callSyncing(
     for (const item of items) {
       const syncStatus = addon.api.sync.getSyncStatus(item.id);
       const filepath = syncStatus.path;
-      const mdStatus = await addon.api.sync.getMDStatus(item.id);
-      mdStatusMap[item.id] = mdStatus;
 
-      const compareResult = await doCompare(item, mdStatus);
+      // Stat-gate: when the MD file is provably unchanged since the last sync
+      // AND the note is unchanged, short-circuit to UpToDate and skip the
+      // expensive file read+parse+hash. This only ever short-circuits on
+      // positive "unchanged" signals; any doubt falls through to the full
+      // compare below (which is the pre-U2 behavior), so it can never miss a
+      // real change. See brainstorm.md U2.
+      let compareResult: SyncCode;
+      if (await isFastUpToDate(item, syncStatus)) {
+        compareResult = SyncCode.UpToDate;
+      } else {
+        const mdStatus = await addon.api.sync.getMDStatus(item.id);
+        mdStatusMap[item.id] = mdStatus;
+        compareResult = await doCompare(item, mdStatus);
+        // Self-populate the file mtime baseline so the next cycle can fast-path
+        // while everything stays in sync.
+        if (compareResult === SyncCode.UpToDate && mdStatus.meta) {
+          persistMdModified(item.id, syncStatus, mdStatus.lastmodify.getTime());
+        }
+      }
       switch (compareResult) {
         case SyncCode.NoteAhead:
           if (Object.keys(toExport).includes(filepath)) {
@@ -209,6 +225,55 @@ async function callSyncing(
     progress?.startCloseTimer(5000);
   }
   addon.data.sync.lock = false;
+}
+
+/**
+ * Conservative fast path for the sync compare loop. Returns true only when both
+ * the MD file and the note are provably unchanged since the last sync, so the
+ * caller can treat the note as UpToDate without reading/parsing the file.
+ *
+ * Safety invariant: returns true ONLY on positive "unchanged" signals
+ * (file mtime identical to last sync AND note md5 identical to last sync). Any
+ * missing baseline, missing/unreadable file, differing mtime, or differing note
+ * hash returns false → caller does the full compare. It therefore can produce a
+ * false "do a full compare" (harmless, just the old cost) but never a false
+ * "unchanged" (which would miss a real change).
+ */
+async function isFastUpToDate(
+  noteItem: Zotero.Item,
+  syncStatus: SyncStatus,
+): Promise<boolean> {
+  // No mtime baseline yet (pre-U2 record, or first sync) → full compare.
+  if (!syncStatus.mdModified) {
+    return false;
+  }
+  const filepath = jointPath(syncStatus.path, syncStatus.filename);
+  let fileMtime: number;
+  try {
+    fileMtime = (await IOUtils.stat(filepath)).lastModified || 0;
+  } catch (e) {
+    // Missing/unreadable → let getMDStatus + doCompare decide.
+    return false;
+  }
+  // MD file changed on disk since last sync → full compare.
+  if (fileMtime !== syncStatus.mdModified) {
+    return false;
+  }
+  // MD unchanged; confirm the note side is also unchanged.
+  const noteMd5 = Zotero.Utilities.Internal.md5(noteItem.getNote(), false);
+  return noteMd5 === syncStatus.noteMd5;
+}
+
+/** Persist the MD file mtime baseline used by {@link isFastUpToDate}. */
+function persistMdModified(
+  noteId: number,
+  syncStatus: SyncStatus,
+  mtime: number,
+) {
+  if (syncStatus.mdModified === mtime) {
+    return;
+  }
+  addon.api.sync.updateSyncStatus(noteId, { ...syncStatus, mdModified: mtime });
 }
 
 async function doCompare(

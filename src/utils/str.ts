@@ -44,6 +44,29 @@ export async function getFileContent(path: string) {
   return await res.text();
 }
 
+/**
+ * Write a file atomically: write to a sibling temp file, then rename over the
+ * target. A rename on the same filesystem is atomic, so a crash mid-write can
+ * never leave a truncated/half-written note on disk (a concern when an external
+ * tool such as Obsidian is watching the folder). Same write semantics as
+ * `Zotero.File.putContentsAsync`; only the durability is improved.
+ */
+export async function writeFileAtomic(filePath: string, content: string) {
+  const tmpPath = `${filePath}.bn-${randomString(8)}.tmp`;
+  try {
+    await Zotero.File.putContentsAsync(tmpPath, content);
+    // IOUtils.move overwrites the destination by default (noOverwrite=false).
+    await IOUtils.move(tmpPath, filePath);
+  } catch (e) {
+    try {
+      await IOUtils.remove(tmpPath, { ignoreAbsent: true });
+    } catch (cleanupErr) {
+      ztoolkit.log("writeFileAtomic cleanup failed", cleanupErr);
+    }
+    throw e;
+  }
+}
+
 export function randomString(len: number, seed?: string, chars?: string) {
   if (!chars) {
     chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
