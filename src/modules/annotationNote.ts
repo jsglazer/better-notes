@@ -247,10 +247,10 @@ async function createNoteFromAnnotation(
   note.parentID = annotationItem.parentItem!.parentID;
   await note.saveTx();
 
-  const renderedTemplate = await addon.api.template.runTemplate(
-    "[QuickNoteV5]",
-    "annotationItem, topItem, noteItem",
-    [annotationItem, annotationItem.parentItem!.parentItem, note],
+  const renderedTemplate = await addon.api.template.runQuickNoteTemplate(
+    annotationItem,
+    annotationItem.parentItem!.parentItem,
+    note,
   );
   await addLineToNote(note, renderedTemplate);
 

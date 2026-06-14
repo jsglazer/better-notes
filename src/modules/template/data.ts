@@ -32,17 +32,13 @@ const DEFAULT_TEMPLATES = <NoteTemplate[]>[
 </blockquote>`,
   },
   {
+    // Flipped to Liquid (U4). Host pre-computes `commentHTML` (the annotation's
+    // Markdown comment → HTML, only when present) and the annotation HTML via
+    // the shared `{% annotations %}` tag (rendered with ignoreComment). NOT
+    // markdown — both pieces are already HTML.
     name: "[QuickNoteV5]",
-    text: `\${{
-  let res = "";
-  if (annotationItem.annotationComment) {
-    res += await Zotero.BetterNotes.api.convert.md2html(
-      annotationItem.annotationComment
-    );
-  }
-  res += await Zotero.BetterNotes.api.convert.annotations2html([annotationItem], {noteItem, ignoreComment: true});
-  return res;
-}}$`,
+    text: `<!--liquid-->
+{{ commentHTML }}{% annotations %}`,
   },
   {
     name: "[ExportMDFileNameV2]",

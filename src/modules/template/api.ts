@@ -17,6 +17,7 @@ export {
   runItemTemplate,
   runQuickInsertTemplate,
   runQuickImportTemplate,
+  runQuickNoteTemplate,
   runLiquidIfLiquid,
 };
 
@@ -522,6 +523,63 @@ async function runQuickImportTemplate(
     "[QuickImportV2]",
     "link, noteItem",
     [link, targetNoteItem],
+    { dryRun: options.dryRun },
+  );
+}
+
+/**
+ * Run [QuickNoteV5] (note created from a single annotation). A Liquid template
+ * gets the host-pre-computed comment HTML (`commentHTML` — the annotation's
+ * Markdown comment via md2html, only when present, matching legacy) plus the
+ * annotation's own HTML through the shared `{% annotations %}` tag
+ * (`__annotationsHTML__`, rendered with `ignoreComment` so the comment isn't
+ * duplicated). The template stays pure. Legacy JS falls through to runTemplate.
+ */
+async function runQuickNoteTemplate(
+  annotationItem: Zotero.Item,
+  topItem: Zotero.Item | undefined,
+  targetNoteItem: Zotero.Item | undefined,
+  options: { dryRun?: boolean } = {},
+): Promise<string> {
+  const liquidMeta = parseLiquidTemplate(
+    addon.api.template.getTemplateText("[QuickNoteV5]"),
+  );
+  if (liquidMeta.isLiquid) {
+    let commentHTML = "";
+    const comment = annotationItem.annotationComment;
+    if (comment) {
+      try {
+        commentHTML = await addon.api.convert.md2html(comment);
+      } catch (e) {
+        ztoolkit.log("QuickNote comment md2html failed", e);
+      }
+    }
+    let annotationsHTML = "";
+    try {
+      annotationsHTML = await addon.api.convert.annotations2html(
+        [annotationItem],
+        { noteItem: targetNoteItem, ignoreComment: true },
+      );
+    } catch (e) {
+      ztoolkit.log("QuickNote annotations2html failed", e);
+    }
+    const context = {
+      commentHTML,
+      __annotationsHTML__: annotationsHTML,
+      note:
+        targetNoteItem && targetNoteItem.isNote && targetNoteItem.isNote()
+          ? await buildNoteModel(targetNoteItem)
+          : null,
+      now: new Date(),
+    };
+    const { html } = await renderLiquid(liquidMeta, context, options.dryRun);
+    return html;
+  }
+
+  return await runTemplate(
+    "[QuickNoteV5]",
+    "annotationItem, topItem, noteItem",
+    [annotationItem, topItem, targetNoteItem],
     { dryRun: options.dryRun },
   );
 }

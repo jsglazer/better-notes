@@ -41,6 +41,7 @@ import {
   runItemTemplate,
   runQuickInsertTemplate,
   runQuickImportTemplate,
+  runQuickNoteTemplate,
   runLiquidIfLiquid,
 } from "./modules/template/api";
 import {
@@ -137,6 +138,7 @@ const template = {
   runItemTemplate,
   runQuickInsertTemplate,
   runQuickImportTemplate,
+  runQuickNoteTemplate,
   runLiquidIfLiquid,
   getTemplateKeys,
   getTemplateText,
