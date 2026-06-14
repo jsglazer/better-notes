@@ -42,6 +42,20 @@ function getEngine(): Liquid {
   engine.registerFilter("md", async (value: unknown) => {
     return await addon.api.convert.md2html(value == null ? "" : String(value));
   });
+  // `{% annotations %}` render tag: emits the item's annotation HTML, which the
+  // host pre-computes (via the convert worker, with image embedding) and places
+  // on the context as `__annotationsHTML__`. The tag itself stays pure — no
+  // Zotero access — preserving the sandbox; it only reads pre-rendered data.
+  // Inert in non-Zotero contexts: absent context key → empty string.
+  engine.registerTag("annotations", {
+    parse() {},
+    // ctx is liquidjs's Context; read the host-provided root environment value.
+    render(ctx: { environments?: Record<string, unknown> }) {
+      const env = (ctx.environments ?? {}) as Record<string, unknown>;
+      const v = env.__annotationsHTML__;
+      return v == null ? "" : String(v);
+    },
+  } as Parameters<Liquid["registerTag"]>[1]);
   return engine;
 }
 

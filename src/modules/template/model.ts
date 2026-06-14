@@ -79,6 +79,33 @@ export function getCiteKey(item: Zotero.Item): string {
   return key;
 }
 
+/**
+ * Collect every annotation item belonging to a regular item (across its file
+ * attachments) or to an attachment directly. Best-effort: any attachment that
+ * can't be read is skipped. Used to feed the `{% annotations %}` render tag.
+ */
+export function collectItemAnnotations(item: Zotero.Item): Zotero.Item[] {
+  try {
+    if (item.isAttachment()) {
+      return item.getAnnotations();
+    }
+    const out: Zotero.Item[] = [];
+    for (const attID of item.getAttachments()) {
+      const att = Zotero.Items.get(attID);
+      try {
+        if (att?.isAttachment()) {
+          out.push(...att.getAnnotations());
+        }
+      } catch (e) {
+        // Skip attachments whose annotations can't be read.
+      }
+    }
+    return out;
+  } catch (e) {
+    return [];
+  }
+}
+
 function toCreatorModel(c: {
   firstName?: string;
   lastName?: string;

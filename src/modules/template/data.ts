@@ -133,4 +133,14 @@ const DEFAULT_TEMPLATES = <NoteTemplate[]>[
     text: `<!--liquid-->
 **Current Time**: {{ now | date: "%Y-%m-%d %H:%M" }}`,
   },
+  {
+    // Sandboxed (Liquid) [item] parity test for the `{% annotations %}` render
+    // tag (U4). NOT markdown: the tag emits annotation HTML (with embedded
+    // images on a live run), so the body is HTML to avoid md2html mangling it.
+    name: "[item]Annotations-Liquid",
+    text: `<!--liquid-->
+<h1>{{ item.citekey }}</h1>
+<h2>Annotations</h2>
+{% annotations %}`,
+  },
 ];

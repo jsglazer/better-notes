@@ -4,7 +4,11 @@ import { getString } from "../../utils/locale";
 import { fill, slice } from "../../utils/str";
 import { showHint } from "../../utils/hint";
 import { parseLiquidTemplate, renderTemplate } from "./engine";
-import { buildItemModel, buildNoteModel } from "./model";
+import {
+  buildItemModel,
+  buildNoteModel,
+  collectItemAnnotations,
+} from "./model";
 import { applyDirectives } from "./directives";
 
 export {
@@ -311,12 +315,33 @@ async function runItemTemplateLiquid(
   const noteModel = targetNoteItem
     ? await buildNoteModel(targetNoteItem)
     : null;
-  const context = {
+  const context: Record<string, unknown> = {
     items: itemModels,
     item: itemModels[0] ?? null,
     note: noteModel,
     now: new Date(),
   };
+
+  // `{% annotations %}` support: pre-compute the primary item's annotation HTML
+  // (with image embedding into the target note on a live run) and hand it to the
+  // tag via the context. Only runs when the template actually uses the tag, so
+  // templates without it never pay the worker round-trip. On a dry-run preview
+  // we omit the note so no images are imported.
+  if (/\{%-?\s*annotations\b/.test(meta.body)) {
+    const primary = items[0];
+    let annotationsHTML = "";
+    if (primary) {
+      try {
+        const annots = collectItemAnnotations(primary);
+        annotationsHTML = await addon.api.convert.annotations2html(annots, {
+          noteItem: options.dryRun ? undefined : targetNoteItem,
+        });
+      } catch (e) {
+        ztoolkit.log("annotations tag pre-compute failed", e);
+      }
+    }
+    context.__annotationsHTML__ = annotationsHTML;
+  }
 
   const { ok, html } = await renderLiquid(meta, context, options.dryRun);
   if (ok && !options.dryRun && targetNoteItem && meta.directives.addTags.length) {
