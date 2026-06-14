@@ -423,5 +423,12 @@ async function getItemTemplateData() {
       return [];
     }
   }
+  // No top items and no library selection (e.g. creating an item note while
+  // editing a note, not in the reader): use the note's parent item as the
+  // template source so [item] fields render instead of coming out blank.
+  const parentItemId = addon.data.template.picker.data.parentItemId;
+  if (parentItemId) {
+    return [parentItemId];
+  }
   return await itemPicker();
 }
