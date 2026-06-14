@@ -175,22 +175,13 @@ async function getMDStatus(
 
 async function getMDFileName(noteId: number, _searchDir?: string) {
   const noteItem = Zotero.Items.get(noteId);
-  // Derive filename from [ExportMDFileNameV2]. Liquid templates render through
-  // the sandboxed engine with the curated note model; legacy JS templates fall
-  // through to runTemplate. Always non-empty (note key as the last-resort floor).
+  // Derive filename from the [ExportMDFileNameV2] Liquid template with the
+  // curated note model; note key as the last-resort floor so it's never empty.
   const liquidOut = await addon.api.template.runLiquidIfLiquid(
     "[ExportMDFileNameV2]",
     { note: await buildNoteModel(noteItem), now: new Date() },
   );
-  const filename = (
-    liquidOut ??
-    (await addon.api.template.runTemplate(
-      "[ExportMDFileNameV2]",
-      "noteItem",
-      [noteItem],
-    )) ??
-    ""
-  ).trim();
+  const filename = (liquidOut ?? "").trim();
   return filename || `${noteItem.key}.md`;
 }
 

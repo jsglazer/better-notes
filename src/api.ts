@@ -1,6 +1,7 @@
 import {
   md2note,
   note2md,
+  buildExportHeader,
   note2noteDiff,
   note2link,
   link2note,
@@ -36,7 +37,6 @@ import {
 } from "./modules/sync/api";
 import { syncLinkedNoteOnEdit } from "./modules/sync/autoLink";
 import {
-  runTemplate,
   runTextTemplate,
   runItemTemplate,
   runQuickInsertTemplate,
@@ -53,6 +53,7 @@ import {
 import {
   SYSTEM_TEMPLATE_NAMES,
   DEFAULT_TEMPLATES,
+  OBSOLETE_TEMPLATE_NAMES,
 } from "./modules/template/data";
 import { renderTemplatePreview } from "./modules/template/preview";
 import { parseCitationHTML } from "./utils/citation";
@@ -116,6 +117,7 @@ const sync = {
 const convert = {
   md2note,
   note2md,
+  buildExportHeader,
   note2noteDiff,
   note2link,
   link2note,
@@ -133,7 +135,7 @@ const convert = {
 const template = {
   SYSTEM_TEMPLATE_NAMES,
   DEFAULT_TEMPLATES,
-  runTemplate,
+  OBSOLETE_TEMPLATE_NAMES,
   runTextTemplate,
   runItemTemplate,
   runQuickInsertTemplate,

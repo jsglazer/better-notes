@@ -31,6 +31,14 @@ function initTemplates() {
     });
     setTemplateKeys(Array.from(new Set(keys)));
   }
+  // U4: prune obsolete templates left in prefs — the legacy JS engine is gone,
+  // so a stored `[item]ItemNoteMD05` / `[ExportMDFileHeaderV2]` would only ever
+  // show the "convert to Liquid" notice. Remove them outright.
+  for (const obsolete of addon.api.template.OBSOLETE_TEMPLATE_NAMES) {
+    if (getTemplateKeys().includes(obsolete)) {
+      removeTemplate(obsolete);
+    }
+  }
   // Add default templates; always reset system templates to their shipped defaults
   const templateKeys = getTemplateKeys();
   for (const defaultTemplate of addon.api.template.DEFAULT_TEMPLATES) {

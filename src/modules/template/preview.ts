@@ -32,34 +32,23 @@ async function renderTemplatePreview(
       if (!data) {
         html = messages.noNoteItem;
       } else {
-        html = await addon.api.template.runTemplate(
-          templateName,
-          "noteItem",
-          [data],
-          {
-            dryRun: true,
-          },
-        );
+        html = await addon.api.sync.getMDFileName(data.id);
       }
     } else if (templateName.includes("ExportMDFileHeader")) {
-      // noteItem
+      // noteItem — header is built by buildExportHeader (no longer a template)
       const data = inputItems?.find((item) => item.isNote());
       if (!data) {
         html = messages.noNoteItem;
       } else {
-        const raw = await addon.api.template.runTemplate(
-          templateName,
-          "noteItem",
-          [data],
+        const header = Object.assign(
+          {},
+          await addon.api.convert.buildExportHeader(data),
           {
-            dryRun: true,
+            version: data.version,
+            libraryID: data.libraryID,
+            itemKey: data.key,
           },
         );
-        const header = Object.assign({}, JSON.parse(raw), {
-          version: data.version,
-          libraryID: data.libraryID,
-          itemKey: data.key,
-        });
         html = `<pre>${YAML.stringify(header)}</pre>`;
       }
     } else if (templateName.includes("ExportMDFileContent")) {
@@ -93,18 +82,10 @@ async function renderTemplatePreview(
       if (!data) {
         html = messages.noNoteItem;
       } else {
-        const link = getNoteLink(data);
-        const linkText = data.getNoteTitle().trim() || link;
-        const subNoteItem = data;
         const noteItem = new Zotero.Item("note");
-        html = await addon.api.template.runTemplate(
-          templateName,
-          "link, linkText, subNoteItem, noteItem",
-          [link, linkText, subNoteItem, noteItem],
-          {
-            dryRun: true,
-          },
-        );
+        html = await addon.api.template.runQuickInsertTemplate(data, noteItem, {
+          dryRun: true,
+        });
       }
     } else if (templateName.includes("QuickImport")) {
       // link, noteItem
@@ -112,16 +93,11 @@ async function renderTemplatePreview(
       if (!data) {
         html = messages.noNoteItem;
       } else {
-        const link = getNoteLink(data);
+        const link = getNoteLink(data) || "";
         const noteItem = new Zotero.Item("note");
-        html = await addon.api.template.runTemplate(
-          templateName,
-          "link, noteItem",
-          [link, noteItem],
-          {
-            dryRun: true,
-          },
-        );
+        html = await addon.api.template.runQuickImportTemplate(link, noteItem, {
+          dryRun: true,
+        });
       }
     } else if (templateName.includes("QuickNote")) {
       // annotationItem, topItem, noteItem

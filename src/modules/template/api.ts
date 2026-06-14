@@ -1,4 +1,3 @@
-import * as YAML from "yaml";
 import { itemPicker } from "../../utils/itemPicker";
 import { getString } from "../../utils/locale";
 import { fill, slice } from "../../utils/str";
@@ -12,7 +11,6 @@ import {
 import { applyDirectives } from "./directives";
 
 export {
-  runTemplate,
   runTextTemplate,
   runItemTemplate,
   runQuickInsertTemplate,
@@ -21,105 +19,16 @@ export {
   runLiquidIfLiquid,
 };
 
-const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
-
-async function runTemplate(
-  key: string,
-  argString: string = "",
-  argList: any[] = [],
-  options: {
-    useDefault?: boolean;
-    dryRun?: boolean;
-    stage?: string;
-  } = {
-    useDefault: true,
-    dryRun: false,
-    stage: "default",
-  },
-): Promise<string> {
-  ztoolkit.log(`runTemplate: ${key}`);
-  if (argList.length > 0) {
-    argString += ", ";
-  }
-  argString += "_env";
-  argList.push({
-    dryRun: options.dryRun,
-  });
-  let templateText = addon.api.template.getTemplateText(key);
-  if (options.useDefault && !templateText) {
-    templateText =
-      addon.api.template.DEFAULT_TEMPLATES.find((t) => t.name === key)?.text ||
-      "";
-    if (!templateText) {
-      return "";
-    }
-  }
-
-  if (!options.stage) {
-    options.stage = "default";
-  }
-  let templateLines = templateText.split(/\r?\n/);
-  let startIndex = templateLines.indexOf(`// @${options.stage}-begin`),
-    endIndex = templateLines.indexOf(`// @${options.stage}-end`);
-  if (
-    startIndex < 0 &&
-    endIndex < 0 &&
-    typeof options.stage === "string" &&
-    options.stage !== "default"
-  ) {
-    // Skip this stage
-    return "";
-  }
-  if (startIndex < 0) {
-    // We skip the pragma line later
-    startIndex = -1;
-  }
-  if (endIndex < 0) {
-    endIndex = templateLines.length;
-  }
-  // Check the markdown pragma
-  templateLines = templateLines.slice(startIndex + 1, endIndex);
-  let useMarkdown = false;
-  const mdIndex = templateLines.findIndex((line) =>
-    line.startsWith("// @use-markdown"),
-  );
-  if (mdIndex >= 0) {
-    useMarkdown = true;
-  }
-  // Skip other pragmas
-  templateLines = templateLines.filter((line) => !line.startsWith("// @"));
-  templateText = templateLines.join("\n");
-
-  function constructFunction(content: string) {
-    return `$\{await (async () => {
-        ${content}
-      })()}`;
-  }
-
-  // Replace string inside ${{}}$ to async function
-  templateText = templateText.replace(
-    /\$\{\{([\s\S]*?)\}\}\$/g,
-    (match, content) => {
-      return constructFunction(content);
-    },
-  );
-
-  try {
-    const func = new AsyncFunction(argString, "return `" + templateText + "`");
-    let res = (await func(...argList)) as string;
-    if (useMarkdown) {
-      res = await addon.api.convert.md2html(res);
-    }
-    ztoolkit.log(res);
-    return res;
-  } catch (e) {
-    ztoolkit.log(e);
-    if (options.dryRun) {
-      return "Template Preview Error: " + String(e);
-    }
-    Zotero.getMainWindow().alert(`Template ${key} Error: ${e}`);
-    return "";
-  }
+/**
+ * The legacy `AsyncFunction` template engine (arbitrary-JS eval + `${{…}}$`
+ * rewriter + `// @` pragma/stage machinery) was removed in U4 — templates are
+ * now sandboxed Liquid. A template that never opted into Liquid
+ * (`<!--liquid-->`) can no longer be executed; instead of evaluating arbitrary
+ * JS (or crashing), every runner returns this clear, safe notice so the user
+ * knows to convert it. Doubles as the editor-preview message.
+ */
+function legacyNotice(key: string): string {
+  return `⚠ Template "${key}" uses the removed JavaScript engine. Convert it to Liquid by adding "<!--liquid-->" as the first line.`;
 }
 
 async function runTextTemplate(
@@ -132,33 +41,14 @@ async function runTextTemplate(
   const { targetNoteId, dryRun } = options;
   const targetNoteItem = Zotero.Items.get(targetNoteId || -1);
 
-  // Route sandboxed (Liquid) [text] templates to the engine; legacy falls
-  // through to the AsyncFunction path. Mirrors runItemTemplate (U4).
+  // [text] templates are Liquid-only since U4; anything else gets the notice.
   const liquidMeta = parseLiquidTemplate(
     addon.api.template.getTemplateText(key),
   );
   if (liquidMeta.isLiquid) {
     return await runTextTemplateLiquid(liquidMeta, targetNoteItem, { dryRun });
   }
-
-  const sharedObj = {};
-  let renderedString = await runTemplate(
-    key,
-    "targetNoteItem, sharedObj",
-    [targetNoteItem, sharedObj],
-    {
-      dryRun,
-    },
-  );
-
-  const templateText = addon.api.template.getTemplateText(key);
-  // Find if any line starts with // @use-refresh using regex
-  if (/\/\/ @use-refresh/.test(templateText)) {
-    renderedString = wrapYAMLData(renderedString, {
-      template: key,
-    });
-  }
-  return renderedString;
+  return legacyNotice(key);
 }
 
 async function runItemTemplate(
@@ -193,9 +83,7 @@ async function runItemTemplate(
 
   const items = itemIds?.map((id) => Zotero.Items.get(id)) || [];
 
-  // New sandboxed (Liquid) templates are routed here; legacy JS templates fall
-  // through to the AsyncFunction path below. Detected by the `<!--liquid-->`
-  // sentinel so the two can coexist during the migration (U4).
+  // [item] templates are Liquid-only since U4; anything else gets the notice.
   const liquidMeta = parseLiquidTemplate(
     addon.api.template.getTemplateText(key),
   );
@@ -204,73 +92,7 @@ async function runItemTemplate(
       dryRun,
     });
   }
-
-  const copyImageRefNotes: Zotero.Item[] = [];
-  const copyNoteImage = (noteItem: Zotero.Item) => {
-    copyImageRefNotes.push(noteItem);
-  };
-
-  const sharedObj = {};
-
-  const results = [];
-
-  results.push(
-    await runTemplate(
-      key,
-      "items, targetNoteItem, copyNoteImage, sharedObj",
-      [items, targetNoteItem, copyNoteImage, sharedObj],
-      {
-        stage: "beforeloop",
-        useDefault: false,
-        dryRun,
-      },
-    ),
-  );
-
-  for (const topItem of items) {
-    const itemNotes = topItem.isNote()
-      ? []
-      : Zotero.Items.get(topItem.getNotes());
-    results.push(
-      await runTemplate(
-        key,
-        "topItem, targetNoteItem, itemNotes, copyNoteImage, sharedObj",
-        [topItem, targetNoteItem, itemNotes, copyNoteImage, sharedObj],
-        {
-          dryRun,
-        },
-      ),
-    );
-  }
-
-  results.push(
-    await runTemplate(
-      key,
-      "items, targetNoteItem, copyNoteImage, sharedObj",
-      [items, targetNoteItem, copyNoteImage, sharedObj],
-      {
-        stage: "afterloop",
-        useDefault: false,
-        dryRun,
-      },
-    ),
-  );
-
-  const html = results.join("\n");
-  let renderedString = await addon.api.convert.note2html(copyImageRefNotes, {
-    targetNoteItem,
-    html,
-  });
-
-  const templateText = addon.api.template.getTemplateText(key);
-  // Find if any line starts with // @use-refresh using regex
-  if (/\/\/ @use-refresh/.test(templateText)) {
-    renderedString = wrapYAMLData(renderedString, {
-      template: key,
-      items: Array.from(items.map((item) => item.libraryKey)),
-    });
-  }
-  return renderedString;
+  return legacyNotice(key);
 }
 
 /**
@@ -441,7 +263,7 @@ async function runQuickInsertTemplate(
 
   // Route a Liquid (`<!--liquid-->`) [QuickInsertV3] through the sandboxed
   // engine with a curated context — only primitives + the note model, no raw
-  // Zotero items. Legacy JS templates fall through to the AsyncFunction path.
+  // Zotero items. A non-Liquid template returns the convert-to-Liquid notice.
   const liquidMeta = parseLiquidTemplate(
     addon.api.template.getTemplateText("[QuickInsertV3]"),
   );
@@ -462,23 +284,7 @@ async function runQuickInsertTemplate(
     return html;
   }
 
-  const content = await runTemplate(
-    "[QuickInsertV3]",
-    "link, linkText, subNoteItem, noteItem, lineIndex, sectionName, selectionText",
-    [
-      link,
-      linkText,
-      noteItem,
-      targetNoteItem,
-      options.lineIndex,
-      options.sectionName,
-      options.selectionText,
-    ],
-    {
-      dryRun: options.dryRun,
-    },
-  );
-  return content;
+  return legacyNotice("[QuickInsertV3]");
 }
 
 /**
@@ -486,7 +292,7 @@ async function runQuickInsertTemplate(
  * sandboxed engine: the host pre-computes the linked note's embedded HTML via
  * `link2html` (which needs the target note for image embedding + the dryRun
  * flag) and exposes it to the template as `linkContent`; the template stays
- * pure. Legacy JS templates fall through to the AsyncFunction path.
+ * pure. A non-Liquid template returns the convert-to-Liquid notice.
  */
 async function runQuickImportTemplate(
   link: string,
@@ -519,12 +325,7 @@ async function runQuickImportTemplate(
     return html;
   }
 
-  return await runTemplate(
-    "[QuickImportV2]",
-    "link, noteItem",
-    [link, targetNoteItem],
-    { dryRun: options.dryRun },
-  );
+  return legacyNotice("[QuickImportV2]");
 }
 
 /**
@@ -533,7 +334,7 @@ async function runQuickImportTemplate(
  * Markdown comment via md2html, only when present, matching legacy) plus the
  * annotation's own HTML through the shared `{% annotations %}` tag
  * (`__annotationsHTML__`, rendered with `ignoreComment` so the comment isn't
- * duplicated). The template stays pure. Legacy JS falls through to runTemplate.
+ * duplicated). The template stays pure. A non-Liquid template returns the notice.
  */
 async function runQuickNoteTemplate(
   annotationItem: Zotero.Item,
@@ -576,12 +377,7 @@ async function runQuickNoteTemplate(
     return html;
   }
 
-  return await runTemplate(
-    "[QuickNoteV5]",
-    "annotationItem, topItem, noteItem",
-    [annotationItem, topItem, targetNoteItem],
-    { dryRun: options.dryRun },
-  );
+  return legacyNotice("[QuickNoteV5]");
 }
 
 async function getItemTemplateData() {
@@ -628,11 +424,4 @@ async function getItemTemplateData() {
     }
   }
   return await itemPicker();
-}
-
-function wrapYAMLData(str: string, data: any) {
-  const yamlContent = YAML.stringify(data);
-  return `<hr>
-<pre>${yamlContent}</pre>${str}
-<hr>`;
 }

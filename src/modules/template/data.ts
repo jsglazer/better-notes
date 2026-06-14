@@ -6,10 +6,15 @@ const SYSTEM_TEMPLATE_NAMES = [
   "[QuickImportV2]",
   "[QuickNoteV5]",
   "[ExportMDFileNameV2]",
-  "[ExportMDFileHeaderV2]",
   "[ExportMDFileContent]",
   "[ExportLatexFileContent]",
 ];
+
+// Obsolete templates removed on startup (U4): the legacy JS engine is gone, so
+// `[item]ItemNoteMD05` (user's old custom template) and `[ExportMDFileHeaderV2]`
+// (replaced by the buildExportHeader() function) are pruned from stored prefs.
+const OBSOLETE_TEMPLATE_NAMES = ["[item]ItemNoteMD05", "[ExportMDFileHeaderV2]"];
+export { OBSOLETE_TEMPLATE_NAMES };
 
 // Non-system templates are removed from default templates
 const DEFAULT_TEMPLATES = <NoteTemplate[]>[
@@ -49,33 +54,6 @@ const DEFAULT_TEMPLATES = <NoteTemplate[]>[
     name: "[ExportMDFileNameV2]",
     text: `<!--liquid-->
 {%- if note.citekey != blank -%}{{ note.citekey }}.md{%- else -%}{{ note.title | sanitize_filename }}-{{ note.key }}.md{%- endif -%}`,
-  },
-  {
-    // DEPRECATED (U4): no longer invoked — the export header is now built by
-    // `buildExportHeader()` in convert.ts (JSON output is a poor fit for the
-    // text engine). Kept registered for backward compat / editor listing until
-    // the legacy AsyncFunction engine is removed.
-    name: "[ExportMDFileHeaderV2]",
-    text: `\${{
-  let header = {};
-  header.tags = noteItem.getTags().map((_t) => _t.tag);
-  header.parent = noteItem.parentItem
-    ? noteItem.parentItem.getField("title")
-    : "";
-  header.collections = (
-    await Zotero.Collections.getCollectionsContainingItems([
-      (noteItem.parentItem || noteItem).id,
-    ])
-  ).map((c) => c.name);
-  try {
-    const parentItem = noteItem.parentItem;
-    if (parentItem) {
-      const bbtKey = Zotero.BetterBibTeX.KeyManager.get(parentItem.id).citationKey;
-      if (bbtKey) header.CitationKey = bbtKey;
-    }
-  } catch(e) {}
-  return JSON.stringify(header);
-}}$`,
   },
   {
     // Liquid passthrough (U4). NOT markdown — the output stays raw Markdown for
