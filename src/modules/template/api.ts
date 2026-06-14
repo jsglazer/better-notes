@@ -16,6 +16,7 @@ export {
   runTextTemplate,
   runItemTemplate,
   runQuickInsertTemplate,
+  runQuickImportTemplate,
   runLiquidIfLiquid,
 };
 
@@ -477,6 +478,52 @@ async function runQuickInsertTemplate(
     },
   );
   return content;
+}
+
+/**
+ * Run [QuickImportV2] (embed a linked note). Routes a Liquid template through the
+ * sandboxed engine: the host pre-computes the linked note's embedded HTML via
+ * `link2html` (which needs the target note for image embedding + the dryRun
+ * flag) and exposes it to the template as `linkContent`; the template stays
+ * pure. Legacy JS templates fall through to the AsyncFunction path.
+ */
+async function runQuickImportTemplate(
+  link: string,
+  targetNoteItem: Zotero.Item | undefined,
+  options: { dryRun?: boolean } = {},
+): Promise<string> {
+  const liquidMeta = parseLiquidTemplate(
+    addon.api.template.getTemplateText("[QuickImportV2]"),
+  );
+  if (liquidMeta.isLiquid) {
+    let linkContent = "";
+    try {
+      linkContent = await addon.api.convert.link2html(link, {
+        noteItem: targetNoteItem,
+        dryRun: options.dryRun,
+      });
+    } catch (e) {
+      ztoolkit.log("link2html pre-compute failed", e);
+    }
+    const context = {
+      link,
+      linkContent,
+      note:
+        targetNoteItem && targetNoteItem.isNote && targetNoteItem.isNote()
+          ? await buildNoteModel(targetNoteItem)
+          : null,
+      now: new Date(),
+    };
+    const { html } = await renderLiquid(liquidMeta, context, options.dryRun);
+    return html;
+  }
+
+  return await runTemplate(
+    "[QuickImportV2]",
+    "link, noteItem",
+    [link, targetNoteItem],
+    { dryRun: options.dryRun },
+  );
 }
 
 async function getItemTemplateData() {

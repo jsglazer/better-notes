@@ -295,10 +295,9 @@ async function embedLinkedNotes(noteItem: Zotero.Item): Promise<string> {
       .map((a) => getNoteLinkParams(a?.href))
       .filter((p) => p.noteItem && !p.ignore);
     for (const linkParam of linkParams) {
-      const html = await addon.api.template.runTemplate(
-        "[QuickImportV2]",
-        "link, noteItem",
-        [linkParam.link, noteItem],
+      const html = await addon.api.template.runQuickImportTemplate(
+        linkParam.link,
+        noteItem,
       );
       newLines.push(html);
       const citationData = getNoteCitationData(

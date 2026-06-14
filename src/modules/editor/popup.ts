@@ -76,11 +76,11 @@ async function updateEditorLinkPopup(editor: Zotero.EditorInstance) {
           type: "click",
           listener: async (e) => {
             if (!linkParams.ignore) {
-              const templateText = await addon.api.template.runTemplate(
-                "[QuickImportV2]",
-                "link, noteItem",
-                [link, editorNote],
-              );
+              const templateText =
+                await addon.api.template.runQuickImportTemplate(
+                  link,
+                  editorNote,
+                );
               // auto insert to anchor position
               updateURLAtCursor(
                 editor,

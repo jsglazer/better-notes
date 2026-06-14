@@ -22,11 +22,13 @@ const DEFAULT_TEMPLATES = <NoteTemplate[]>[
 [{{ linkText }}]({{ link }})`,
   },
   {
+    // Flipped to Liquid (U4). The host pre-computes the linked note's embedded
+    // HTML (link2html, incl. image embedding) into `linkContent`; the template
+    // emits it inside a blockquote. NOT markdown — linkContent is already HTML.
     name: "[QuickImportV2]",
-    text: `<blockquote>
-\${{
-  return await Zotero.BetterNotes.api.convert.link2html(link, {noteItem, dryRun: _env.dryRun});
-}}$
+    text: `<!--liquid-->
+<blockquote>
+{{ linkContent }}
 </blockquote>`,
   },
   {
