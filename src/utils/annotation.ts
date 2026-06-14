@@ -1,4 +1,36 @@
 import { importImageToNote } from "./note";
+import { getPref } from "./prefs";
+
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+/**
+ * User-assigned label for an annotation color — Better Notes' native color
+ * labeling (replaces the Highlight Descriptions plugin). Reads the per-color
+ * pref keyed by lowercase hex (no '#'); "" when unset or color is unknown.
+ */
+function getAnnotationColorLabel(color: string): string {
+  if (!color) {
+    return "";
+  }
+  const hex = color.replace(/^#/, "").toLowerCase();
+  try {
+    return ((getPref(`annotationColorLabel.${hex}`) as string) || "").trim();
+  } catch (e) {
+    return ""; // color has no declared pref (non-standard color)
+  }
+}
+
+/** Insert a bold color label just inside the first block tag of an annotation. */
+function prependColorLabel(html: string, label: string): string {
+  const badge = `<strong>${escapeHtml(label)}:</strong> `;
+  const m = html.match(/^(\s*<(?:p|li|blockquote|div)\b[^>]*>)/i);
+  if (m) {
+    return html.slice(0, m[0].length) + badge + html.slice(m[0].length);
+  }
+  return badge + html;
+}
 
 declare type CustomAnnotationJSON =
   Partial<_ZoteroTypes.Annotations.AnnotationJson> & {
@@ -179,8 +211,11 @@ function serializeAnnotations(
       (match, p1, p2, p3) => p1 + "{{highlight quotes='false'}}" + p3,
     );
 
+    const colorLabel = getAnnotationColorLabel(annotation.color || "");
     const vars = {
       color: annotation.color || "",
+      // Better Notes native color label (replaces Highlight Descriptions).
+      colorLabel,
       // Include quotation marks by default, but allow to disable with `quotes='false'`
       highlight: (attrs: any) =>
         attrs.quotes === "false" ? highlightHTML : quotedHighlightHTML,
@@ -198,6 +233,11 @@ function serializeAnnotations(
       template,
       vars,
     );
+    // Show the color label out of the box: if the annotation template didn't
+    // place `{{colorLabel}}` itself, prepend the label (when one is set).
+    if (colorLabel && !/\{\{\s*colorLabel\b/.test(template)) {
+      templateHTML = prependColorLabel(templateHTML, colorLabel);
+    }
     // Remove some spaces at the end of paragraph
     templateHTML = templateHTML.replace(/([\s]*)(<\/p)/g, "$2");
     // Remove multiple spaces

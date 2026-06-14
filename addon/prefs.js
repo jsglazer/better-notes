@@ -21,3 +21,14 @@ pref("__prefsPrefix__.exportNotes.takeover", true);
 
 pref("__prefsPrefix__.annotationNote.enableTagSync", true);
 pref("__prefsPrefix__.annotationNote.enableCreateNoteButton", true);
+
+// Native annotation color labels (replaces the Highlight Descriptions plugin).
+// Empty = no label for that color. Keyed by lowercase hex (no '#').
+pref("__prefsPrefix__.annotationColorLabel.ffd400", "");
+pref("__prefsPrefix__.annotationColorLabel.ff6666", "");
+pref("__prefsPrefix__.annotationColorLabel.5fb236", "");
+pref("__prefsPrefix__.annotationColorLabel.2ea8e5", "");
+pref("__prefsPrefix__.annotationColorLabel.a28ae5", "");
+pref("__prefsPrefix__.annotationColorLabel.e56eee", "");
+pref("__prefsPrefix__.annotationColorLabel.f19837", "");
+pref("__prefsPrefix__.annotationColorLabel.aaaaaa", "");

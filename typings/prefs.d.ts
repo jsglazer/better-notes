@@ -24,6 +24,14 @@ declare namespace _ZoteroTypes {
       "exportNotes.takeover": boolean;
       "annotationNote.enableTagSync": boolean;
       "annotationNote.enableCreateNoteButton": boolean;
+      "annotationColorLabel.ffd400": string;
+      "annotationColorLabel.ff6666": string;
+      "annotationColorLabel.5fb236": string;
+      "annotationColorLabel.2ea8e5": string;
+      "annotationColorLabel.a28ae5": string;
+      "annotationColorLabel.e56eee": string;
+      "annotationColorLabel.f19837": string;
+      "annotationColorLabel.aaaaaa": string;
     };
   }
 }

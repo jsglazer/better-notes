@@ -1,6 +1,6 @@
 {
   "name": "zotero-better-notes",
-  "version": "1.0.42",
+  "version": "1.0.43",
   "description": "A Zotero plugin to expand the capability of notes and sync notes to other locations. This is a fork of Windingwing's excellent zotero-better-notes plugin.",
   "config": {
     "addonName": "Better Notes",
