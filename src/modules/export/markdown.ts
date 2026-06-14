@@ -73,17 +73,18 @@ export async function syncMDBatch(
     } catch (e) {
       ztoolkit.log("syncMDBatch stat after write failed", e);
     }
+    // Front-matter-stripped body = the agreed state at this sync. Stored as the
+    // diff3 common ancestor (U2b) and hashed for the stat-gate.
+    const baseMd = addon.api.sync.getMDStatusFromContent(content).content;
     addon.api.sync.updateSyncStatus(noteItem.id, {
       path: saveDir,
       filename,
       itemID: noteItem.id,
-      md5: Zotero.Utilities.Internal.md5(
-        addon.api.sync.getMDStatusFromContent(content).content,
-        false,
-      ),
+      md5: Zotero.Utilities.Internal.md5(baseMd, false),
       noteMd5: Zotero.Utilities.Internal.md5(noteItem.getNote(), false),
       lastsync: new Date().getTime(),
       mdModified,
+      baseMd,
     });
     i += 1;
   }

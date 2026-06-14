@@ -27,6 +27,13 @@ declare interface SyncStatus {
    * absent on records written before U2 → stat-gate falls back to full compare.
    */
   mdModified?: number;
+  /**
+   * The Markdown body (front-matter stripped) the note and file agreed on at the
+   * last successful sync — the common ancestor for U2b diff3 3-way auto-merge.
+   * Optional/back-compatible: absent → no baseline, so a both-sides change falls
+   * back to the manual conflict dialog (pre-U2b behavior).
+   */
+  baseMd?: string;
 }
 
 declare interface MDStatus {
