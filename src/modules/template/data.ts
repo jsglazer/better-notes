@@ -14,9 +14,12 @@ const SYSTEM_TEMPLATE_NAMES = [
 // Non-system templates are removed from default templates
 const DEFAULT_TEMPLATES = <NoteTemplate[]>[
   {
+    // Flipped to the sandboxed Liquid engine (U4). Renders a Markdown link from
+    // the host-provided `link` / `linkText` context (see runQuickInsertTemplate).
     name: "[QuickInsertV3]",
-    text: `// @use-markdown
-[\${linkText}](\${link})`,
+    text: `<!--liquid-->
+<!--markdown-->
+[{{ linkText }}]({{ link }})`,
   },
   {
     name: "[QuickImportV2]",

@@ -414,6 +414,29 @@ async function runQuickInsertTemplate(
     linkText = noteTitle || link;
   }
 
+  // Route a Liquid (`<!--liquid-->`) [QuickInsertV3] through the sandboxed
+  // engine with a curated context — only primitives + the note model, no raw
+  // Zotero items. Legacy JS templates fall through to the AsyncFunction path.
+  const liquidMeta = parseLiquidTemplate(
+    addon.api.template.getTemplateText("[QuickInsertV3]"),
+  );
+  if (liquidMeta.isLiquid) {
+    const context = {
+      link,
+      linkText,
+      lineIndex: options.lineIndex ?? null,
+      sectionName: options.sectionName ?? null,
+      selectionText: options.selectionText ?? null,
+      note:
+        targetNoteItem && targetNoteItem.isNote && targetNoteItem.isNote()
+          ? await buildNoteModel(targetNoteItem)
+          : null,
+      now: new Date(),
+    };
+    const { html } = await renderLiquid(liquidMeta, context, options.dryRun);
+    return html;
+  }
+
   const content = await runTemplate(
     "[QuickInsertV3]",
     "link, linkText, subNoteItem, noteItem, lineIndex, sectionName, selectionText",
