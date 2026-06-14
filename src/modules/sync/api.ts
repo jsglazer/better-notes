@@ -3,6 +3,7 @@ import { createStore } from "../../utils/store";
 import { getPref, setPref } from "../../utils/prefs";
 import { config } from "../../../package.json";
 import { fileExists, formatPath, jointPath } from "../../utils/str";
+import { buildNoteModel } from "../template/model";
 
 export {
   initSyncList,
@@ -174,14 +175,23 @@ async function getMDStatus(
 
 async function getMDFileName(noteId: number, _searchDir?: string) {
   const noteItem = Zotero.Items.get(noteId);
-  // Always derive filename from the [ExportMDFileNameV2] template so that
-  // the cite-key-based naming is applied consistently to all notes.
-  let filename = await addon.api.template.runTemplate(
+  // Derive filename from [ExportMDFileNameV2]. Liquid templates render through
+  // the sandboxed engine with the curated note model; legacy JS templates fall
+  // through to runTemplate. Always non-empty (note key as the last-resort floor).
+  const liquidOut = await addon.api.template.runLiquidIfLiquid(
     "[ExportMDFileNameV2]",
-    "noteItem",
-    [noteItem],
+    { note: await buildNoteModel(noteItem), now: new Date() },
   );
-  return filename.trim();
+  const filename = (
+    liquidOut ??
+    (await addon.api.template.runTemplate(
+      "[ExportMDFileNameV2]",
+      "noteItem",
+      [noteItem],
+    )) ??
+    ""
+  ).trim();
+  return filename || `${noteItem.key}.md`;
 }
 
 /**

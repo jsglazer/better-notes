@@ -41,17 +41,14 @@ const DEFAULT_TEMPLATES = <NoteTemplate[]>[
 {{ commentHTML }}{% annotations %}`,
   },
   {
+    // Flipped to Liquid (U4). `note.citekey` resolves through the curated model
+    // (BBT key → `extra` "Citation Key:" → `citationKey` field) — broader than
+    // the old BBT-only check, an intentional improvement (user has no synced
+    // files to migrate). Falls back to sanitized-title + note key. Whitespace is
+    // trimmed by getMDFileName; output is a bare filename.
     name: "[ExportMDFileNameV2]",
-    text: `\${{
-  const parentItem = noteItem.parentItem;
-  if (parentItem) {
-    try {
-      const bbtKey = Zotero.BetterBibTeX.KeyManager.get(parentItem.id).citationKey;
-      if (bbtKey) return bbtKey + ".md";
-    } catch(e) {}
-  }
-  return (noteItem.getNoteTitle ? noteItem.getNoteTitle().replace(/[/\\\\?%*:|"<> ]/g, "-") + "-" : "") + noteItem.key + ".md";
-}}$`,
+    text: `<!--liquid-->
+{%- if note.citekey != blank -%}{{ note.citekey }}.md{%- else -%}{{ note.title | sanitize_filename }}-{{ note.key }}.md{%- endif -%}`,
   },
   {
     name: "[ExportMDFileHeaderV2]",
