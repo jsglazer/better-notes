@@ -1,4 +1,4 @@
-import { addLineToNote } from "../../utils/note";
+import { addLineToNote, ensureUniqueItemNoteTitle } from "../../utils/note";
 import { getString } from "../../utils/locale";
 import { openTemplatePicker } from "../../utils/templatePicker";
 
@@ -85,6 +85,8 @@ async function createTemplateNoteCallback(name: string) {
   addon.data.template.picker.data.librarySelectedIds =
     Zotero.getMainWindow().ZoteroPane.getSelectedItems(true);
   let createdNoteId: number | undefined;
+  // For item notes: the parent whose sibling notes we de-duplicate the title against.
+  let uniqueTitleParentID: number | undefined;
   switch (addon.data.template.picker.data.noteType) {
     case "standalone": {
       const noteItem = await addon.hooks.onCreateNote();
@@ -103,12 +105,22 @@ async function createTemplateNoteCallback(name: string) {
       await noteItem.saveTx();
       addon.data.template.picker.data.noteId = noteItem.id;
       createdNoteId = noteItem.id;
+      uniqueTitleParentID = parentID;
       break;
     }
     default:
       return;
   }
   await insertTemplateCallback(name);
+  // Once the template has filled the note (so its title — the first line —
+  // exists), prompt for an identifier if this 2nd+ note duplicates a sibling's
+  // title, keeping the notes distinguishable in Zotero (not just at export).
+  if (createdNoteId !== undefined && uniqueTitleParentID !== undefined) {
+    await ensureUniqueItemNoteTitle(
+      Zotero.Items.get(createdNoteId),
+      uniqueTitleParentID,
+    );
+  }
   if (createdNoteId) {
     await addon.hooks.onOpenNote(createdNoteId, "tab");
   }

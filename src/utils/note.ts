@@ -9,6 +9,7 @@ export {
   renderNoteHTML,
   parseHTMLLines,
   getLinesInNote,
+  ensureUniqueItemNoteTitle,
   addLineToNote,
   getNoteTree,
   getNoteTreeFlattened,
@@ -65,6 +66,78 @@ async function setLinesToNote(note: Zotero.Item, lines: string[]) {
   }
 
   await note.saveTx();
+}
+
+/**
+ * When a 2nd+ note is created for the same item, its title (the note's first
+ * line) can duplicate a sibling note's title, making them indistinguishable in
+ * Zotero's item tree. If `note`'s title collides with another note on
+ * `parentID`, prompt for an identifier and append it to the first line so the
+ * title becomes unique — at creation time, not at export. No-op when the title
+ * is already unique (the first note on an item is never touched), when there is
+ * no prompt available, or when the user cancels / enters nothing.
+ */
+async function ensureUniqueItemNoteTitle(
+  note: Zotero.Item,
+  parentID: number,
+): Promise<void> {
+  const parent = Zotero.Items.get(parentID);
+  if (!note || !parent) {
+    return;
+  }
+  const siblingTitles = new Set(
+    parent
+      .getNotes()
+      .filter((id) => id !== note.id)
+      .map((id) => Zotero.Items.get(id)?.getNoteTitle().trim())
+      .filter((t): t is string => !!t),
+  );
+  const title = note.getNoteTitle().trim();
+  if (!title || !siblingTitles.has(title)) {
+    return;
+  }
+  const win = Zotero.getMainWindow();
+  if (typeof win?.prompt !== "function") {
+    return;
+  }
+  let message =
+    `This item already has a note titled "${title}".\n` +
+    `Enter an identifier to append for a unique title:`;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const input = win.prompt(message, "");
+    if (input === null) {
+      return; // cancelled — leave the duplicate title as-is
+    }
+    const id = input.trim();
+    if (!id) {
+      return; // no identifier given — leave as-is
+    }
+    if (!siblingTitles.has(`${title} - ${id}`)) {
+      await appendToNoteTitleLine(note, id);
+      return;
+    }
+    message =
+      `"${title} - ${id}" is also taken.\nEnter a different identifier:`;
+  }
+}
+
+/** Append " - <text>" inside the note's first line (its title element). */
+async function appendToNoteTitleLine(note: Zotero.Item, text: string) {
+  const lines = await getLinesInNote(note);
+  if (!lines.length) {
+    return;
+  }
+  const safe = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  const suffix = ` - ${safe}`;
+  // Insert before the line's final closing tag (e.g. </h1>); if the first line
+  // isn't an element, append the text directly.
+  lines[0] = /<\/[a-zA-Z][\w-]*>\s*$/.test(lines[0])
+    ? lines[0].replace(/(<\/[a-zA-Z][\w-]*>\s*)$/, `${suffix}$1`)
+    : lines[0] + suffix;
+  await setLinesToNote(note, lines);
 }
 
 async function addLineToNote(
