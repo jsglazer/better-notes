@@ -31,6 +31,7 @@ import { showHint, showHintWithLink } from "./hint";
 import { MessageHelper, wait } from "zotero-plugin-toolkit";
 import { handlers } from "../extras/convertWorker/main";
 import { Change } from "diff";
+import { terminateServerWorker } from "./relation";
 
 export {
   md2note,
@@ -52,7 +53,8 @@ export {
 
 function closeConvertServer() {
   if (addon.data.convert.server) {
-    addon.data.convert.server.destroy();
+    // destroy() alone leaves the ChromeWorker alive → blocks plugin removal.
+    terminateServerWorker(addon.data.convert.server);
     addon.data.convert.server = undefined;
   }
 }

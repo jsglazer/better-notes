@@ -1,10 +1,12 @@
 import { MessageHelper } from "zotero-plugin-toolkit";
 import { config } from "../../package.json";
 import type { handlers } from "../extras/parsingWorker";
+import { terminateServerWorker } from "./relation";
 
 function closeParsingServer() {
   if (addon.data.parsing.server) {
-    addon.data.parsing.server.destroy();
+    // destroy() alone leaves the ChromeWorker alive → blocks plugin removal.
+    terminateServerWorker(addon.data.parsing.server);
     addon.data.parsing.server = undefined;
   }
 }

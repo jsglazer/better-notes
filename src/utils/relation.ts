@@ -5,10 +5,37 @@ import type { handlers } from "../extras/relationWorker";
 
 function closeRelationServer() {
   if (addon.data.relation.server) {
-    addon.data.relation.server.destroy();
+    terminateServerWorker(addon.data.relation.server);
     addon.data.relation.server = undefined;
   }
 }
+
+/**
+ * Tear down a worker-backed MessageHelper server AND terminate its worker.
+ *
+ * The toolkit's `MessageHelper.destroy()` only stops the helper and detaches its
+ * message listener — it never calls `worker.terminate()`. A ChromeWorker that
+ * loaded its script from this plugin's `chrome://` registration keeps the
+ * plugin's resources in use, so Zotero refuses to remove the (still-active)
+ * plugin until a restart finally kills the worker. better-notes is one of the
+ * few plugins using workers, which is why removal failed only for it. Terminate
+ * the worker ourselves so the plugin can be removed while enabled.
+ */
+function terminateServerWorker(server: { destroy: () => void; target?: unknown }) {
+  const target = server.target;
+  try {
+    server.destroy();
+  } catch (e) {
+    // helper already torn down — still try to kill the worker below.
+  }
+  try {
+    (target as Worker | undefined)?.terminate?.();
+  } catch (e) {
+    // worker already gone.
+  }
+}
+
+export { terminateServerWorker };
 
 async function getRelationServer(): Promise<MessageHelper<typeof handlers>> {
   if (!addon.data.relation.server) {
