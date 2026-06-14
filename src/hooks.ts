@@ -14,7 +14,7 @@ import { registerMenus } from "./modules/menu";
 import { initWorkspace } from "./modules/workspace/content";
 import { openWorkspaceWindow } from "./modules/workspace/window";
 import { openNotePreview } from "./modules/workspace/preview";
-import { registerNotify } from "./modules/notify";
+import { registerNotify, unregisterNotify } from "./modules/notify";
 import {
   registerReaderAnnotationButton,
   syncAnnotationNoteTags,
@@ -148,6 +148,10 @@ function onShutdown(): void {
   step(() => closeRelationServer());
   step(() => closeParsingServer());
   step(() => closeConvertServer());
+
+  // Tear down the global item observer — no pluginID, so Zotero won't auto-
+  // unregister it, and its window-unload listener doesn't fire on an uninstall.
+  step(() => unregisterNotify());
 
   step(() => unregisterEditorInstanceHook());
 
