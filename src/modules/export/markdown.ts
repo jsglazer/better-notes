@@ -50,7 +50,14 @@ export async function syncMDBatch(
   }
   let i = 0;
   for (const noteItem of noteItems) {
-    const filename = await addon.api.sync.getMDFileName(noteItem.id, saveDir);
+    // Reuse the note's already-assigned filename so a re-sync never renames or
+    // re-collides the file. Only derive a name for a note that isn't linked yet
+    // — and make it unique within saveDir so multiple notes on one item don't
+    // all land on a single <citekey>.md (prompts for a short ID on a clash).
+    const filename = addon.api.sync.isSyncNote(noteItem.id)
+      ? addon.api.sync.getSyncStatus(noteItem.id).filename ||
+        (await addon.api.sync.getUniqueMDFileName(noteItem.id, saveDir))
+      : await addon.api.sync.getUniqueMDFileName(noteItem.id, saveDir);
     const filePath = jointPath(saveDir, filename);
     const content = await addon.api.convert.note2md(noteItem, saveDir, {
       keepNoteLink: false,
