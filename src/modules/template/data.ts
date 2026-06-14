@@ -79,16 +79,19 @@ const DEFAULT_TEMPLATES = <NoteTemplate[]>[
 }}$`,
   },
   {
+    // Liquid passthrough (U4). NOT markdown — the output stays raw Markdown for
+    // the exported .md file. `{{ mdContent }}` substitutes the value as-is;
+    // Liquid never re-parses a variable's value, so note content containing
+    // `{{ }}`/`{% %}` is emitted literally.
     name: "[ExportMDFileContent]",
-    text: `\${{
-  return mdContent;
-}}$`,
+    text: `<!--liquid-->
+{{ mdContent }}`,
   },
   {
+    // Liquid passthrough (U4). NOT markdown — output is raw LaTeX.
     name: "[ExportLatexFileContent]",
-    text: `\${{
-  return latexContent;
-}}$`,
+    text: `<!--liquid-->
+{{ latexContent }}`,
   },
   {
     // Sandboxed (Liquid) port of the user's [item]ItemNoteMD05 template — U4

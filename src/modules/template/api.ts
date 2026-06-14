@@ -16,6 +16,7 @@ export {
   runTextTemplate,
   runItemTemplate,
   runQuickInsertTemplate,
+  runLiquidIfLiquid,
 };
 
 const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
@@ -295,6 +296,28 @@ async function renderLiquid(
     showHint(`Template error: ${String(e)}`);
     return { ok: false, html: "" };
   }
+}
+
+/**
+ * Flip helper for system templates invoked through the legacy `runTemplate`
+ * call sites (U4). If `key`'s template opted into Liquid (`<!--liquid-->`),
+ * render it through the sandboxed engine against the given **curated** context
+ * (callers pass primitives + curated models, never raw Zotero items) and return
+ * the output. Returns `null` when the template is still legacy OR when a live
+ * render fails — so the caller keeps its existing fallback (e.g. the original
+ * `mdContent`) and a bad template can never wipe exported content.
+ */
+async function runLiquidIfLiquid(
+  key: string,
+  context: Record<string, unknown>,
+  options: { dryRun?: boolean } = {},
+): Promise<string | null> {
+  const meta = parseLiquidTemplate(addon.api.template.getTemplateText(key));
+  if (!meta.isLiquid) {
+    return null;
+  }
+  const { ok, html } = await renderLiquid(meta, context, options.dryRun);
+  return ok ? html : null;
 }
 
 /**

@@ -167,12 +167,20 @@ async function note2md(
   }
   let md = await remark2md(remark as MRoot);
   try {
+    // Liquid (`<!--liquid-->`) templates render through the sandboxed engine
+    // with a curated context; legacy JS templates fall through to runTemplate.
+    // Either path failing leaves `md` untouched.
     md =
+      (await addon.api.template.runLiquidIfLiquid("[ExportMDFileContent]", {
+        mdContent: md,
+        now: new Date(),
+      })) ??
       (await addon.api.template.runTemplate(
         "[ExportMDFileContent]",
         "noteItem, mdContent",
         [noteItem, md],
-      )) ?? md;
+      )) ??
+      md;
   } catch (e) {
     ztoolkit.log(e);
   }
@@ -293,11 +301,16 @@ async function note2latex(
   let latex = await remark2latex(remark as MRoot);
   try {
     latex =
+      (await addon.api.template.runLiquidIfLiquid("[ExportLatexFileContent]", {
+        latexContent: latex,
+        now: new Date(),
+      })) ??
       (await addon.api.template.runTemplate(
         "[ExportLatexFileContent]",
         "noteItem, latexContent",
         [noteItem, latex],
-      )) ?? latex;
+      )) ??
+      latex;
   } catch (e) {
     ztoolkit.log(e);
   }

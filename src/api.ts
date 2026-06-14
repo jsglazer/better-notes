@@ -40,6 +40,7 @@ import {
   runTextTemplate,
   runItemTemplate,
   runQuickInsertTemplate,
+  runLiquidIfLiquid,
 } from "./modules/template/api";
 import {
   getTemplateKeys,
@@ -134,6 +135,7 @@ const template = {
   runTextTemplate,
   runItemTemplate,
   runQuickInsertTemplate,
+  runLiquidIfLiquid,
   getTemplateKeys,
   getTemplateText,
   setTemplate,
