@@ -1,4 +1,4 @@
-import { MessageHelper } from "zotero-plugin-toolkit";
+import { serveWorker } from "../lib/serveWorker";
 
 import {
   note2rehype,
@@ -26,12 +26,4 @@ const handlers = {
   md2html,
 };
 
-const messageServer = new MessageHelper({
-  canBeDestroyed: true,
-  dev: true,
-  name: "convertWorker",
-  target: self,
-  handlers,
-});
-
-messageServer.start();
+serveWorker(handlers);

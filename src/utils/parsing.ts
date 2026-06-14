@@ -1,12 +1,10 @@
-import { MessageHelper } from "zotero-plugin-toolkit";
 import { config } from "../../package.json";
 import type { handlers } from "../extras/parsingWorker";
-import { terminateServerWorker } from "./relation";
+import { WorkerRpc } from "./workerRpc";
 
 function closeParsingServer() {
   if (addon.data.parsing.server) {
-    // destroy() alone leaves the ChromeWorker alive → blocks plugin removal.
-    terminateServerWorker(addon.data.parsing.server);
+    addon.data.parsing.server.terminate();
     addon.data.parsing.server = undefined;
   }
 }
@@ -15,19 +13,11 @@ async function getParsingServer() {
   if (addon.data.parsing.server) {
     return addon.data.parsing.server;
   }
-  const worker = new ChromeWorker(
+  const server = new WorkerRpc<typeof handlers>(
     `chrome://${config.addonRef}/content/scripts/parsingWorker.js`,
     { name: "parsingWorker" },
   );
-  const server = new MessageHelper<typeof handlers>({
-    canBeDestroyed: false,
-    dev: __env__ === "development",
-    name: "parsingWorkerMain",
-    target: worker,
-    handlers: {},
-  });
-  server.start();
-  await server.proxy._ping();
+  await server.ready();
   addon.data.parsing.server = server;
   return server;
 }

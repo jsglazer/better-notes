@@ -1,5 +1,5 @@
 import Dexie from "dexie";
-import { MessageHelper } from "zotero-plugin-toolkit";
+import { serveWorker } from "./lib/serveWorker";
 
 export { handlers };
 
@@ -26,15 +26,7 @@ const handlers = {
   getAnnotationByLinkTarget,
 };
 
-const messageServer = new MessageHelper({
-  canBeDestroyed: true,
-  dev: true,
-  name: "parsingWorker",
-  target: self,
-  handlers,
-});
-
-messageServer.start();
+serveWorker(handlers);
 
 async function addLink(model: LinkModel) {
   await db.link.add(model);

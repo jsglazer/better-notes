@@ -5,7 +5,7 @@ import { SyncDataType } from "./modules/sync/managerWindow";
 import hooks from "./hooks";
 import api from "./api";
 import { createZToolkit } from "./utils/ztoolkit";
-import { MessageHelper } from "zotero-plugin-toolkit/dist/helpers/message";
+import { WorkerRpc } from "./utils/workerRpc";
 import type { handlers as parsingHandlers } from "./extras/parsingWorker";
 import type { handlers as relationHandlers } from "./extras/relationWorker";
 import type { handlers as convertHandlers } from "./extras/convertWorker/main";
@@ -72,14 +72,13 @@ class Addon {
       };
     };
     relation: {
-      worker?: Worker;
-      server?: MessageHelper<typeof relationHandlers>;
+      server?: WorkerRpc<typeof relationHandlers>;
     };
     parsing: {
-      server?: MessageHelper<typeof parsingHandlers>;
+      server?: WorkerRpc<typeof parsingHandlers>;
     };
     convert: {
-      server?: MessageHelper<typeof convertHandlers>;
+      server?: WorkerRpc<typeof convertHandlers>;
     };
     imageCache: Record<number, string>;
     hint: {

@@ -1,4 +1,4 @@
-import { MessageHelper } from "zotero-plugin-toolkit";
+import { serveWorker } from "./lib/serveWorker";
 
 export { handlers };
 
@@ -101,12 +101,4 @@ const handlers = {
   parseHTMLLines,
 };
 
-const messageServer = new MessageHelper({
-  canBeDestroyed: true,
-  dev: true,
-  name: "parsingWorker",
-  target: self,
-  handlers,
-});
-
-messageServer.start();
+serveWorker(handlers);

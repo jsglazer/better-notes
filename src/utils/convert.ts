@@ -28,10 +28,10 @@ import {
 import { parseAnnotationHTML } from "./annotation";
 import { getPref } from "./prefs";
 import { showHint, showHintWithLink } from "./hint";
-import { MessageHelper, wait } from "zotero-plugin-toolkit";
+import { wait } from "zotero-plugin-toolkit";
 import { handlers } from "../extras/convertWorker/main";
 import { Change } from "diff";
-import { terminateServerWorker } from "./relation";
+import { WorkerRpc } from "./workerRpc";
 
 export {
   md2note,
@@ -53,8 +53,7 @@ export {
 
 function closeConvertServer() {
   if (addon.data.convert.server) {
-    // destroy() alone leaves the ChromeWorker alive → blocks plugin removal.
-    terminateServerWorker(addon.data.convert.server);
+    addon.data.convert.server.terminate();
     addon.data.convert.server = undefined;
   }
 }
@@ -64,19 +63,11 @@ async function getConvertServer() {
     return addon.data.convert.server;
   }
 
-  const worker = new Worker(
+  const server = new WorkerRpc<typeof handlers>(
     `chrome://${config.addonRef}/content/scripts/convertWorker.js`,
     { name: "convertWorker" },
   );
-  const server = new MessageHelper<typeof handlers>({
-    canBeDestroyed: false,
-    dev: __env__ === "development",
-    name: "convertWorkerMain",
-    target: worker,
-    handlers: {},
-  });
-  server.start();
-  await server.proxy._ping();
+  await server.ready();
   addon.data.convert.server = server;
   return server;
 }
