@@ -16,6 +16,7 @@ export {
   getMDStatus,
   getMDStatusFromContent,
   getMDFileName,
+  getUniqueMDFileName,
   findAllSyncedFiles,
 };
 
@@ -181,6 +182,64 @@ async function getMDFileName(noteId: number, _searchDir?: string) {
     [noteItem],
   );
   return filename.trim();
+}
+
+/**
+ * Resolve a *unique* export filename for `noteId` within `syncDir`.
+ *
+ * Several notes can hang off one Zotero item, but `[ExportMDFileNameV2]` derives
+ * the name from the parent's cite key — so every note would map to the same
+ * `<citekey>.md` and the second export would collide. Here we keep the clean
+ * template name when it's free (the first/only note on an item), and on a
+ * collision prompt for a short note ID, using `<stem>-<id>.<ext>` when that's
+ * unique. Empty input or a still-colliding ID falls back to the note's stable
+ * key so a name is always produced. Prompt-driven, so only call from
+ * user-initiated linking — never from the auto-sync timer.
+ */
+async function getUniqueMDFileName(
+  noteId: number,
+  syncDir: string,
+): Promise<string> {
+  const noteItem = Zotero.Items.get(noteId);
+  const base = (await getMDFileName(noteId, syncDir)) || `${noteItem.key}.md`;
+  const taken = (name: string) => fileExists(jointPath(syncDir, name));
+
+  // Free as-is → keep the clean cite-key name (first/only note on the item).
+  if (!(await taken(base))) {
+    return base;
+  }
+
+  const dot = base.lastIndexOf(".");
+  const stem = dot > 0 ? base.slice(0, dot) : base;
+  const ext = dot > 0 ? base.slice(dot) : ".md";
+  const sanitize = (s: string) =>
+    s
+      .replace(/[/\\?%*:|"<>\s]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .trim();
+
+  // Collision → ask for a short ID and use it if it makes the name unique.
+  const win = Zotero.getMainWindow();
+  const input =
+    typeof win?.prompt === "function"
+      ? win.prompt(
+          `A note is already exported as "${base}".\n` +
+            `Enter a short ID for this note (used as "${stem}-<id>${ext}"):`,
+          "",
+        )
+      : "";
+  const id = sanitize(input || "");
+  if (id && !(await taken(`${stem}-${id}${ext}`))) {
+    return `${stem}-${id}${ext}`;
+  }
+
+  // Empty / still colliding → fall back to the stable, unique note key.
+  let fallback = `${stem}-${noteItem.key}${ext}`;
+  let n = 2;
+  while (await taken(fallback)) {
+    fallback = `${stem}-${noteItem.key}-${n++}${ext}`;
+  }
+  return fallback;
 }
 
 async function findAllSyncedFiles(searchDir: string) {

@@ -244,7 +244,9 @@ async function toSync(
   }
   addon.api.sync.updateSyncStatus(noteItem.id, {
     path: syncDir,
-    filename: await addon.api.sync.getMDFileName(noteItem.id, syncDir),
+    // Unique within syncDir so multiple notes on one item don't collide on a
+    // single <citekey>.md (prompts for a short ID on a name clash).
+    filename: await addon.api.sync.getUniqueMDFileName(noteItem.id, syncDir),
     md5: "",
     noteMd5: Zotero.Utilities.Internal.md5(noteItem.getNote(), false),
     lastsync: 0,

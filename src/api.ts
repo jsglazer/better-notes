@@ -31,6 +31,7 @@ import {
   getMDStatus,
   getMDStatusFromContent,
   getMDFileName,
+  getUniqueMDFileName,
   findAllSyncedFiles,
 } from "./modules/sync/api";
 import { syncLinkedNoteOnEdit } from "./modules/sync/autoLink";
@@ -104,6 +105,7 @@ const sync = {
   getMDStatus,
   getMDStatusFromContent,
   getMDFileName,
+  getUniqueMDFileName,
   findAllSyncedFiles,
   syncLinkedNoteOnEdit,
 };
