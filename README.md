@@ -5,7 +5,7 @@
 [![Made with Claude](https://img.shields.io/badge/Made_with-Claude-D97756?logo=anthropic)](https://claude.ai)
 
 A Zotero plugin to expand the capability of notes and to sync notes to other locations (e.g., Obsidian). 
-This is a fork of [windingwind's zotero-better-notes](https://github.com/windingwind/zotero-better-notes).  This fork includes: keyboard shortcuts, more sync management options, cleaner exports to Obsidian, better error handling on invalid template imports, more menu items, and other enhancements.
+This is a fork of [windingwind's zotero-better-notes](https://github.com/windingwind/zotero-better-notes).  This fork adds: a **sandboxed Liquid template language** (replacing the original arbitrary-JavaScript template engine), **native annotation color labels**, **multiple synced notes per item**, **automatic 3-way merge** of non-conflicting sync edits, keyboard shortcuts, more sync management options, cleaner exports to Obsidian, better error handling, more menu items, and other enhancements.
 
 
 ## Installation
@@ -25,8 +25,10 @@ This is a fork of [windingwind's zotero-better-notes](https://github.com/winding
 
 ## Features
 
-- **Templates** — create and apply note templates with a Monaco-based editor
-- **File Sync** — sync notes to markdown files on disk with diff view
+- **Templates** — sandboxed **Liquid** templates (`{{ item.title }}`, `{% for %}`, filters like `| year`) with a live-preview editor — safe by design, no arbitrary JavaScript
+- **File Sync** — sync notes to Markdown files on disk, with **automatic 3-way merge** of non-conflicting edits and a diff view for true conflicts
+- **Multiple notes per item** — each note exports to its own file; prompts for a short ID on a name clash
+- **Annotation color labels** — assign a meaning to each highlight color (e.g. Yellow = "Important"); shown before each exported annotation
 - **Note Linking** — bidirectional inbound/outbound links between notes
 - **Export** — export notes to Markdown, PDF, DOCX, LaTeX, FreeMind, or AsciiDoc
 - **Import** — import Markdown files as Zotero notes
