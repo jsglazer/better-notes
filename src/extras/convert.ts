@@ -346,6 +346,8 @@ function remark2md(remark: MRoot) {
       .use(remarkMath)
       .use(remarkStringify, {
         bullet: "-",
+        // One space after the marker ("- text"), not tab-aligned ("-   text").
+        listItemIndent: "one",
         // Prevent recursive call
         handlers: Object.assign({}, handlers, {
           table: tableHandler,
