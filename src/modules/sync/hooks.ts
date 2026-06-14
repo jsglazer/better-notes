@@ -3,6 +3,7 @@ import { getString } from "../../utils/locale";
 import { getPref } from "../../utils/prefs";
 import { jointPath } from "../../utils/str";
 import { isElementVisible } from "../../utils/window";
+import { threeWayMerge } from "./merge";
 
 export { setSyncing, callSyncing };
 
@@ -138,7 +139,14 @@ async function callSyncing(
           toImport.push(syncStatus);
           break;
         case SyncCode.NeedDiff:
-          toDiff.push(syncStatus);
+          // U2b: both sides changed — try a 3-way auto-merge against the stored
+          // baseline first; only fall back to the manual diff dialog on a real
+          // (overlapping) conflict.
+          if (await tryAutoMerge(item, mdStatusMap[item.id], syncStatus)) {
+            // merged cleanly + applied to both sides; nothing to resolve
+          } else {
+            toDiff.push(syncStatus);
+          }
           break;
         default:
           break;
@@ -274,6 +282,58 @@ function persistMdModified(
     return;
   }
   addon.api.sync.updateSyncStatus(noteId, { ...syncStatus, mdModified: mtime });
+}
+
+/**
+ * U2b 3-way auto-merge for a both-sides-changed note. Compares in MD-body space:
+ * `base` = the stored baseline (`SyncStatus.baseMd`), `mine` = the note rendered
+ * to MD, `theirs` = the current MD file body. On a clean (non-overlapping) merge
+ * it applies the result to the note AND re-exports to the file, returning true so
+ * the caller skips the diff dialog. Any baseline gap, render failure, or real
+ * conflict → returns false (fall back to manual resolution). Never throws.
+ */
+async function tryAutoMerge(
+  noteItem: Zotero.Item,
+  mdStatus: MDStatus,
+  syncStatus: SyncStatus,
+): Promise<boolean> {
+  const base = syncStatus.baseMd;
+  if (base === undefined || !mdStatus) {
+    return false; // no common ancestor → cannot 3-way merge
+  }
+  try {
+    // mine: the note as an MD body, in the same representation as baseMd.
+    const mineFull = await addon.api.convert.note2md(noteItem, syncStatus.path, {
+      withYAMLHeader: true,
+      keepNoteLink: false,
+    });
+    const mine = addon.api.sync.getMDStatusFromContent(mineFull).content;
+    const theirs = mdStatus.content;
+
+    const merged = threeWayMerge(base, mine, theirs);
+    if (!merged.clean) {
+      return false;
+    }
+
+    // Apply merged MD → note, then re-export note → file (updates baseMd, md5s).
+    const noteStatus = addon.api.sync.getNoteStatus(noteItem.id);
+    if (!noteStatus) {
+      return false;
+    }
+    const parsed = await addon.api.convert.md2note(
+      { ...mdStatus, content: merged.text },
+      noteItem,
+      { isImport: true },
+    );
+    noteItem.setNote(noteStatus.meta + parsed + noteStatus.tail);
+    // skipBN so this write doesn't re-trigger onSyncing via the modify notifier.
+    await noteItem.saveTx({ notifierData: { skipBN: true } });
+    await addon.api.$export.syncMDBatch(syncStatus.path, [noteItem.id]);
+    return true;
+  } catch (e) {
+    ztoolkit.log("tryAutoMerge failed; falling back to diff", e);
+    return false;
+  }
 }
 
 async function doCompare(
