@@ -128,6 +128,46 @@ async function md2html(...args: Parameters<(typeof handlers)["md2html"]>) {
   return await server.proxy.md2html(...args);
 }
 
+/**
+ * Build the export front-matter header object for a note. Replaces the legacy
+ * `[ExportMDFileHeaderV2]` JS-eval template (U4): a JSON data structure is a
+ * poor fit for a text templater, so this is a plain function. Returns the same
+ * shape the template produced — `{ tags, parent, collections, CitationKey? }`.
+ */
+async function buildExportHeader(
+  noteItem: Zotero.Item,
+): Promise<Record<string, any>> {
+  const header: Record<string, any> = {};
+  header.tags = noteItem.getTags().map((t) => t.tag);
+  header.parent = noteItem.parentItem
+    ? ((noteItem.parentItem.getField("title") as string) || "")
+    : "";
+  try {
+    const cols = await Zotero.Collections.getCollectionsContainingItems([
+      (noteItem.parentItem || noteItem).id,
+    ]);
+    header.collections = cols.map(
+      (c) => (c as unknown as { name: string }).name,
+    );
+  } catch (e) {
+    header.collections = [];
+  }
+  try {
+    const parentItem = noteItem.parentItem;
+    if (parentItem) {
+      const bbtKey = (Zotero as any).BetterBibTeX?.KeyManager?.get(
+        parentItem.id,
+      )?.citationKey;
+      if (bbtKey) {
+        header.CitationKey = bbtKey;
+      }
+    }
+  } catch (e) {
+    // BBT unavailable — omit CitationKey (matches legacy).
+  }
+  return header;
+}
+
 async function note2md(
   noteItem: Zotero.Item,
   dir: string,
@@ -188,13 +228,9 @@ async function note2md(
   if (options.withYAMLHeader) {
     let header = {} as Record<string, any>;
     try {
-      header = JSON.parse(
-        await addon.api.template.runTemplate(
-          "[ExportMDFileHeaderV2]",
-          "noteItem",
-          [noteItem],
-        ),
-      );
+      // U4: header is built by a dedicated function, not the legacy JS template
+      // (JSON output is a poor fit for the text engine). Same shape as before.
+      header = await buildExportHeader(noteItem);
       const cachedHeader = options.cachedYAMLHeader || {};
       for (const key in cachedHeader) {
         const isGenerated =

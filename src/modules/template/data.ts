@@ -51,6 +51,10 @@ const DEFAULT_TEMPLATES = <NoteTemplate[]>[
 {%- if note.citekey != blank -%}{{ note.citekey }}.md{%- else -%}{{ note.title | sanitize_filename }}-{{ note.key }}.md{%- endif -%}`,
   },
   {
+    // DEPRECATED (U4): no longer invoked — the export header is now built by
+    // `buildExportHeader()` in convert.ts (JSON output is a poor fit for the
+    // text engine). Kept registered for backward compat / editor listing until
+    // the legacy AsyncFunction engine is removed.
     name: "[ExportMDFileHeaderV2]",
     text: `\${{
   let header = {};
