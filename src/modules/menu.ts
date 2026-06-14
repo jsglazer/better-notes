@@ -1,5 +1,22 @@
 import { config } from "../../package.json";
 
+/**
+ * Right-align a keyboard-shortcut hint on a menu item. Set on both `onShowing`
+ * and `onShown`: Zotero rebuilds the popup each time it opens, and setting
+ * `acceltext` only on `onShowing` can be cleared during the build, so the hint
+ * never renders — re-applying once the popup is shown makes it stick.
+ */
+function setAccel(
+  context: { menuElem: XULElement },
+  accel: string,
+): void {
+  try {
+    context.menuElem.setAttribute("acceltext", accel);
+  } catch (e) {
+    // menu element not ready / detached — nothing to label.
+  }
+}
+
 export function registerMenus() {
   Zotero.MenuManager.registerMenu({
     menuID: `${config.addonRef}-menuTools`,
@@ -13,9 +30,8 @@ export function registerMenus() {
         menuType: "menuitem",
         l10nID: `${config.addonRef}-menuTools-linkCreator`,
         icon: `chrome://${config.addonRef}/content/icons/favicon.png`,
-        onShowing: (_, context) => {
-          context.menuElem.setAttribute("acceltext", "⌃⌥L");
-        },
+        onShowing: (_, context) => setAccel(context, "⌃⌥L"),
+        onShown: (_, context) => setAccel(context, "⌃⌥L"),
         onCommand: () => {
           addon.hooks.onShowLinkCreator();
         },
@@ -24,9 +40,8 @@ export function registerMenus() {
         menuType: "menuitem",
         l10nID: `${config.addonRef}-menuTools-syncManager`,
         icon: `chrome://${config.addonRef}/content/icons/favicon.png`,
-        onShowing: (_, context) => {
-          context.menuElem.setAttribute("acceltext", "⌃⌥M");
-        },
+        onShowing: (_, context) => setAccel(context, "⌃⌥M"),
+        onShown: (_, context) => setAccel(context, "⌃⌥M"),
         onCommand: () => {
           addon.hooks.onShowSyncManager();
         },
@@ -35,9 +50,8 @@ export function registerMenus() {
         menuType: "menuitem",
         l10nID: `${config.addonRef}-menuTools-templateEditor`,
         icon: `chrome://${config.addonRef}/content/icons/favicon.png`,
-        onShowing: (_, context) => {
-          context.menuElem.setAttribute("acceltext", "⌃⌥T");
-        },
+        onShowing: (_, context) => setAccel(context, "⌃⌥T"),
+        onShown: (_, context) => setAccel(context, "⌃⌥T"),
         onCommand: () => {
           addon.hooks.onShowTemplateEditor();
         },

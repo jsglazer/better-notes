@@ -32,3 +32,11 @@ pref("__prefsPrefix__.annotationColorLabel.a28ae5", "");
 pref("__prefsPrefix__.annotationColorLabel.e56eee", "");
 pref("__prefsPrefix__.annotationColorLabel.f19837", "");
 pref("__prefsPrefix__.annotationColorLabel.aaaaaa", "");
+
+// Section order for `{% annotations grouped %}` — comma-separated color labels.
+// Labels not listed are appended after these (in encounter order); unlabeled
+// annotations go in a trailing "Other" section.
+pref(
+  "__prefsPrefix__.annotationSectionOrder",
+  "Background,Key,Argument,Error,Source,Data,Definition,Nav",
+);

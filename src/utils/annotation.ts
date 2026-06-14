@@ -1,5 +1,10 @@
 import { importImageToNote } from "./note";
 import { getPref } from "./prefs";
+import {
+  AnnotationPiece,
+  groupAnnotationPieces,
+  parseSectionOrder,
+} from "./annotationGroup";
 
 function escapeHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -67,13 +72,19 @@ async function parseAnnotationJSON(annotationItem: Zotero.Item) {
 }
 
 // Zotero.EditorInstanceUtilities.serializeAnnotations
-function serializeAnnotations(
+//
+// Renders each annotation to HTML, returning the pieces (with their color label)
+// plus the collected citation items. `skipColorLabelPrepend` suppresses the
+// per-annotation "**Label:**" badge — used by grouped output, where the label
+// becomes the section heading instead.
+function renderAnnotationPieces(
   annotations: Required<CustomAnnotationJSON>[],
   skipEmbeddingItemData: boolean = false,
   skipCitation: boolean = false,
-) {
+  skipColorLabelPrepend: boolean = false,
+): { pieces: AnnotationPiece[]; citationItems: Record<string, any>[] } {
   const storedCitationItems: Record<string, any>[] = [];
-  let html = "";
+  const pieces: AnnotationPiece[] = [];
   for (const annotation of annotations) {
     const attachmentItem = Zotero.Items.get(annotation.attachmentItemID);
     if (!attachmentItem) {
@@ -234,17 +245,36 @@ function serializeAnnotations(
       vars,
     );
     // Show the color label out of the box: if the annotation template didn't
-    // place `{{colorLabel}}` itself, prepend the label (when one is set).
-    if (colorLabel && !/\{\{\s*colorLabel\b/.test(template)) {
+    // place `{{colorLabel}}` itself, prepend the label (when one is set). Skipped
+    // for grouped output, where the label is emitted as the section heading.
+    if (
+      !skipColorLabelPrepend &&
+      colorLabel &&
+      !/\{\{\s*colorLabel\b/.test(template)
+    ) {
       templateHTML = prependColorLabel(templateHTML, colorLabel);
     }
     // Remove some spaces at the end of paragraph
     templateHTML = templateHTML.replace(/([\s]*)(<\/p)/g, "$2");
     // Remove multiple spaces
     templateHTML = templateHTML.replace(/\s\s+/g, " ");
-    html += templateHTML;
+    pieces.push({ colorLabel, html: templateHTML });
   }
-  return { html, citationItems: storedCitationItems };
+  return { pieces, citationItems: storedCitationItems };
+}
+
+// Flat serialization (legacy behavior): concatenate every annotation's HTML.
+function serializeAnnotations(
+  annotations: Required<CustomAnnotationJSON>[],
+  skipEmbeddingItemData: boolean = false,
+  skipCitation: boolean = false,
+) {
+  const { pieces, citationItems } = renderAnnotationPieces(
+    annotations,
+    skipEmbeddingItemData,
+    skipCitation,
+  );
+  return { html: pieces.map((p) => p.html).join(""), citationItems };
 }
 
 export async function importAnnotationImagesToNote(
@@ -267,6 +297,8 @@ export async function parseAnnotationHTML(
     ignoreBody?: boolean;
     ignoreComment?: boolean;
     skipCitation?: boolean;
+    /** Group annotations under `<h2>Label</h2>` sections by color label. */
+    groupByColorLabel?: boolean;
   } = {},
 ) {
   const annotationJSONList: CustomAnnotationJSON[] = [];
@@ -283,6 +315,26 @@ export async function parseAnnotationHTML(
   }
 
   await importAnnotationImagesToNote(options.noteItem, annotationJSONList);
+
+  // Grouped output: bucket annotations under color-label headings (the label is
+  // the heading, so the per-annotation badge is suppressed). Section order comes
+  // from the `annotationSectionOrder` pref.
+  if (options.groupByColorLabel) {
+    let sectionPref = "";
+    try {
+      sectionPref = (getPref("annotationSectionOrder") as string) || "";
+    } catch (e) {
+      // pref unavailable — parseSectionOrder falls back to the default order.
+    }
+    const { pieces } = renderAnnotationPieces(
+      annotationJSONList as Required<CustomAnnotationJSON>[],
+      false,
+      options.skipCitation,
+      true,
+    );
+    return groupAnnotationPieces(pieces, parseSectionOrder(sectionPref));
+  }
+
   const html = serializeAnnotations(
     annotationJSONList as Required<CustomAnnotationJSON>[],
     false,

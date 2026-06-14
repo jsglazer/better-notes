@@ -32,6 +32,7 @@ declare namespace _ZoteroTypes {
       "annotationColorLabel.e56eee": string;
       "annotationColorLabel.f19837": string;
       "annotationColorLabel.aaaaaa": string;
+      "annotationSectionOrder": string;
     };
   }
 }

@@ -126,4 +126,16 @@ const DEFAULT_TEMPLATES = <NoteTemplate[]>[
 <h2>Annotations</h2>
 {% annotations %}`,
   },
+  {
+    // Grouped annotation export: `{% annotations grouped %}` buckets the item's
+    // annotations under `<h2>Color Label</h2>` sections, ordered by the
+    // `annotationSectionOrder` pref (default: Background, Key, Argument, Error,
+    // Source, Data, Definition, Nav). Each annotation's color label becomes its
+    // section heading instead of an inline badge. NOT markdown — the tag emits
+    // HTML (with embedded images on a live run).
+    name: "[item]Annotations-Grouped-Liquid",
+    text: `<!--liquid-->
+<h1>{{ item.citekey }}</h1>
+{% annotations grouped %}`,
+  },
 ];

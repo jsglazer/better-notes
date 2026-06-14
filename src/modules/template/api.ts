@@ -175,6 +175,8 @@ async function runItemTemplateLiquid(
   // templates without it never pay the worker round-trip. On a dry-run preview
   // we omit the note so no images are imported.
   if (/\{%-?\s*annotations\b/.test(meta.body)) {
+    // `{% annotations grouped %}` → bucket under color-label `<h2>` sections.
+    const grouped = /\{%-?\s*annotations\s+grouped\b/.test(meta.body);
     const primary = items[0];
     let annotationsHTML = "";
     if (primary) {
@@ -182,6 +184,7 @@ async function runItemTemplateLiquid(
         const annots = collectItemAnnotations(primary);
         annotationsHTML = await addon.api.convert.annotations2html(annots, {
           noteItem: options.dryRun ? undefined : targetNoteItem,
+          groupByColorLabel: grouped,
         });
       } catch (e) {
         ztoolkit.log("annotations tag pre-compute failed", e);
