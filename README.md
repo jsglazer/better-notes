@@ -28,7 +28,7 @@ This is a fork of [windingwind's zotero-better-notes](https://github.com/winding
 - **Templates** — sandboxed **Liquid** templates (`{{ item.title }}`, `{% for %}`, filters like `| year`) with a live-preview editor — safe by design, no arbitrary JavaScript
 - **File Sync** — sync notes to Markdown files on disk, with **automatic 3-way merge** of non-conflicting edits and a diff view for true conflicts
 - **Multiple notes per item** — each note exports to its own file; prompts for a short ID on a name clash
-- **Annotation color labels** — assign a meaning to each highlight color (e.g. Yellow = "Important"); shown before each exported annotation
+- **Annotation color labels** — assign a meaning to each highlight color (e.g. Yellow = "Important"); shown before each exported annotation, or used to **group annotations into per-label sections** (`{% annotations grouped %}`) in a configurable order
 - **Note Linking** — bidirectional inbound/outbound links between notes
 - **Export** — export notes to Markdown, PDF, DOCX, LaTeX, FreeMind, or AsciiDoc
 - **Import** — import Markdown files as Zotero notes
