@@ -101,13 +101,27 @@ async function callSyncing(
       return;
     }
     if (skipActive) {
-      // Skip active note editors' targets
+      // Skip ONLY notes the user is actively editing right now — an open,
+      // visible editor whose iframe currently HAS KEYBOARD FOCUS. The previous
+      // check skipped any *visible* editor, so a note open in a Zotero tab (very
+      // often the exact note you're editing in Obsidian) was never synced while
+      // that tab showed — even with Zotero in the background. Requiring focus
+      // lets background/idle syncs update an open-but-unfocused note, while still
+      // never importing over a note you're typing into. When Zotero is unfocused
+      // (you're in another app), no editor has focus → nothing is skipped.
       const activeNoteIds = Zotero.Notes._editorInstances
         .filter((editor) => {
           const elem = (editor._popup as XULPopupElement).closest(
             "note-editor",
           );
-          return elem && isElementVisible(elem);
+          if (!elem || !isElementVisible(elem)) {
+            return false;
+          }
+          try {
+            return editor._iframeWindow?.document?.hasFocus?.() ?? false;
+          } catch (e) {
+            return false;
+          }
         })
         .map((editor) => editor._item.id);
       const filteredItems = items.filter(

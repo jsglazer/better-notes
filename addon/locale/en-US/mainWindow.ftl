@@ -1,9 +1,18 @@
 menuTools-linkCreator =
-    .label = Link Creator
+    .label = { PLATFORM() ->
+        [macos] Link Creator   ⌃⌥L
+       *[other] Link Creator   Ctrl+Alt+L
+    }
 menuTools-syncManager =
-    .label = Sync Manager
+    .label = { PLATFORM() ->
+        [macos] Sync Manager   ⌃⌥M
+       *[other] Sync Manager   Ctrl+Alt+M
+    }
 menuTools-templateEditor =
-    .label = Template Editor
+    .label = { PLATFORM() ->
+        [macos] Template Editor   ⌃⌥T
+       *[other] Template Editor   Ctrl+Alt+T
+    }
 menuTools-importTemplateFromClipboard =
     .label = New Template from Clipboard
 

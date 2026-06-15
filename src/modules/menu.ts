@@ -1,21 +1,11 @@
 import { config } from "../../package.json";
 
-/**
- * Right-align a keyboard-shortcut hint on a menu item. Set on both `onShowing`
- * and `onShown`: Zotero rebuilds the popup each time it opens, and setting
- * `acceltext` only on `onShowing` can be cleared during the build, so the hint
- * never renders — re-applying once the popup is shown makes it stick.
- */
-function setAccel(
-  context: { menuElem: XULElement },
-  accel: string,
-): void {
-  try {
-    context.menuElem.setAttribute("acceltext", accel);
-  } catch (e) {
-    // menu element not ready / detached — nothing to label.
-  }
-}
+// NOTE on keyboard-shortcut hints: these menu items' accelerators (⌃⌥L/M/T) are
+// baked into their labels in mainWindow.ftl, not set via `acceltext`. Setting
+// `acceltext` from onShowing/onShown does not render — a XUL menuitem builds its
+// accel text into an anonymous child at construction time, and MenuManager gives
+// us the element only after it's built, so a later setAttribute("acceltext") is
+// ignored. The label text is always rendered, so the hint lives there instead.
 
 export function registerMenus() {
   Zotero.MenuManager.registerMenu({
@@ -30,8 +20,6 @@ export function registerMenus() {
         menuType: "menuitem",
         l10nID: `${config.addonRef}-menuTools-linkCreator`,
         icon: `chrome://${config.addonRef}/content/icons/favicon.png`,
-        onShowing: (_, context) => setAccel(context, "⌃⌥L"),
-        onShown: (_, context) => setAccel(context, "⌃⌥L"),
         onCommand: () => {
           addon.hooks.onShowLinkCreator();
         },
@@ -40,8 +28,6 @@ export function registerMenus() {
         menuType: "menuitem",
         l10nID: `${config.addonRef}-menuTools-syncManager`,
         icon: `chrome://${config.addonRef}/content/icons/favicon.png`,
-        onShowing: (_, context) => setAccel(context, "⌃⌥M"),
-        onShown: (_, context) => setAccel(context, "⌃⌥M"),
         onCommand: () => {
           addon.hooks.onShowSyncManager();
         },
@@ -50,8 +36,6 @@ export function registerMenus() {
         menuType: "menuitem",
         l10nID: `${config.addonRef}-menuTools-templateEditor`,
         icon: `chrome://${config.addonRef}/content/icons/favicon.png`,
-        onShowing: (_, context) => setAccel(context, "⌃⌥T"),
-        onShown: (_, context) => setAccel(context, "⌃⌥T"),
         onCommand: () => {
           addon.hooks.onShowTemplateEditor();
         },
