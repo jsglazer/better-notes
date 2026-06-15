@@ -31,6 +31,7 @@ const targets = [
   ["src/modules/template/directives.ts", "directives.cjs"],
   ["src/modules/template/engine.ts", "engine.cjs"],
   ["src/modules/template/legacyConvert.ts", "legacyConvert.cjs"],
+  ["src/modules/template/completions.ts", "completions.cjs"],
 ];
 
 for (const [entry, out] of targets) {

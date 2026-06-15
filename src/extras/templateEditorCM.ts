@@ -41,6 +41,14 @@ import {
   defaultHighlightStyle,
   bracketMatching,
 } from "@codemirror/language";
+import {
+  autocompletion,
+  completionKeymap,
+  CompletionContext,
+  Completion,
+  CompletionResult,
+} from "@codemirror/autocomplete";
+import { computeCompletion } from "../modules/template/completions";
 
 interface MonacoRange {
   startLineNumber: number;
@@ -92,6 +100,41 @@ const liquidHighlight = ViewPlugin.fromClass(
   },
   { decorations: (v) => v.decorations },
 );
+
+// Maps the pure catalog's `kind` to a CodeMirror completion `type` (icon).
+const KIND_TO_TYPE: Record<string, string> = {
+  variable: "variable",
+  field: "property",
+  filter: "function",
+  tag: "keyword",
+};
+
+/**
+ * CodeMirror completion source — a thin adapter over the pure
+ * `computeCompletion` (completions.ts). All the "what can I type here" logic
+ * lives in that unit-tested module; here we just translate doc/cursor → entries
+ * and entries → CM `Completion`s. Returns null outside `{{ … }}` / `{% … %}` so
+ * the popup never fires while writing plain Markdown/HTML.
+ */
+function liquidCompletionSource(ctx: CompletionContext): CompletionResult | null {
+  const res = computeCompletion(ctx.state.doc.toString(), ctx.pos);
+  if (!res || res.options.length === 0) {
+    return null;
+  }
+  const options: Completion[] = res.options.map((e) => ({
+    label: e.label,
+    detail: e.detail,
+    info: e.info,
+    type: KIND_TO_TYPE[e.kind] ?? "text",
+  }));
+  return {
+    from: res.from,
+    options,
+    // Keep the list open + filtering while the user keeps typing identifier
+    // characters; reopen (re-query context) otherwise.
+    validFor: /^[\w]*$/,
+  };
+}
 
 function buildTheme(isDark: boolean) {
   const fg = isDark ? "#d4d4d4" : "#1e1e1e";
@@ -249,7 +292,17 @@ async function loadMonaco(options: { theme?: string } = {}) {
         markdown(),
         syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
         liquidHighlight,
-        keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
+        autocompletion({
+          override: [liquidCompletionSource],
+          activateOnTyping: true,
+          icons: false,
+        }),
+        keymap.of([
+          ...completionKeymap,
+          ...defaultKeymap,
+          ...historyKeymap,
+          indentWithTab,
+        ]),
         EditorView.lineWrapping,
         buildTheme(isDark),
         onDocChanged,
