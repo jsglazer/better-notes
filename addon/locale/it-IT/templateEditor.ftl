@@ -86,7 +86,3 @@ format-inlineMath =
     .title = Formula matematica in linea
 format-blockMath =
     .title = Formula matematica multilinea
-format-inlineScript =
-    .title = Aggiungi uno script JS in-linea, e inserisci il risultato nella nota
-format-blockScript =
-    .title = Aggiungi uno script JS multi-linea, e inserisci il valore risultante nella nota

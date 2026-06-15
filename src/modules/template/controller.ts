@@ -39,13 +39,15 @@ function initTemplates() {
       removeTemplate(obsolete);
     }
   }
-  // Add default templates; always reset system templates to their shipped defaults
+  // Seed any missing default (incl. system) template, but DON'T overwrite one
+  // the user already has. Previously system templates were reset to their
+  // shipped defaults on every startup, so customizing e.g. the export filename
+  // format never persisted. Seed-if-missing lets edits stick; "Reset to default"
+  // in the editor (resetTemplate) is the escape hatch, and a genuinely changed
+  // built-in still ships under a new `…V{n+1}` name (so it seeds fresh).
   const templateKeys = getTemplateKeys();
   for (const defaultTemplate of addon.api.template.DEFAULT_TEMPLATES) {
-    const isSystem = (
-      addon.api.template.SYSTEM_TEMPLATE_NAMES as string[]
-    ).includes(defaultTemplate.name);
-    if (!templateKeys.includes(defaultTemplate.name) || isSystem) {
+    if (!templateKeys.includes(defaultTemplate.name)) {
       setTemplate(defaultTemplate);
     }
   }

@@ -716,11 +716,13 @@ function deleteSelectedTemplate() {
 
 function resetSelectedTemplate() {
   const name = getSelectedTemplateName();
-  if (addon.api.template.SYSTEM_TEMPLATE_NAMES.includes(name)) {
-    addon.data.template.editor.editor.setValue(
-      addon.api.template.DEFAULT_TEMPLATES.find((t) => t.name === name)?.text ||
-        "",
-    );
+  // Any template that ships a built-in default can be reset to it — not just
+  // system templates. System templates are no longer force-reset on startup
+  // (so edits persist), making this the way to restore the shipped version;
+  // the `[item]ItemNoteMD-Liquid` starter is resettable the same way.
+  const def = addon.api.template.DEFAULT_TEMPLATES.find((t) => t.name === name);
+  if (def) {
+    addon.data.template.editor.editor.setValue(def.text || "");
     showHint(`Template ${name} is reset. Please save before leaving.`);
   }
 }
@@ -880,18 +882,10 @@ const formatStore = [
     code: "\n$$\n${text}\n$$\n",
     defaultText: "e=mc^2",
   },
-  {
-    // Liquid output expression (was the removed JS engine's `${ … }`).
-    name: "inlineScript",
-    code: "{{ ${text} }}",
-    defaultText: "item.title",
-  },
-  {
-    // Liquid if-block (was the removed JS engine's `${{ … }}$`).
-    name: "blockScript",
-    code: "\n{% if ${text} %}\n\n{% endif %}\n",
-    defaultText: "item.citekey != blank",
-  },
+  // The Markdown-formatting toolbar holds only Markdown/HTML formatting. Liquid
+  // constructs (`{{ … }}`, `{% if %}`/`{% for %}`, etc.) are inserted from the
+  // snippets palette (`snippetsStore`) — the legacy `inlineScript`/`blockScript`
+  // buttons here were residue of the removed JS engine and duplicated it.
 ];
 
 // Insertable snippets for the template editor, keyed by the editor's template

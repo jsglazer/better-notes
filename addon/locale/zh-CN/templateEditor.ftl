@@ -85,7 +85,3 @@ format-inlineMath =
     .title = 行内数学公式
 format-blockMath =
     .title = 多行数学公式
-format-inlineScript =
-    .title = 添加行内JS脚本，结果将嵌入到笔记中
-format-blockScript =
-    .title = 添加多行异步JS脚本，返回值将嵌入到笔记中

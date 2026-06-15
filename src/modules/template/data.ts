@@ -10,10 +10,21 @@ const SYSTEM_TEMPLATE_NAMES = [
   "[ExportLatexFileContent]",
 ];
 
-// Obsolete templates removed on startup (U4): the legacy JS engine is gone, so
+// Obsolete templates removed on startup: the legacy JS engine is gone, so
 // `[item]ItemNoteMD05` (user's old custom template) and `[ExportMDFileHeaderV2]`
-// (replaced by the buildExportHeader() function) are pruned from stored prefs.
-const OBSOLETE_TEMPLATE_NAMES = ["[item]ItemNoteMD05", "[ExportMDFileHeaderV2]"];
+// (replaced by the buildExportHeader() function) are pruned from stored prefs
+// (U4). The three `*-Liquid` parity-test templates seeded during the U4 cutover
+// are pruned too now that the cutover is verified — they were dev scaffolding,
+// not user-facing defaults (the `{% annotations %}` / `{% annotations grouped %}`
+// features they demonstrated are documented in docs/liquid-templates.md). The
+// `[item]ItemNoteMD-Liquid` starter is kept.
+const OBSOLETE_TEMPLATE_NAMES = [
+  "[item]ItemNoteMD05",
+  "[ExportMDFileHeaderV2]",
+  "[text]Current Time-Liquid",
+  "[item]Annotations-Liquid",
+  "[item]Annotations-Grouped-Liquid",
+];
 export { OBSOLETE_TEMPLATE_NAMES };
 
 // Non-system templates are removed from default templates
@@ -71,9 +82,9 @@ const DEFAULT_TEMPLATES = <NoteTemplate[]>[
 {{ latexContent }}`,
   },
   {
-    // Sandboxed (Liquid) port of the user's [item]ItemNoteMD05 template — U4
-    // parity test. Selectable from the template picker after install; coexists
-    // with the legacy JS template until the cutover is verified.
+    // The shipped starter [item] template — a Liquid note scaffold (summary +
+    // section headings). Originally the Liquid port of the user's legacy
+    // [item]ItemNoteMD05; kept as the example users can copy and adapt.
     name: "[item]ItemNoteMD-Liquid",
     text: `<!--liquid-->
 <!--markdown-->
@@ -108,34 +119,5 @@ const DEFAULT_TEMPLATES = <NoteTemplate[]>[
 ## General Notes
 
 ## References`,
-  },
-  {
-    // Sandboxed (Liquid) [text] parity test — exercises the text path, the `now`
-    // context, and Liquid's built-in `date` filter. Coexists with legacy.
-    name: "[text]Current Time-Liquid",
-    text: `<!--liquid-->
-**Current Time**: {{ now | date: "%Y-%m-%d %H:%M" }}`,
-  },
-  {
-    // Sandboxed (Liquid) [item] parity test for the `{% annotations %}` render
-    // tag (U4). NOT markdown: the tag emits annotation HTML (with embedded
-    // images on a live run), so the body is HTML to avoid md2html mangling it.
-    name: "[item]Annotations-Liquid",
-    text: `<!--liquid-->
-<h1>{{ item.citekey }}</h1>
-<h2>Annotations</h2>
-{% annotations %}`,
-  },
-  {
-    // Grouped annotation export: `{% annotations grouped %}` buckets the item's
-    // annotations under `<h2>Color Label</h2>` sections, ordered by the
-    // `annotationSectionOrder` pref (default: Background, Key, Argument, Error,
-    // Source, Data, Definition, Nav). Each annotation's color label becomes its
-    // section heading instead of an inline badge. NOT markdown — the tag emits
-    // HTML (with embedded images on a live run).
-    name: "[item]Annotations-Grouped-Liquid",
-    text: `<!--liquid-->
-<h1>{{ item.citekey }}</h1>
-{% annotations grouped %}`,
   },
 ];

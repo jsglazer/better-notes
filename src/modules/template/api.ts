@@ -59,12 +59,10 @@ async function runItemTemplate(
     dryRun?: boolean;
   } = {},
 ): Promise<string> {
-  /**
-   * args:
-   * beforeloop stage: items, copyNoteImage, sharedObj(for temporary variables, shared by all stages)
-   * default stage: topItem, itemNotes, copyNoteImage, sharedObj
-   * afterloop stage: items, copyNoteImage, sharedObj
-   */
+  // Renders an `[item]` template against the curated Liquid context built in
+  // runItemTemplateLiquid (`item`, `items`, `note`, `now`). The legacy
+  // beforeloop/default/afterloop stage machinery + `sharedObj`/`copyNoteImage`
+  // globals were removed with the JS engine in U4.
   let { itemIds } = options;
   const { targetNoteId, dryRun } = options;
   if (!itemIds) {

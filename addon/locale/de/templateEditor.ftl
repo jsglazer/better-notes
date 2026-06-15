@@ -86,7 +86,3 @@ format-inlineMath =
     .title = Formel in Zeile
 format-blockMath =
     .title = Formel als Block
-format-inlineScript =
-    .title = Eingebettetes JS-Skript, dessen Ergebnis in die Notiz eingefügt wird.
-format-blockScript =
-    .title = JS-Skript als Block einfügen, dessen Ergebnis in die Notiz eingefügt wird.

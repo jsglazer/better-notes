@@ -86,7 +86,3 @@ format-inlineMath =
     .title = Inline math formula
 format-blockMath =
     .title = Multi-line math formula
-format-inlineScript =
-    .title = Insert a Liquid output expression around the selection
-format-blockScript =
-    .title = Wrap the selection in a Liquid if-block

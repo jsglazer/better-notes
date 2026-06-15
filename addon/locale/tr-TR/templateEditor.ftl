@@ -86,7 +86,3 @@ format-inlineMath =
     .title = Inline math formula
 format-blockMath =
     .title = Multi-line math formula
-format-inlineScript =
-    .title = Add an inline JS script, the result of which will be embedded in the note
-format-blockScript =
-    .title = Add a multi-line async JS script, the return value of which will be embedded in the note
