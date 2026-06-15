@@ -11,3 +11,7 @@ unSync =
 detect = 
     .label = Detect...
     .tooltiptext = Detect synced notes from folder
+# en fallback — untranslated
+cleanup =
+    .label = Cleanup
+    .tooltiptext = Remove sync entries whose files no longer exist

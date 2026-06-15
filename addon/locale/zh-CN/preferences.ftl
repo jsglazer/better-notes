@@ -54,3 +54,6 @@ annotationNote-enableTagSync =
 about-title = 关于
 help =
     .value = { $name } 版本 { $version } 构建 { $time }
+# en fallback — untranslated
+sync-background =
+    .label = Sync in the background when Zotero is not focused (propagates external edits live; conflicts are deferred)

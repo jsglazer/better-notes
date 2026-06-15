@@ -11,3 +11,7 @@ unSync =
 detect = 
     .label = Individua...
     .tooltiptext = Individua note sincronizzate nella cartella
+# en fallback — untranslated
+cleanup =
+    .label = Cleanup
+    .tooltiptext = Remove sync entries whose files no longer exist

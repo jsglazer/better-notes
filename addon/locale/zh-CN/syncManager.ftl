@@ -11,3 +11,7 @@ unSync =
 detect = 
     .label = 扫描...
     .tooltiptext = 从文件夹扫描已同步的笔记
+# en fallback — untranslated
+cleanup =
+    .label = Cleanup
+    .tooltiptext = Remove sync entries whose files no longer exist

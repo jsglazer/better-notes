@@ -52,3 +52,9 @@ annotationNote-enableTagSync =
 about-title = Hakkında
 help =
     .value = { $name } Sürüm { $version } Yapı Numarası { $time }
+# en fallback — untranslated
+sync-background =
+    .label = Sync in the background when Zotero is not focused (propagates external edits live; conflicts are deferred)
+# en fallback — untranslated
+annotationNote-enableCreateNoteButton =
+    .label = Show the "Create note from annotation" button on annotations in the reader
