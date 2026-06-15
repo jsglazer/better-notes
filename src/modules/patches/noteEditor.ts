@@ -1,23 +1,21 @@
-import { PatchHelper, wait } from "zotero-plugin-toolkit";
+import { wait } from "zotero-plugin-toolkit";
 import type { OutlinePane } from "../../elements/workspace/outlinePane";
 import { getWorkspaceByUID, WorkspaceTab } from "../../utils/workspace";
+import { applyPatch } from "./registry";
 
 export function patchNoteEditorCE(win: _ZoteroTypes.MainWindow) {
   const NoteEditorProto =
     win.document.createXULElement("note-editor").constructor.prototype;
 
-  new PatchHelper().setData({
-    target: NoteEditorProto,
-    // @ts-ignore
-    funcSign: "setBottomPlaceholderHeight",
-    patcher: (origin) =>
-      // @ts-ignore
-      function (height: number | null = null) {
+  applyPatch(
+    NoteEditorProto,
+    "setBottomPlaceholderHeight",
+    (origin) =>
+      function (this: unknown, height: number | null = null) {
         // @ts-ignore
         const noteEditor = this as any;
 
         if (!noteEditor.tabID) {
-          // @ts-ignore
           return origin.apply(this, [height]);
         }
 
@@ -101,8 +99,7 @@ export function patchNoteEditorCE(win: _ZoteroTypes.MainWindow) {
         box.style.height = `calc(100% - ${height}px)`;
         noteEditor.setToggleContextPaneButtonMode();
       },
-    enabled: true,
-  });
+  );
 
   updateExistingNoteTabs(win);
 }

@@ -49,6 +49,7 @@ import { patchNoteEditorCE } from "./modules/patches/noteEditor";
 import { openLinkCreator } from "./utils/linkCreator";
 import { showHint } from "./utils/hint";
 import { patchNoteCreation, patchNotes } from "./modules/patches/notes";
+import { revertPatches } from "./modules/patches/registry";
 import {
   registerKeyboardShortcuts,
   unregisterKeyboardShortcuts,
@@ -170,6 +171,10 @@ function onShutdown(): void {
   step("unregisterNotify", () => unregisterNotify());
 
   step("unregisterEditorInstanceHook", () => unregisterEditorInstanceHook());
+
+  // Restore every monkey-patched Zotero/global method to its original, so no
+  // plugin code stays reachable from Zotero core after teardown.
+  step("revertPatches", () => revertPatches());
 
   Zotero.getMainWindows().forEach((win, i) => {
     step("onMainWindowUnload#" + i, () => onMainWindowUnload(win));

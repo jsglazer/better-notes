@@ -1,17 +1,14 @@
-import { PatchHelper } from "zotero-plugin-toolkit";
 import { getPref } from "../../utils/prefs";
+import { applyPatch } from "./registry";
 
 export function patchExportItems(win: _ZoteroTypes.MainWindow) {
   const Zotero_File_Interface = win.Zotero_File_Interface;
-  new PatchHelper().setData({
-    target: Zotero_File_Interface,
-    // @ts-ignore
-    funcSign: "exportItems",
-    patcher: (origin) =>
-      // @ts-ignore
-      function () {
+  applyPatch(
+    Zotero_File_Interface,
+    "exportItems",
+    (origin) =>
+      function (this: unknown) {
         if (!getPref("exportNotes.takeover")) {
-          // @ts-ignore
           return origin.apply(this);
         }
         const items = win.ZoteroPane.getSelectedItems();
@@ -20,9 +17,7 @@ export function patchExportItems(win: _ZoteroTypes.MainWindow) {
             items.map((item) => item.id),
           );
         }
-        // @ts-ignore
         return origin.apply(this);
       },
-    enabled: true,
-  });
+  );
 }
