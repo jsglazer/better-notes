@@ -3,6 +3,7 @@ import { getString } from "../../utils/locale";
 import { getPref } from "../../utils/prefs";
 import { jointPath } from "../../utils/str";
 import { isElementVisible } from "../../utils/window";
+import { getEditorInstances, getEditorItem } from "../editor/adapter";
 import { isEditorIdle } from "../editor/inputActivity";
 import { threeWayMerge } from "./merge";
 
@@ -122,8 +123,13 @@ async function callSyncing(
         Zotero.getMainWindow()?.document?.hasFocus?.() ?? false;
       activeNoteIds = !appFocused
         ? []
-        : Zotero.Notes._editorInstances
+        : getEditorInstances()
             .filter((editor) => {
+              // _popup / _iframeWindow are accessed directly here on purpose:
+              // both are guarded (closest()/visibility, and an optional-chained
+              // hasFocus in a try/catch) against a dead/partial editor — the
+              // adapter accessors don't replicate that, and getEditorPopup adds
+              // type friction for no benefit.
               const elem = (editor._popup as XULPopupElement).closest(
                 "note-editor",
               );
@@ -136,7 +142,7 @@ async function callSyncing(
                 return false;
               }
             })
-            .map((editor) => editor._item.id);
+            .map((editor) => getEditorItem(editor).id);
     }
     ztoolkit.log("sync start", reason, items.length, skippedCount);
 

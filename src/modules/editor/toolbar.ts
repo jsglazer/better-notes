@@ -9,15 +9,21 @@ import { getString } from "../../utils/locale";
 import { openLinkCreator } from "../../utils/linkCreator";
 import { slice } from "../../utils/str";
 import { waitUtilAsync } from "../../utils/wait";
+import {
+  getEditorInitPromise,
+  getEditorItem,
+  getEditorWindow,
+} from "./adapter";
 
 export async function initEditorToolbar(editor: Zotero.EditorInstance) {
   if (editor._disableUI) {
     return;
   }
 
-  const noteItem = editor._item;
+  const noteItem = getEditorItem(editor);
 
-  const _document = editor._iframeWindow.document;
+  const _window = getEditorWindow(editor);
+  const _document = _window.document;
   try {
     await waitUtilAsync(() => !!_document.querySelector(".toolbar"));
   } catch (e) {
@@ -82,12 +88,12 @@ export async function initEditorToolbar(editor: Zotero.EditorInstance) {
     );
   }
 
-  const settingsButton = editor._iframeWindow.document.querySelector(
+  const settingsButton = _document.querySelector(
     ".toolbar .end .dropdown .toolbar-button",
   ) as HTMLDivElement;
 
   const MutationObserver = // @ts-ignore
-    editor._iframeWindow.MutationObserver as typeof window.MutationObserver;
+    _window.MutationObserver as typeof window.MutationObserver;
   const observer = new MutationObserver((mutations) => {
     mutations.forEach(async (mutation) => {
       if (
@@ -111,7 +117,7 @@ export async function initEditorToolbar(editor: Zotero.EditorInstance) {
 }
 
 async function getMenuData(editor: Zotero.EditorInstance) {
-  const noteItem = editor._item;
+  const noteItem = getEditorItem(editor);
 
   const currentLine = getLineAtCursor(editor);
   const currentSection = (await getSectionAtCursor(editor)) || "";
@@ -134,7 +140,7 @@ async function getMenuData(editor: Zotero.EditorInstance) {
       id: makeId("settings-showInLibrary"),
       text: getString("editor-toolbar-settings-showInLibrary"),
       callback: (e) => {
-        Zotero.getMainWindow().ZoteroPane.selectItems([e.editor._item.id]);
+        Zotero.getMainWindow().ZoteroPane.selectItems([getEditorItem(e.editor).id]);
       },
     },
   ];
@@ -164,7 +170,7 @@ async function getMenuData(editor: Zotero.EditorInstance) {
           text: getString("editor-toolbar-settings-insertTemplate"),
           callback: (e) => {
             addon.hooks.onShowTemplatePicker("insert", {
-              noteId: e.editor._item.id,
+              noteId: getEditorItem(e.editor).id,
               lineIndex: currentLine,
             });
           },
@@ -205,7 +211,7 @@ async function getMenuData(editor: Zotero.EditorInstance) {
           id: makeId("settings-updateRelatedNotes"),
           text: getString("editor-toolbar-settings-updateRelatedNotes"),
           callback: (e) => {
-            addon.api.relation.updateNoteLinkRelation(e.editor._item.id);
+            addon.api.relation.updateNoteLinkRelation(getEditorItem(e.editor).id);
           },
         },
       ]),
@@ -264,7 +270,7 @@ async function registerEditorToolbarPopup(
   popup: HTMLDivElement,
   popupLines: PopupData[],
 ) {
-  await editor._initPromise;
+  await getEditorInitPromise(editor);
   ztoolkit.UI.appendElement(
     {
       tag: "fragment",
@@ -318,7 +324,7 @@ async function registerEditorToolbarElement(
   elem: HTMLElement,
   after: boolean = false,
 ) {
-  await editor._initPromise;
+  await getEditorInitPromise(editor);
   const target = toolbar.querySelector(`.${position}`);
   if (target) {
     if (after) {

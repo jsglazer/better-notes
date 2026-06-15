@@ -2,6 +2,7 @@ import { config } from "../../package.json";
 import { showHint } from "./hint";
 import { getString } from "./locale";
 import { addLineToNote } from "./note";
+import { getEditorInstances, getEditorItem } from "../modules/editor/adapter";
 
 export { openLinkCreator };
 
@@ -19,8 +20,8 @@ async function openLinkCreator(
   const io = {
     openedNoteIDs: Array.from(
       new Set(
-        Zotero.Notes._editorInstances
-          .map((editor) => editor._item?.id)
+        getEditorInstances()
+          .map((editor) => getEditorItem(editor)?.id)
           .filter((id) => id),
       ),
     ),

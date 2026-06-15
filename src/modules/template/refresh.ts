@@ -1,10 +1,11 @@
 import * as YAML from "yaml";
 import { htmlUnescape } from "../../utils/str";
+import { getEditorItem } from "../editor/adapter";
 
 export { refreshTemplatesInNote };
 
 async function refreshTemplatesInNote(editor: Zotero.EditorInstance) {
-  const lines = await addon.api.note.getLinesInNote(editor._item);
+  const lines = await addon.api.note.getLinesInNote(getEditorItem(editor));
   let startIndex = -1;
   const matchedIndexPairs: { from: number; to: number }[] = [];
 
@@ -46,7 +47,7 @@ async function refreshTemplatesInNote(editor: Zotero.EditorInstance) {
     let html = "";
     if (template.toLowerCase().startsWith("[item]")) {
       html = await addon.api.template.runItemTemplate(template, {
-        targetNoteId: editor._item.id,
+        targetNoteId: getEditorItem(editor).id,
         itemIds: items
           ?.map((id) => {
             const [libraryID, key] = id.split("/");
@@ -56,7 +57,7 @@ async function refreshTemplatesInNote(editor: Zotero.EditorInstance) {
       });
     } else {
       html = await addon.api.template.runTextTemplate(template, {
-        targetNoteId: editor._item.id,
+        targetNoteId: getEditorItem(editor).id,
       });
     }
     const currentLineCount = addon.api.editor.getLineCount(editor);

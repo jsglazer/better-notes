@@ -28,6 +28,7 @@ import { showSyncDiff } from "./modules/sync/diffWindow";
 import { showSyncInfo } from "./modules/sync/infoWindow";
 import { showSyncManager } from "./modules/sync/managerWindow";
 import { showTemplateEditor } from "./modules/template/editorWindow";
+import { getEditorInstances, getEditorItem } from "./modules/editor/adapter";
 import {
   createNoteFromTemplate,
   createNoteFromMD,
@@ -356,12 +357,12 @@ const onCreateNoteFromMD = createNoteFromMD;
 const onShowUserGuide = showUserGuide;
 
 function onShowLinkCreator() {
-  const editors = Zotero.Notes._editorInstances.filter((e) => e._item);
+  const editors = getEditorInstances().filter((e) => getEditorItem(e));
   if (!editors.length) {
     showHint(getString("alert-linkCreator-emptyNote"));
     return;
   }
-  const noteItem = editors[0]._item;
+  const noteItem = getEditorItem(editors[0]);
   setTimeout(() => openLinkCreator(noteItem), 0);
 }
 

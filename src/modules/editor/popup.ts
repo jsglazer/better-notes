@@ -13,6 +13,7 @@ import { getNoteLink, getNoteLinkParams } from "../../utils/link";
 import { getString } from "../../utils/locale";
 import { waitUtilAsync } from "../../utils/wait";
 import { getWorkspaceUID } from "../../utils/workspace";
+import { getEditorItem, getEditorWindow } from "./adapter";
 
 export function initEditorPopup(editor: Zotero.EditorInstance) {
   if (editor._disableUI) {
@@ -39,7 +40,7 @@ export function initEditorPopup(editor: Zotero.EditorInstance) {
     }
   });
   ob.observe(
-    editor._iframeWindow.document.querySelector(".relative-container")!,
+    getEditorWindow(editor).document.querySelector(".relative-container")!,
     {
       subtree: true,
       childList: true,
@@ -50,7 +51,7 @@ export function initEditorPopup(editor: Zotero.EditorInstance) {
 }
 
 async function updateEditorLinkPopup(editor: Zotero.EditorInstance) {
-  const _window = editor._iframeWindow;
+  const _window = getEditorWindow(editor);
   const link = getURLAtCursor(editor);
   const linkParams = getNoteLinkParams(link);
   Object.assign(linkParams, {
@@ -58,7 +59,7 @@ async function updateEditorLinkPopup(editor: Zotero.EditorInstance) {
     workspaceUID: getWorkspaceUID(editor._popup)!,
   });
   const linkNote = linkParams.noteItem;
-  const editorNote = editor._item;
+  const editorNote = getEditorItem(editor);
   // If the note is invalid, we remove the buttons
   if (linkNote) {
     const insertButton = ztoolkit.UI.createElement(_window.document, "button", {
@@ -183,6 +184,7 @@ async function updateEditorLinkPopup(editor: Zotero.EditorInstance) {
 }
 
 function updateEditorImagePopup(editor: Zotero.EditorInstance) {
+  const _window = getEditorWindow(editor);
   ztoolkit.UI.appendElement(
     {
       tag: "fragment",
@@ -200,7 +202,7 @@ function updateEditorImagePopup(editor: Zotero.EditorInstance) {
             {
               type: "click",
               listener: (e) => {
-                const imgs = editor._iframeWindow.document
+                const imgs = _window.document
                   .querySelector(".primary-editor")
                   ?.querySelectorAll("img");
                 if (!imgs) {
@@ -210,12 +212,12 @@ function updateEditorImagePopup(editor: Zotero.EditorInstance) {
                 addon.hooks.onShowImageViewer(
                   imageList.map((elem) => (elem as HTMLImageElement)?.src),
                   imageList.indexOf(
-                    editor._iframeWindow.document
+                    _window.document
                       .querySelector(".primary-editor")
                       ?.querySelector(".selected")
                       ?.querySelector("img") as HTMLImageElement,
                   ),
-                  editor._item.getNoteTitle(),
+                  getEditorItem(editor).getNoteTitle(),
                 );
               },
             },
@@ -234,7 +236,7 @@ function updateEditorImagePopup(editor: Zotero.EditorInstance) {
               type: "click",
               listener: (e) => {
                 const newWidth = parseFloat(
-                  editor._iframeWindow.prompt(
+                  _window.prompt(
                     getString("editor-resizeImage-prompt"),
                     // @ts-ignore
                     getEditorCore(editor).view.state.selection.node?.attrs
@@ -250,6 +252,6 @@ function updateEditorImagePopup(editor: Zotero.EditorInstance) {
         },
       ],
     },
-    editor._iframeWindow.document.querySelector(".image-popup")!,
+    _window.document.querySelector(".image-popup")!,
   );
 }

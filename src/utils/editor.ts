@@ -4,6 +4,8 @@ import {
   findEditorInstance,
   getEditorCore as adapterGetEditorCore,
   getEditorAPI as adapterGetEditorAPI,
+  getEditorItem,
+  getEditorWindow,
 } from "../modules/editor/adapter";
 import { getNoteTreeFlattened } from "./note";
 import { getPref } from "./prefs";
@@ -149,7 +151,7 @@ async function scrollToSection(
   editor: Zotero.EditorInstance,
   sectionName: string,
 ) {
-  const item = editor._item;
+  const item = getEditorItem(editor);
   const sectionTree = await getNoteTreeFlattened(item);
   const sectionNode = sectionTree.find(
     (node) => node.model.name.trim() === sectionName.trim(),
@@ -212,7 +214,7 @@ async function getSectionAtCursor(
 ): Promise<string | undefined> {
   const lineIndex = getLineAtCursor(editor);
   if (lineIndex < 0) return undefined;
-  const item = editor._item;
+  const item = getEditorItem(editor);
   const sectionTree = await getNoteTreeFlattened(item);
   let sectionNode;
   for (let i = 0; i < sectionTree.length; i++) {
@@ -474,7 +476,7 @@ async function copyNoteLink(
   };
 
   const html = await addon.api.template.runQuickInsertTemplate(
-    editor._item,
+    getEditorItem(editor),
     undefined,
     {
       lineIndex,
@@ -539,7 +541,7 @@ function initEditorPlugins(editor: Zotero.EditorInstance) {
           magicKey: {
             insertTemplate: () => {
               addon.hooks.onShowTemplatePicker("insert", {
-                noteId: editor._item.id,
+                noteId: getEditorItem(editor).id,
                 lineIndex: getLineAtCursor(editor),
               });
             },
@@ -549,14 +551,14 @@ function initEditorPlugins(editor: Zotero.EditorInstance) {
             insertLink: (mode: "inbound" | "outbound") => {
               const lineIndex = getLineAtCursor(editor);
               setTimeout(() => {
-                openLinkCreator(editor._item, { lineIndex, mode });
+                openLinkCreator(getEditorItem(editor), { lineIndex, mode });
               }, 0);
             },
             copyLink: (mode: "section" | "line") => {
               copyNoteLink(editor, mode);
             },
             openAttachment: () => {
-              editor._item.parentItem
+              getEditorItem(editor).parentItem
                 ?.getBestAttachment()
                 .then((attachment) => {
                   if (!attachment) {
@@ -567,12 +569,12 @@ function initEditorPlugins(editor: Zotero.EditorInstance) {
                 });
             },
             canOpenAttachment: () => {
-              const parentItem = editor._item.parentItem;
+              const parentItem = getEditorItem(editor).parentItem;
               if (!parentItem) {
                 return false;
               }
               return (
-                (editor._item.parentItem as Zotero.Item).numAttachments() > 0
+                (getEditorItem(editor).parentItem as Zotero.Item).numAttachments() > 0
               );
             },
             enable: getPref("editor.useMagicKey") as boolean,
@@ -582,7 +584,7 @@ function initEditorPlugins(editor: Zotero.EditorInstance) {
             enable: getPref("editor.useMarkdownPaste") as boolean,
           },
         },
-        editor._iframeWindow,
+        getEditorWindow(editor),
         { wrapReflectors: true, cloneFunctions: true },
       ),
     ),

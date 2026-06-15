@@ -8,6 +8,7 @@ import {
 } from "../../utils/editor";
 import { getString } from "../../utils/locale";
 import { getEditorCore } from "../../utils/editor";
+import { getEditorWindow } from "./adapter";
 
 export function initEditorMenu(editor: Zotero.EditorInstance) {
   const makeId = (key: string) =>
@@ -38,7 +39,7 @@ export function initEditorMenu(editor: Zotero.EditorInstance) {
           icon: `chrome://${config.addonRef}/content/icons/favicon.png`,
           commandListener: (ev) => {
             const newWidth = parseFloat(
-              editor._iframeWindow.prompt(
+              getEditorWindow(editor).prompt(
                 getString("editor-resizeImage-prompt"),
                 // @ts-ignore
                 getEditorCore(editor).view.state.selection.node?.attrs?.width,
