@@ -29,7 +29,7 @@ This is a fork of [windingwind's zotero-better-notes](https://github.com/winding
 ## Features
 
 - **Templates** — sandboxed **Liquid** templates (`{{ item.title }}`, `{% for %}`, filters like `| year`) with a live-preview editor and **autocomplete** for the available fields, filters, and tags — safe by design, no arbitrary JavaScript. A built-in **"Convert legacy JavaScript template to Liquid"** command (Template Editor → Options) migrates older `${ … }` templates automatically, flagging anything that needs a manual touch-up
-- **File Sync** — sync notes to Markdown files on disk, with **automatic 3-way merge** of non-conflicting edits and a diff view for true conflicts
+- **File Sync** — sync notes to Markdown files on disk, with **automatic 3-way merge** of non-conflicting edits and a diff view for true conflicts. Sync runs on a timer (default every 30 s) and works **in the background** — edits you make to a note's `.md` in Obsidian flow back into Zotero even while Zotero is unfocused. A note you have **open and focused** in Zotero refreshes once you stop typing in it for a few seconds, so an external edit is never imported over keystrokes in progress
 - **Multiple notes per item** — each note exports to its own file; prompts for a short ID on a name clash
 - **Annotation color labels** — assign a meaning to each highlight color (e.g. Yellow = "Important"); shown before each exported annotation, or used to **group annotations into per-label sections** (`{% annotations grouped %}`) in a configurable order
 - **Note Linking** — bidirectional inbound/outbound links between notes
