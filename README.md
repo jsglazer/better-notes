@@ -28,7 +28,7 @@ This is a fork of [windingwind's zotero-better-notes](https://github.com/winding
 
 ## Features
 
-- **Templates** — sandboxed **Liquid** templates (`{{ item.title }}`, `{% for %}`, filters like `| year`) with a live-preview editor — safe by design, no arbitrary JavaScript
+- **Templates** — sandboxed **Liquid** templates (`{{ item.title }}`, `{% for %}`, filters like `| year`) with a live-preview editor — safe by design, no arbitrary JavaScript. A built-in **"Convert legacy JavaScript template to Liquid"** command (Template Editor → Options) migrates older `${ … }` templates automatically, flagging anything that needs a manual touch-up
 - **File Sync** — sync notes to Markdown files on disk, with **automatic 3-way merge** of non-conflicting edits and a diff view for true conflicts
 - **Multiple notes per item** — each note exports to its own file; prompts for a short ID on a name clash
 - **Annotation color labels** — assign a meaning to each highlight color (e.g. Yellow = "Important"); shown before each exported annotation, or used to **group annotations into per-label sections** (`{% annotations grouped %}`) in a configurable order
