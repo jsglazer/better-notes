@@ -3,6 +3,7 @@ import { getString } from "../../utils/locale";
 import { getPref } from "../../utils/prefs";
 import { jointPath } from "../../utils/str";
 import { isElementVisible } from "../../utils/window";
+import { isEditorIdle } from "../editor/inputActivity";
 import { threeWayMerge } from "./merge";
 
 export { setSyncing, unsetSyncing, callSyncing };
@@ -100,25 +101,26 @@ async function callSyncing(
       addon.data.sync.lock = false;
       return;
     }
+    // The set of notes the user currently has open, visible, AND focused in
+    // Zotero — "protected" notes. These are NOT dropped before the compare any
+    // more (the old code did, so a focused note never synced at all). Instead
+    // they're compared like everything else, then handled specially in the loop
+    // below: a one-way external edit (MDAhead) is imported only when the note is
+    // idle (U2b-B), and a conflict/auto-merge (NeedDiff) is always deferred —
+    // both writes reload the live editor, so neither may touch a note you're
+    // typing into.
+    //
+    // CRUCIAL: gate this on the MAIN WINDOW having OS focus. A note editor
+    // iframe's `document.hasFocus()` keeps returning true even while Zotero is
+    // in the background (you're typing in Obsidian) — Gecko tracks the iframe's
+    // internal focus independently of OS window activation. When Zotero is
+    // unfocused you cannot be typing into a Zotero note, so nothing is protected
+    // and background runs sync every note.
+    let activeNoteIds: number[] = [];
     if (skipActive) {
-      // Skip ONLY notes the user is actively editing right now — an open,
-      // visible editor whose iframe currently HAS KEYBOARD FOCUS. The previous
-      // check skipped any *visible* editor, so a note open in a Zotero tab (very
-      // often the exact note you're editing in Obsidian) was never synced while
-      // that tab showed — even with Zotero in the background. Requiring focus
-      // lets background/idle syncs update an open-but-unfocused note, while still
-      // never importing over a note you're typing into.
-      //
-      // CRUCIAL: gate the whole skip on the MAIN WINDOW having OS focus. A note
-      // editor iframe's `document.hasFocus()` keeps returning true even while
-      // Zotero is in the background (you're typing in Obsidian) — Gecko tracks
-      // the iframe's internal focus independently of OS window activation. So
-      // the iframe check alone still skipped the open note during background
-      // runs, the exact case background sync exists to handle. When Zotero is
-      // unfocused you cannot be typing into a Zotero note, so skip nothing.
       const appFocused =
         Zotero.getMainWindow()?.document?.hasFocus?.() ?? false;
-      const activeNoteIds = !appFocused
+      activeNoteIds = !appFocused
         ? []
         : Zotero.Notes._editorInstances
             .filter((editor) => {
@@ -135,11 +137,6 @@ async function callSyncing(
               }
             })
             .map((editor) => editor._item.id);
-      const filteredItems = items.filter(
-        (item) => !activeNoteIds.includes(item.id),
-      );
-      skippedCount = items.length - filteredItems.length;
-      items = filteredItems;
     }
     ztoolkit.log("sync start", reason, items.length, skippedCount);
 
@@ -187,8 +184,15 @@ async function callSyncing(
           persistMdModified(item.id, syncStatus, mdStatus.lastmodify.getTime());
         }
       }
+      const isProtected = activeNoteIds.includes(item.id);
       switch (compareResult) {
         case SyncCode.NoteAhead:
+          if (isProtected) {
+            // Don't re-export the focused note from a periodic run — your own
+            // edits to it already flow out via the modify-notifier sync path.
+            skippedCount += 1;
+            break;
+          }
           if (Object.keys(toExport).includes(filepath)) {
             toExport[filepath].push(item.id);
           } else {
@@ -196,9 +200,24 @@ async function callSyncing(
           }
           break;
         case SyncCode.MDAhead:
+          // U2b-B: a one-way external (Obsidian) edit. For the focused note an
+          // import reloads the live editor, so defer it WHILE you're typing;
+          // once the note is idle (no keypress for a few seconds — you're
+          // reading, not editing) let it import so the Obsidian change appears.
+          if (isProtected && !isEditorIdle(item.id)) {
+            skippedCount += 1;
+            break;
+          }
           toImport.push(syncStatus);
           break;
         case SyncCode.NeedDiff:
+          if (isProtected) {
+            // Both an auto-merge and a diff dialog write the note (reloading the
+            // live editor) and the dialog steals focus — never do that to the
+            // note you're focused on. Defer to the next focused, idle tick.
+            skippedCount += 1;
+            break;
+          }
           // U2b: both sides changed — try a 3-way auto-merge against the stored
           // baseline first; only fall back to the manual diff dialog on a real
           // (overlapping) conflict.

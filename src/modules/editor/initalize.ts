@@ -7,6 +7,7 @@ import {
   isEditorAlive,
 } from "./adapter";
 import { initEditorImagePreviewer } from "./image";
+import { clearInputActivity, trackEditorInput } from "./inputActivity";
 import { injectEditorCSS, injectEditorScripts } from "./inject";
 import { initEditorPlugins } from "./plugins";
 import { initEditorMenu } from "./menu";
@@ -41,6 +42,7 @@ export function registerEditorInstanceHook() {
 
 export function unregisterEditorInstanceHook() {
   Zotero.Prefs.unregisterObserver(prefsObserver);
+  clearInputActivity();
 }
 
 async function onEditorInstanceCreated(editor: Zotero.EditorInstance) {
@@ -61,6 +63,7 @@ async function onEditorInstanceCreated(editor: Zotero.EditorInstance) {
   try {
     await injectEditorScripts(getEditorWindow(editor));
     injectEditorCSS(getEditorWindow(editor));
+    trackEditorInput(editor);
     initEditorImagePreviewer(editor);
     await initEditorToolbar(editor);
     initEditorPopup(editor);
