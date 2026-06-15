@@ -28,17 +28,24 @@ function setSyncing() {
           unsetSyncing();
           return;
         }
-        // Only when Zotero is active and focused
-        if (
-          Zotero.getMainWindow().document.hasFocus() &&
-          (getPref("syncPeriodSeconds") as number) > 0
-        ) {
-          callSyncing(undefined, {
-            quiet: true,
-            skipActive: true,
-            reason: "auto",
-          });
+        if ((getPref("syncPeriodSeconds") as number) <= 0) {
+          return;
         }
+        const focused = Zotero.getMainWindow()?.document?.hasFocus() ?? false;
+        // Background sync (Zotero unfocused) is what makes Obsidian→Zotero edits
+        // propagate live. It's opt-out via `sync.background` (default on); when
+        // off, fall back to the old focus-only behavior. Unfocused runs use
+        // `background: true` so conflicts are deferred, not popped as a modal.
+        const backgroundEnabled = getPref("sync.background") !== false;
+        if (!focused && !backgroundEnabled) {
+          return;
+        }
+        callSyncing(undefined, {
+          quiet: true,
+          skipActive: true,
+          reason: focused ? "auto" : "auto-background",
+          background: !focused,
+        });
       },
       Number(syncPeriod) * 1000,
     );
@@ -55,11 +62,21 @@ function unsetSyncing() {
 
 async function callSyncing(
   items: Zotero.Item[] = [],
-  { quiet, skipActive, reason } = {
-    quiet: true,
-    skipActive: true,
-    reason: "unknown",
-  },
+  {
+    quiet = true,
+    skipActive = true,
+    reason = "unknown",
+    background = false,
+  }: {
+    quiet?: boolean;
+    skipActive?: boolean;
+    reason?: string;
+    // Background (Zotero unfocused) run: do the full stat-gated compare + diff3
+    // auto-merge, but DEFER true conflicts (don't pop the modal diff window,
+    // which would steal focus from Obsidian). Deferred conflicts surface on the
+    // next focused sync.
+    background?: boolean;
+  } = {},
 ) {
   // Always log in development mode
   if (addon.data.env === "development") {
@@ -219,17 +236,29 @@ async function callSyncing(
     }
     i = 1;
     totalCount = toDiff.length;
-    for (const syncStatus of toDiff) {
-      progress?.changeLine({
-        text: `[${getString("sync-running-hint-diff")}] ${i}/${totalCount}...`,
-        progress: ((i - 1) / totalCount) * 100,
-      });
+    // In a background run, never open the modal diff window — it would yank
+    // focus away from Obsidian. Leave the conflict unresolved (its sync status
+    // isn't advanced), so the next FOCUSED sync re-detects and resolves it; just
+    // surface a non-blocking hint.
+    if (background) {
+      if (toDiff.length > 0) {
+        showHint(
+          `${toDiff.length} note conflict(s) need review — focus Zotero to resolve.`,
+        );
+      }
+    } else {
+      for (const syncStatus of toDiff) {
+        progress?.changeLine({
+          text: `[${getString("sync-running-hint-diff")}] ${i}/${totalCount}...`,
+          progress: ((i - 1) / totalCount) * 100,
+        });
 
-      await addon.hooks.onShowSyncDiff(
-        syncStatus.itemID,
-        jointPath(syncStatus.path, syncStatus.filename),
-      );
-      i += 1;
+        await addon.hooks.onShowSyncDiff(
+          syncStatus.itemID,
+          jointPath(syncStatus.path, syncStatus.filename),
+        );
+        i += 1;
+      }
     }
     const syncCount =
       Object.keys(toExport).length + toImport.length + toDiff.length;

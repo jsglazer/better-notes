@@ -180,6 +180,7 @@ export type FluentMessageId =
   | 'sync-autoLink-selectFolder-text'
   | 'sync-autoLink-selectFolder-title'
   | 'sync-autoSyncLinkedNotes'
+  | 'sync-background'
   | 'sync-manager'
   | 'sync-period-label'
   | 'sync-running-hint-check'

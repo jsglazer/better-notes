@@ -11,6 +11,7 @@ declare namespace _ZoteroTypes {
       "syncPeriodSeconds": number;
       "syncAttachmentFolder": string;
       "sync.autoSyncLinkedNotes": boolean;
+      "sync.background": boolean;
       "autoAnnotation": boolean;
       "insertLinkPosition": string;
       "workspace.outline.expandLevel": number;

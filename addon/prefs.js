@@ -2,6 +2,10 @@ pref("__prefsPrefix__.syncNoteIds", "");
 pref("__prefsPrefix__.syncPeriodSeconds", 30);
 pref("__prefsPrefix__.syncAttachmentFolder", "attachments");
 pref("__prefsPrefix__.sync.autoSyncLinkedNotes", false);
+// Run the auto-sync timer even when Zotero is NOT focused, so external (e.g.
+// Obsidian) edits to synced .md files propagate live. Conflicts are deferred
+// (no modal) while unfocused. Off = old focus-only behavior.
+pref("__prefsPrefix__.sync.background", true);
 
 pref("__prefsPrefix__.autoAnnotation", false);
 
