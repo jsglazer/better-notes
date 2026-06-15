@@ -133,41 +133,54 @@ async function onMainWindowUnload(win: Window): Promise<void> {
 }
 
 function onShutdown(): void {
+  // Diagnostic logging via Zotero.debug (NOT ztoolkit, which is torn down here).
+  // Filter the Debug Output for "[BN-SHUTDOWN]" to see which steps ran/failed.
+  const dbg = (m: string) => {
+    try {
+      Zotero.debug("[BN-SHUTDOWN] " + m);
+    } catch (e) {
+      /* no-op */
+    }
+  };
+  dbg("onShutdown() entered");
+
   // Each teardown step is isolated: a failure in one (e.g. a worker that's
   // already gone) must not prevent the others — or the caller's chrome
   // teardown — from running, which would leave the plugin un-removable
   // without a restart.
-  const step = (fn: () => void) => {
+  const step = (label: string, fn: () => void) => {
     try {
       fn();
+      dbg("ok: " + label);
     } catch (e) {
-      ztoolkit.log("onShutdown step failed", e);
+      dbg("FAIL " + label + ": " + e);
     }
   };
 
   // Stop the recurring auto-sync timer FIRST: a live setInterval keeps the
   // plugin's code in use and makes Zotero defer removal to a restart.
-  step(() => unsetSyncing());
+  step("unsetSyncing", () => unsetSyncing());
 
-  step(() => closeRelationServer());
-  step(() => closeParsingServer());
-  step(() => closeConvertServer());
+  step("closeRelationServer", () => closeRelationServer());
+  step("closeParsingServer", () => closeParsingServer());
+  step("closeConvertServer", () => closeConvertServer());
 
   // Tear down the global item observer — no pluginID, so Zotero won't auto-
   // unregister it, and its window-unload listener doesn't fire on an uninstall.
-  step(() => unregisterNotify());
+  step("unregisterNotify", () => unregisterNotify());
 
-  step(() => unregisterEditorInstanceHook());
+  step("unregisterEditorInstanceHook", () => unregisterEditorInstanceHook());
 
-  Zotero.getMainWindows().forEach((win) => {
-    step(() => onMainWindowUnload(win));
+  Zotero.getMainWindows().forEach((win, i) => {
+    step("onMainWindowUnload#" + i, () => onMainWindowUnload(win));
   });
 
-  step(() => ztoolkit.unregisterAll());
+  step("ztoolkit.unregisterAll", () => ztoolkit.unregisterAll());
   // Remove addon object
   addon.data.alive = false;
   // @ts-ignore plugin instance
   delete Zotero[config.addonInstance];
+  dbg("onShutdown() complete (instance deleted)");
 }
 
 /**

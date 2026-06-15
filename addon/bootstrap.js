@@ -49,7 +49,23 @@ function onMainWindowUnload({ window: win }) {
 }
 
 function shutdown({ id, version, resourceURI, rootURI }, reason) {
+  // Diagnostic logging (filter the Debug Output for "[BN-SHUTDOWN]"): the goal is
+  // to confirm whether a direct "Remove" of the *enabled* plugin even calls this
+  // (and runs to completion) vs. only the disable path doing so.
+  const dbg = (m) => {
+    try {
+      Zotero.debug("[BN-SHUTDOWN] " + m);
+    } catch (e) {
+      /* no-op */
+    }
+  };
+  const reasonName =
+    { 1: "APP_STARTUP", 2: "APP_SHUTDOWN", 3: "ADDON_ENABLE", 4: "ADDON_DISABLE", 5: "ADDON_INSTALL", 6: "ADDON_UNINSTALL", 7: "ADDON_UPGRADE", 8: "ADDON_DOWNGRADE" }[reason] ||
+    String(reason);
+  dbg("shutdown() called, reason=" + reasonName);
+
   if (reason === APP_SHUTDOWN) {
+    dbg("APP_SHUTDOWN — skipping teardown");
     return;
   }
 
@@ -58,19 +74,25 @@ function shutdown({ id, version, resourceURI, rootURI }, reason) {
   // skipped, the chrome registration would leak, and Zotero would refuse to
   // remove the (still-active) plugin without a deactivate + restart.
   try {
+    dbg("calling onShutdown()");
     Zotero.__addonInstance__?.hooks?.onShutdown?.();
+    dbg("onShutdown() returned normally");
   } catch (e) {
-    Zotero.debug("[better-notes] onShutdown failed during teardown: " + e);
+    dbg("onShutdown() THREW: " + e);
   }
 
   if (chromeHandle) {
     try {
       chromeHandle.destruct();
+      dbg("chromeHandle.destruct() ok");
     } catch (e) {
-      Zotero.debug("[better-notes] chromeHandle.destruct failed: " + e);
+      dbg("chromeHandle.destruct() FAILED: " + e);
     }
     chromeHandle = null;
+  } else {
+    dbg("no chromeHandle to destruct");
   }
+  dbg("shutdown() complete");
 }
 
 function uninstall(data, reason) {}
