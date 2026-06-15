@@ -134,27 +134,19 @@ async function onMainWindowUnload(win: Window): Promise<void> {
 }
 
 function onShutdown(): void {
-  // Diagnostic logging via Zotero.debug (NOT ztoolkit, which is torn down here).
-  // Filter the Debug Output for "[BN-SHUTDOWN]" to see which steps ran/failed.
-  const dbg = (m: string) => {
-    try {
-      Zotero.debug("[BN-SHUTDOWN] " + m);
-    } catch (e) {
-      /* no-op */
-    }
-  };
-  dbg("onShutdown() entered");
-
-  // Each teardown step is isolated: a failure in one (e.g. a worker that's
-  // already gone) must not prevent the others — or the caller's chrome
-  // teardown — from running, which would leave the plugin un-removable
-  // without a restart.
+  // Each teardown step is isolated AND labeled: a failure in one (e.g. a worker
+  // that's already gone) must not prevent the others — or the caller's chrome
+  // teardown — from running, which would leave the plugin un-removable without a
+  // restart. Failures are logged via Zotero.debug (ztoolkit is torn down here).
   const step = (label: string, fn: () => void) => {
     try {
       fn();
-      dbg("ok: " + label);
     } catch (e) {
-      dbg("FAIL " + label + ": " + e);
+      try {
+        Zotero.debug(`[better-notes] onShutdown step '${label}' failed: ${e}`);
+      } catch (_e) {
+        /* no-op */
+      }
     }
   };
 
@@ -185,7 +177,6 @@ function onShutdown(): void {
   addon.data.alive = false;
   // @ts-ignore plugin instance
   delete Zotero[config.addonInstance];
-  dbg("onShutdown() complete (instance deleted)");
 }
 
 /**

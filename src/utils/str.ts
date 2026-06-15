@@ -1,4 +1,4 @@
-import seedrandom = require("seedrandom");
+import { seededRandom } from "./seededRandom";
 import pathHelper = require("path-browserify");
 
 export function slice(str: string, len: number) {
@@ -75,7 +75,7 @@ export function randomString(len: number, seed?: string, chars?: string) {
     len = 8;
   }
   let str = "";
-  const random = seedrandom(seed);
+  const random = seededRandom(seed);
   for (let i = 0; i < len; i++) {
     const rnum = Math.floor(random() * chars.length);
     str += chars.substring(rnum, rnum + 1);
