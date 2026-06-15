@@ -1,7 +1,7 @@
 # Better Notes
 
 [![GitHub release](https://img.shields.io/github/v/release/jsglazer/better-notes?logo=github)](https://github.com/jsglazer/better-notes/releases)
-[![GitHub license](https://img.shields.io/github/license/jsglazer/better-notes)](https://github.com/jsglazer/better-notes/blob/main/LICENSE)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/jsglazer/better-notes/blob/main/LICENSE)
 [![Made with Claude](https://img.shields.io/badge/Made_with-Claude-D97756?logo=anthropic)](https://claude.ai)
 [![CI](https://github.com/jsglazer/better-notes/actions/workflows/ci.yml/badge.svg)](https://github.com/jsglazer/better-notes/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/jsglazer/better-notes/actions/workflows/codeql.yml/badge.svg)](https://github.com/jsglazer/better-notes/actions/workflows/codeql.yml)
