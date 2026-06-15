@@ -12,6 +12,18 @@ async function renderTemplatePreview(
   if (!inputItems) {
     inputItems = Zotero.getMainWindow().ZoteroPane.getSelectedItems();
   }
+  // For an [item] preview, fall back to a representative item when nothing is
+  // selected (e.g. the template editor is focused) so a preview still renders
+  // instead of a "select an item" message.
+  if (
+    inputItems.length === 0 &&
+    templateName.toLowerCase().startsWith("[item]")
+  ) {
+    const fallback = await getPreviewFallbackItem();
+    if (fallback) {
+      inputItems = [fallback];
+    }
+  }
   try {
     if (templateName.toLowerCase().startsWith("[text]")) {
       html = await addon.api.template.runTextTemplate(templateName, {
@@ -121,6 +133,28 @@ async function renderTemplatePreview(
 
 function generateWarning(message: string): string {
   return `<p style="color: red;">${message}</p>`;
+}
+
+/**
+ * A representative regular item to preview an [item] template against when the
+ * user hasn't selected one — the first regular item currently shown in the
+ * library view, else any regular item in the selected library. Returns
+ * undefined only when the library has no regular items.
+ */
+async function getPreviewFallbackItem(): Promise<Zotero.Item | undefined> {
+  try {
+    const pane = Zotero.getMainWindow().ZoteroPane;
+    const sorted = (pane.getSortedItems?.() as Zotero.Item[]) || [];
+    const inView = sorted.find((it) => it.isRegularItem());
+    if (inView) {
+      return inView;
+    }
+    const libraryID = pane.getSelectedLibraryID();
+    const all = await Zotero.Items.getAll(libraryID);
+    return (all || []).find((it) => it.isRegularItem());
+  } catch (e) {
+    return undefined;
+  }
 }
 
 const messages = {
