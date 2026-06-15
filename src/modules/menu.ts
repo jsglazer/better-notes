@@ -1,11 +1,26 @@
 import { config } from "../../package.json";
 
-// NOTE on keyboard-shortcut hints: these menu items' accelerators (⌃⌥L/M/T) are
-// baked into their labels in mainWindow.ftl, not set via `acceltext`. Setting
-// `acceltext` from onShowing/onShown does not render — a XUL menuitem builds its
-// accel text into an anonymous child at construction time, and MenuManager gives
-// us the element only after it's built, so a later setAttribute("acceltext") is
-// ignored. The label text is always rendered, so the hint lives there instead.
+// NOTE on keyboard-shortcut hints: these Tools items show a right-aligned
+// accelerator (⌃⌥L/M/T) by pointing their `key` attribute at a real <key>
+// element (registered in shortcuts.ts). On macOS the Tools menu is the native
+// Cocoa menubar, which derives the right-aligned shortcut column from that
+// <key> — it ignores a JS-set `acceltext` (a prior attempt that rendered
+// nothing) and only renders a label-baked hint left-aligned. The `key`
+// attribute is set in onShowing (MenuManager builds the menuitem on
+// popupshowing, before native menu construction, so the equivalent is present
+// when the native item is built). The <key> elements are command-less, so the
+// keydown listener in shortcuts.ts remains the actual handler.
+
+function setShortcutKey(
+  context: { menuElem: XULElement },
+  keyId: string,
+): void {
+  try {
+    context.menuElem.setAttribute("key", keyId);
+  } catch (e) {
+    // menu element not ready / detached — no hint, no harm.
+  }
+}
 
 export function registerMenus() {
   Zotero.MenuManager.registerMenu({
@@ -20,6 +35,8 @@ export function registerMenus() {
         menuType: "menuitem",
         l10nID: `${config.addonRef}-menuTools-linkCreator`,
         icon: `chrome://${config.addonRef}/content/icons/favicon.png`,
+        onShowing: (_, context) =>
+          setShortcutKey(context, "zotero-bn-key-linkCreator"),
         onCommand: () => {
           addon.hooks.onShowLinkCreator();
         },
@@ -28,6 +45,8 @@ export function registerMenus() {
         menuType: "menuitem",
         l10nID: `${config.addonRef}-menuTools-syncManager`,
         icon: `chrome://${config.addonRef}/content/icons/favicon.png`,
+        onShowing: (_, context) =>
+          setShortcutKey(context, "zotero-bn-key-syncManager"),
         onCommand: () => {
           addon.hooks.onShowSyncManager();
         },
@@ -36,6 +55,8 @@ export function registerMenus() {
         menuType: "menuitem",
         l10nID: `${config.addonRef}-menuTools-templateEditor`,
         icon: `chrome://${config.addonRef}/content/icons/favicon.png`,
+        onShowing: (_, context) =>
+          setShortcutKey(context, "zotero-bn-key-templateEditor"),
         onCommand: () => {
           addon.hooks.onShowTemplateEditor();
         },

@@ -107,23 +107,34 @@ async function callSyncing(
       // often the exact note you're editing in Obsidian) was never synced while
       // that tab showed — even with Zotero in the background. Requiring focus
       // lets background/idle syncs update an open-but-unfocused note, while still
-      // never importing over a note you're typing into. When Zotero is unfocused
-      // (you're in another app), no editor has focus → nothing is skipped.
-      const activeNoteIds = Zotero.Notes._editorInstances
-        .filter((editor) => {
-          const elem = (editor._popup as XULPopupElement).closest(
-            "note-editor",
-          );
-          if (!elem || !isElementVisible(elem)) {
-            return false;
-          }
-          try {
-            return editor._iframeWindow?.document?.hasFocus?.() ?? false;
-          } catch (e) {
-            return false;
-          }
-        })
-        .map((editor) => editor._item.id);
+      // never importing over a note you're typing into.
+      //
+      // CRUCIAL: gate the whole skip on the MAIN WINDOW having OS focus. A note
+      // editor iframe's `document.hasFocus()` keeps returning true even while
+      // Zotero is in the background (you're typing in Obsidian) — Gecko tracks
+      // the iframe's internal focus independently of OS window activation. So
+      // the iframe check alone still skipped the open note during background
+      // runs, the exact case background sync exists to handle. When Zotero is
+      // unfocused you cannot be typing into a Zotero note, so skip nothing.
+      const appFocused =
+        Zotero.getMainWindow()?.document?.hasFocus?.() ?? false;
+      const activeNoteIds = !appFocused
+        ? []
+        : Zotero.Notes._editorInstances
+            .filter((editor) => {
+              const elem = (editor._popup as XULPopupElement).closest(
+                "note-editor",
+              );
+              if (!elem || !isElementVisible(elem)) {
+                return false;
+              }
+              try {
+                return editor._iframeWindow?.document?.hasFocus?.() ?? false;
+              } catch (e) {
+                return false;
+              }
+            })
+            .map((editor) => editor._item.id);
       const filteredItems = items.filter(
         (item) => !activeNoteIds.includes(item.id),
       );
