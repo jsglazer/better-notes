@@ -1,4 +1,11 @@
 import { config } from "../../../../package.json";
+import {
+  FILTERS,
+  ITEM_FIELDS,
+  NOTE_FIELDS,
+  TAGS,
+  VARIABLES,
+} from "../completions";
 
 export { initFormats, updateSnippets };
 
@@ -99,6 +106,14 @@ async function initFormats() {
   }
 }
 
+/**
+ * Render the field/snippet palette for the given editor template type
+ * (`item` / `text` / system|unknown). The field, filter, and tag lists +
+ * their hover descriptions come from the shared completion catalog
+ * (`completions.ts`) — the same source the editor autocomplete uses — so the
+ * palette and autocomplete never drift. Items are grouped under headers; each
+ * button inserts a ready-to-use Liquid token at the cursor.
+ */
 async function updateSnippets(type: string) {
   const container = addon.data.template.editor.window?.document.querySelector(
     "#snippets-container",
@@ -108,50 +123,46 @@ async function updateSnippets(type: string) {
   }
   container.innerHTML = "";
 
-  const snippets = (
-    snippetsStore[type as keyof typeof snippetsStore] || []
-  ).concat(snippetsStore.global);
-  if (!snippets) {
-    return;
-  }
+  for (const group of paletteGroups(type)) {
+    if (!group.items.length) {
+      continue;
+    }
+    const header = document.createElement("span");
+    header.className = "snippet-group-header";
+    header.textContent = group.title;
+    container.appendChild(header);
 
-  // Add snippets to the container, with each snippet as a button
-  // Dragging the button to the editor will insert the snippet
-  for (const snippet of snippets) {
-    const button = document.createElement("span");
-    button.classList.add("snippet", snippet.type);
-    // Liquid snippets carry their own label + show the inserted code as tooltip
-    // (decoupled from the locale files, which still describe the removed engine).
-    button.textContent = snippet.label;
-    button.title = snippet.code.trim();
-    button.addEventListener("click", () => {
-      const { editor, monaco } = addon.data.template.editor;
-      const selection = editor.getSelection();
-      const range = new monaco.Range(
-        selection.startLineNumber,
-        selection.startColumn,
-        selection.endLineNumber,
-        selection.endColumn,
-      );
-      const text = snippet.code;
-      editor.executeEdits("", [
-        {
-          range,
-          text,
-          forceMoveMarkers: true,
-        },
-      ]);
-      // Select the inserted text, should compute the new range, as the text can be multi-line
-      const newRange = new monaco.Range(
-        selection.startLineNumber,
-        selection.startColumn,
-        selection.startLineNumber + text.split("\n").length - 1,
-        text.split("\n").slice(-1)[0].length + 1,
-      );
-      editor.setSelection(newRange);
-    });
-    container.appendChild(button);
+    for (const item of group.items) {
+      const button = document.createElement("span");
+      button.classList.add("snippet", item.kind);
+      button.textContent = item.label;
+      // Hover description sourced from the completion catalog.
+      button.title = item.info;
+      button.addEventListener("click", () => insertSnippetCode(item.code));
+      container.appendChild(button);
+    }
   }
+}
+
+/** Insert `text` at the editor's current selection and re-select the result. */
+function insertSnippetCode(text: string) {
+  const { editor, monaco } = addon.data.template.editor;
+  const selection = editor.getSelection();
+  const range = new monaco.Range(
+    selection.startLineNumber,
+    selection.startColumn,
+    selection.endLineNumber,
+    selection.endColumn,
+  );
+  editor.executeEdits("", [{ range, text, forceMoveMarkers: true }]);
+  // Re-select the inserted text (it can be multi-line).
+  const newRange = new monaco.Range(
+    selection.startLineNumber,
+    selection.startColumn,
+    selection.startLineNumber + text.split("\n").length - 1,
+    text.split("\n").slice(-1)[0].length + 1,
+  );
+  editor.setSelection(newRange);
 }
 
 const formatStore = [
@@ -236,47 +247,113 @@ const formatStore = [
   // buttons here were residue of the removed JS engine and duplicated it.
 ] as { name: string; code: string; defaultText?: string }[];
 
-// Insertable snippets for the template editor, keyed by the editor's template
-// type. Only `global`, `item`, and `text` are reachable (the editor-type
-// selector yields unknown/system/item/text). All snippets emit valid Liquid;
-// each carries its own display `label` (the locale files still describe the
-// removed JS engine, so the renderer uses `label` + a code tooltip instead).
-const snippetsStore: Record<
-  string,
-  { name: string; label: string; code: string; type: string }[]
-> = {
-  global: [
-    { name: "liquidHeader", label: "liquid header", code: "<!--liquid-->\n", type: "syntax" },
-    { name: "markdownHeader", label: "markdown", code: "<!--markdown-->\n", type: "syntax" },
-    { name: "addTags", label: "add tags", code: "<!--addTags: -->\n", type: "syntax" },
-    { name: "ifBlock", label: "if", code: "{% if condition %}\n\n{% endif %}\n", type: "syntax" },
-    { name: "forBlock", label: "for", code: "{% for x in items %}\n\n{% endfor %}\n", type: "syntax" },
-    { name: "comment", label: "comment", code: "{% comment %}\n\n{% endcomment %}\n", type: "syntax" },
-  ],
-  item: [
-    { name: "itemTitle", label: "title", code: "{{ item.title }}", type: "variable" },
-    { name: "itemCiteKey", label: "citation key", code: "{{ item.citekey }}", type: "variable" },
-    { name: "itemAuthors", label: "authors", code: "{% for a in item.authors %}{{ a.name }}{% unless forloop.last %}; {% endunless %}{% endfor %}", type: "expression" },
-    { name: "itemFirstAuthor", label: "first author", code: "{{ item.authors[0].name }}", type: "variable" },
-    { name: "itemDate", label: "date", code: "{{ item.date }}", type: "variable" },
-    { name: "itemYear", label: "year", code: "{{ item.year }}", type: "variable" },
-    { name: "itemAbstract", label: "abstract", code: "{{ item.abstract }}", type: "variable" },
-    { name: "itemAbstractOneline", label: "abstract (1 line)", code: "{{ item.abstract | oneline }}", type: "expression" },
-    { name: "itemDOI", label: "DOI", code: "{{ item.doi }}", type: "variable" },
-    { name: "itemURL", label: "URL", code: "{{ item.url }}", type: "variable" },
-    { name: "itemType", label: "item type", code: "{{ item.itemType }}", type: "variable" },
-    { name: "itemTags", label: "tags", code: "{% for t in item.tags %}{{ t }}{% unless forloop.last %}, {% endunless %}{% endfor %}", type: "expression" },
-    { name: "itemCollections", label: "collections", code: "{% for c in item.collections %}{{ c }}{% endfor %}", type: "expression" },
-    { name: "itemKey", label: "item key", code: "{{ item.key }}", type: "variable" },
-    { name: "itemAnnotations", label: "annotations", code: "{% annotations %}", type: "syntax" },
-    { name: "itemAnnotationsGrouped", label: "annotations (grouped)", code: "{% annotations grouped %}", type: "syntax" },
-    { name: "itemNoteTitle", label: "note title", code: "{{ note.title }}", type: "variable" },
-  ],
-  text: [
-    { name: "textNoteTitle", label: "note title", code: "{{ note.title }}", type: "variable" },
-    { name: "textNoteCiteKey", label: "note citation key", code: "{{ note.citekey }}", type: "variable" },
-    { name: "textNoteParentTitle", label: "parent title", code: "{{ note.parentTitle }}", type: "variable" },
-    { name: "textNoteTags", label: "note tags", code: "{% for t in note.tags %}{{ t }}{% endfor %}", type: "expression" },
-    { name: "textNow", label: "current date", code: '{{ now | date: "%Y-%m-%d" }}', type: "expression" },
-  ],
+// ---- Field/snippet palette (catalog-backed) --------------------------------
+// The palette's field/filter/tag lists + descriptions come from the shared
+// completion catalog (`completions.ts`); only the *insert* tokens live here,
+// since the catalog stores type-ahead fragments (e.g. "title"), not the
+// ready-to-insert Liquid (`{{ item.title }}`).
+
+interface PaletteItem {
+  /** Button text. */
+  label: string;
+  /** Liquid inserted at the cursor on click. */
+  code: string;
+  /** Hover description (from the catalog). */
+  info: string;
+  /** Drives the `.snippet.<kind>` colour. */
+  kind: "syntax" | "variable" | "field" | "filter" | "tag";
+}
+
+// Sentinels aren't in the catalog (they're document directives, not data).
+const SYNTAX_ITEMS: PaletteItem[] = [
+  { label: "liquid header", code: "<!--liquid-->\n", kind: "syntax", info: "Required first line — marks the template as Liquid." },
+  { label: "markdown", code: "<!--markdown-->\n", kind: "syntax", info: "Render the output as Markdown, then convert to note HTML." },
+  { label: "add tags", code: "<!--addTags: -->\n", kind: "syntax", info: "After rendering, add the listed tags to the target note." },
+];
+
+// Array fields read better as a loop than `{{ item.authors }}` (object dump).
+const ITEM_ARRAY_INSERT: Record<string, string> = {
+  authors: "{% for a in item.authors %}{{ a.name }}{% unless forloop.last %}; {% endunless %}{% endfor %}",
+  creators: "{% for a in item.creators %}{{ a.name }}{% unless forloop.last %}; {% endunless %}{% endfor %}",
+  tags: "{% for t in item.tags %}{{ t }}{% unless forloop.last %}, {% endunless %}{% endfor %}",
+  collections: "{% for c in item.collections %}{{ c }}{% unless forloop.last %}, {% endunless %}{% endfor %}",
 };
+const NOTE_ARRAY_INSERT: Record<string, string> = {
+  tags: "{% for t in note.tags %}{{ t }}{% unless forloop.last %}, {% endunless %}{% endfor %}",
+  collections: "{% for c in note.collections %}{{ c }}{% unless forloop.last %}, {% endunless %}{% endfor %}",
+};
+
+// Block/opener tags get a full skeleton; the catalog's close/branch tokens
+// (endif, else, …) are omitted since the skeletons include their closers.
+const TAG_INSERT: Record<string, string> = {
+  if: "{% if condition %}\n\n{% endif %}\n",
+  unless: "{% unless condition %}\n\n{% endunless %}\n",
+  for: "{% for x in items %}\n\n{% endfor %}\n",
+  assign: "{% assign x = item.title %}",
+  capture: "{% capture var %}\n\n{% endcapture %}\n",
+  comment: "{% comment %}\n\n{% endcomment %}\n",
+  annotations: "{% annotations %}",
+};
+
+function fieldGroup(
+  entries: typeof ITEM_FIELDS,
+  prefix: "item" | "note",
+  arrayInsert: Record<string, string>,
+): PaletteItem[] {
+  return entries.map((e) => ({
+    label: e.label,
+    code: arrayInsert[e.label] ?? `{{ ${prefix}.${e.label} }}`,
+    info: e.info,
+    kind: "field",
+  }));
+}
+
+function filterGroup(): PaletteItem[] {
+  return FILTERS.map((e) => ({
+    label: e.label,
+    code: `| ${e.label}`,
+    info: e.info,
+    kind: "filter",
+  }));
+}
+
+function tagGroup(): PaletteItem[] {
+  const items: PaletteItem[] = TAGS.filter((e) => TAG_INSERT[e.label]).map(
+    (e) => ({ label: e.label, code: TAG_INSERT[e.label], info: e.info, kind: "tag" }),
+  );
+  items.push({
+    label: "annotations (grouped)",
+    code: "{% annotations grouped %}",
+    info: "Plugin: annotation HTML bucketed under per-color-label sections.",
+    kind: "tag",
+  });
+  return items;
+}
+
+// `now` is the only top-level variable that inserts usefully on its own;
+// item/items/note are prefixes covered by the field groups.
+function variableGroup(): PaletteItem[] {
+  return VARIABLES.filter((e) => e.label === "now").map((e) => ({
+    label: e.label,
+    code: `{{ ${e.label} }}`,
+    info: e.info,
+    kind: "variable",
+  }));
+}
+
+/** Palette groups for the given editor template type. */
+function paletteGroups(type: string): { title: string; items: PaletteItem[] }[] {
+  const groups: { title: string; items: PaletteItem[] }[] = [
+    { title: "Syntax", items: SYNTAX_ITEMS },
+    { title: "Variables", items: variableGroup() },
+  ];
+  if (type === "item") {
+    groups.push({ title: "Item fields", items: fieldGroup(ITEM_FIELDS, "item", ITEM_ARRAY_INSERT) });
+    groups.push({ title: "Note fields", items: fieldGroup(NOTE_FIELDS, "note", NOTE_ARRAY_INSERT) });
+  } else if (type === "text") {
+    groups.push({ title: "Note fields", items: fieldGroup(NOTE_FIELDS, "note", NOTE_ARRAY_INSERT) });
+  }
+  groups.push({ title: "Filters", items: filterGroup() });
+  groups.push({ title: "Tags", items: tagGroup() });
+  return groups;
+}

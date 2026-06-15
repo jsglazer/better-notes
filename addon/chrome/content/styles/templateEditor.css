@@ -128,6 +128,29 @@ body,
     transparent 50%
   );
 }
+.snippet.field {
+  background-color: color-mix(in srgb, var(--accent-green) 50%, transparent 50%);
+}
+.snippet.filter {
+  background-color: color-mix(in srgb, var(--accent-red) 45%, transparent 55%);
+}
+.snippet.tag {
+  background-color: color-mix(in srgb, var(--accent-yellow) 50%, transparent 50%);
+}
 .snippet:hover {
   background-color: var(--fill-quinary);
+}
+/* Catalog-backed palette: group label on its own row (flex line break). */
+.snippet-group-header {
+  flex-basis: 100%;
+  margin-top: 6px;
+  padding-inline: 2px;
+  font-size: 0.75em;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+.snippet-group-header:first-child {
+  margin-top: 0;
 }
