@@ -496,7 +496,10 @@ async function updateSnippets(type: string) {
   for (const snippet of snippets) {
     const button = document.createElement("span");
     button.classList.add("snippet", snippet.type);
-    button.dataset.l10nId = `${config.addonRef}-snippet-${snippet.name}`;
+    // Liquid snippets carry their own label + show the inserted code as tooltip
+    // (decoupled from the locale files, which still describe the removed engine).
+    button.textContent = snippet.label;
+    button.title = snippet.code.trim();
     button.addEventListener("click", () => {
       const { editor, monaco } = addon.data.template.editor;
       const selection = editor.getSelection();
@@ -823,236 +826,60 @@ const formatStore = [
     defaultText: "e=mc^2",
   },
   {
+    // Liquid output expression (was the removed JS engine's `${ … }`).
     name: "inlineScript",
-    code: "${ ${text} }",
-    defaultText: "Zotero.version",
+    code: "{{ ${text} }}",
+    defaultText: "item.title",
   },
   {
+    // Liquid if-block (was the removed JS engine's `${{ … }}$`).
     name: "blockScript",
-    code: "\n${{\n  ${text}\n}}$\n",
-    defaultText: "return Zotero.version;",
+    code: "\n{% if ${text} %}\n\n{% endif %}\n",
+    defaultText: "item.citekey != blank",
   },
 ];
 
-const snippetsStore = {
+// Insertable snippets for the template editor, keyed by the editor's template
+// type. Only `global`, `item`, and `text` are reachable (the editor-type
+// selector yields unknown/system/item/text). All snippets emit valid Liquid;
+// each carries its own display `label` (the locale files still describe the
+// removed JS engine, so the renderer uses `label` + a code tooltip instead).
+const snippetsStore: Record<
+  string,
+  { name: string; label: string; code: string; type: string }[]
+> = {
   global: [
-    {
-      name: "useMarkdown",
-      code: "\n// @use-markdown\n",
-      type: "syntax",
-    },
-    {
-      name: "useRefresh",
-      code: "\n// @use-refresh\n",
-      type: "syntax",
-    },
-    {
-      name: "dryRunFlag",
-      code: "_env.dryRun",
-      type: "variable",
-    },
+    { name: "liquidHeader", label: "liquid header", code: "<!--liquid-->\n", type: "syntax" },
+    { name: "markdownHeader", label: "markdown", code: "<!--markdown-->\n", type: "syntax" },
+    { name: "addTags", label: "add tags", code: "<!--addTags: -->\n", type: "syntax" },
+    { name: "ifBlock", label: "if", code: "{% if condition %}\n\n{% endif %}\n", type: "syntax" },
+    { name: "forBlock", label: "for", code: "{% for x in items %}\n\n{% endfor %}\n", type: "syntax" },
+    { name: "comment", label: "comment", code: "{% comment %}\n\n{% endcomment %}\n", type: "syntax" },
   ],
   item: [
-    {
-      name: "itemBeforeLoop",
-      code: "\n// @beforeloop-begin\n\n// @beforeloop-end\n",
-      type: "syntax",
-    },
-    {
-      name: "itemInLoop",
-      code: "\n// @default-begin\n\n// @default-end\n",
-      type: "syntax",
-    },
-    {
-      name: "itemAfterLoop",
-      code: "\n// @afterloop-begin\n\n// @afterloop-end\n",
-      type: "syntax",
-    },
-    {
-      name: "itemItems",
-      code: "items",
-      type: "variable",
-    },
-    {
-      name: "itemItem",
-      code: "item",
-      type: "variable",
-    },
-    {
-      name: "itemTopItem",
-      code: "topItem",
-      type: "variable",
-    },
-    {
-      name: "itemTargetNoteItem",
-      code: "targetNoteItem",
-      type: "variable",
-    },
-    {
-      name: "itemCopyNoteImage",
-      code: "${copyNoteImage(...)}",
-      type: "expression",
-    },
-    {
-      name: "itemSharedObj",
-      code: "sharedObj",
-      type: "variable",
-    },
-    {
-      name: "itemFieldTitle",
-      code: '${topItem.getField("title")}',
-      type: "expression",
-    },
-    {
-      name: "itemFieldAbstract",
-      code: '${topItem.getField("abstractNote")}',
-      type: "expression",
-    },
-    {
-      name: "itemFieldCitKey",
-      code: '${topItem.getField("citationKey")}',
-      type: "expression",
-    },
-    {
-      name: "itemFieldDate",
-      code: '${topItem.getField("date")}',
-      type: "expression",
-    },
-    {
-      name: "itemFieldDOI",
-      code: '${topItem.getField("DOI")}',
-      type: "expression",
-    },
-    {
-      name: "itemFieldDOIURL",
-      code: `
-\${{
-const doi = topItem.getField("DOI");
-const url = topItem.getField("url");
-if (doi) {
-  return \`DOI: <a href="https://doi.org/\${doi}">\${doi}</a>\`;
-} else {
-  return \`URL: <a href="\${url}">\${url}</a>\`;
-}
-}}$
-`,
-      type: "expression",
-    },
-    {
-      name: "itemFieldAuthors",
-      code: '${topItem.getCreators().map((v)=>v.firstName+" "+v.lastName).join("; ")}',
-      type: "expression",
-    },
-    {
-      name: "itemFieldJournal",
-      code: '${topItem.getField("publicationTitle")}',
-      type: "expression",
-    },
-    {
-      name: "itemFieldTitleTranslation",
-      code: '${topItem.getField("titleTranslation")}',
-      type: "expression",
-    },
+    { name: "itemTitle", label: "title", code: "{{ item.title }}", type: "variable" },
+    { name: "itemCiteKey", label: "citation key", code: "{{ item.citekey }}", type: "variable" },
+    { name: "itemAuthors", label: "authors", code: "{% for a in item.authors %}{{ a.name }}{% unless forloop.last %}; {% endunless %}{% endfor %}", type: "expression" },
+    { name: "itemFirstAuthor", label: "first author", code: "{{ item.authors[0].name }}", type: "variable" },
+    { name: "itemDate", label: "date", code: "{{ item.date }}", type: "variable" },
+    { name: "itemYear", label: "year", code: "{{ item.year }}", type: "variable" },
+    { name: "itemAbstract", label: "abstract", code: "{{ item.abstract }}", type: "variable" },
+    { name: "itemAbstractOneline", label: "abstract (1 line)", code: "{{ item.abstract | oneline }}", type: "expression" },
+    { name: "itemDOI", label: "DOI", code: "{{ item.doi }}", type: "variable" },
+    { name: "itemURL", label: "URL", code: "{{ item.url }}", type: "variable" },
+    { name: "itemType", label: "item type", code: "{{ item.itemType }}", type: "variable" },
+    { name: "itemTags", label: "tags", code: "{% for t in item.tags %}{{ t }}{% unless forloop.last %}, {% endunless %}{% endfor %}", type: "expression" },
+    { name: "itemCollections", label: "collections", code: "{% for c in item.collections %}{{ c }}{% endfor %}", type: "expression" },
+    { name: "itemKey", label: "item key", code: "{{ item.key }}", type: "variable" },
+    { name: "itemAnnotations", label: "annotations", code: "{% annotations %}", type: "syntax" },
+    { name: "itemAnnotationsGrouped", label: "annotations (grouped)", code: "{% annotations grouped %}", type: "syntax" },
+    { name: "itemNoteTitle", label: "note title", code: "{{ note.title }}", type: "variable" },
   ],
   text: [
-    {
-      name: "textTargetNoteItem",
-      code: "targetNoteItem",
-      type: "variable",
-    },
-    {
-      name: "textSharedObj",
-      code: "sharedObj",
-      type: "variable",
-    },
-  ],
-  QuickInsertV3: [
-    {
-      name: "quickInsertLink",
-      code: "link",
-      type: "variable",
-    },
-    {
-      name: "quickInsertLinkText",
-      code: "linkText",
-      type: "variable",
-    },
-    {
-      name: "quickInsertSubNoteItem",
-      code: "subNoteItem",
-      type: "variable",
-    },
-    {
-      name: "quickInsertNoteItem",
-      code: "noteItem",
-      type: "variable",
-    },
-  ],
-  QuickImportV2: [
-    {
-      name: "quickImportLink",
-      code: "link",
-      type: "variable",
-    },
-    {
-      name: "quickImportNoteItem",
-      code: "noteItem",
-      type: "variable",
-    },
-  ],
-  QuickNoteV5: [
-    {
-      name: "quickNoteAnnotationItem",
-      code: "annotationItem",
-      type: "variable",
-    },
-    {
-      name: "quickNoteTopItem",
-      code: "topItem",
-      type: "variable",
-    },
-    {
-      name: "quickNoteNoteItem",
-      code: "noteItem",
-      type: "variable",
-    },
-  ],
-  ExportMDFileNameV2: [
-    {
-      name: "exportMDFileNameNoteItem",
-      code: "noteItem",
-      type: "variable",
-    },
-  ],
-  ExportMDFileHeaderV2: [
-    {
-      name: "exportMDFileHeaderNoteItem",
-      code: "noteItem",
-      type: "variable",
-    },
-  ],
-  ExportMDFileContent: [
-    {
-      name: "exportMDFileContentNoteItem",
-      code: "noteItem",
-      type: "variable",
-    },
-    {
-      name: "exportMDFileContentMDContent",
-      code: "mdContent",
-      type: "variable",
-    },
-  ],
-  ExportLatexFileContent: [
-    {
-      name: "exportLatexFileContentNoteItem",
-      code: "noteItem",
-      type: "variable",
-    },
-    {
-      name: "exportLatexFileContentLatexContent",
-      code: "latexContent",
-      type: "variable",
-    },
+    { name: "textNoteTitle", label: "note title", code: "{{ note.title }}", type: "variable" },
+    { name: "textNoteCiteKey", label: "note citation key", code: "{{ note.citekey }}", type: "variable" },
+    { name: "textNoteParentTitle", label: "parent title", code: "{{ note.parentTitle }}", type: "variable" },
+    { name: "textNoteTags", label: "note tags", code: "{% for t in note.tags %}{{ t }}{% endfor %}", type: "expression" },
+    { name: "textNow", label: "current date", code: '{{ now | date: "%Y-%m-%d" }}', type: "expression" },
   ],
 };
