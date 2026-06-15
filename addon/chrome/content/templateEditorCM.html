@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- prettier-ignore -->
+<!DOCTYPE html>
+<!--
+  CodeMirror 6 host for the template editor, loaded inside the editor iframe.
+  Replaces the former chrome://scaffold/content/monaco/monaco.html (which made
+  the editor depend on the Scaffold developer plugin). The bundled script below
+  defines window.loadMonaco(), which the editor window calls to mount CodeMirror
+  and get back a small Monaco-shaped facade. See src/extras/templateEditorCM.ts.
+-->
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="referrer" content="no-referrer" />
+    <style>
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #cm-root,
+      .cm-editor {
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="cm-root"></div>
+    <script
+      src="chrome://__addonRef__/content/scripts/templateEditorCM.js"
+    ></script>
+  </body>
+</html>

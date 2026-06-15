@@ -5,7 +5,6 @@ import { itemPicker } from "../../utils/itemPicker";
 import { getString } from "../../utils/locale";
 import { waitUtilAsync } from "../../utils/wait";
 import { xhtmlEscape } from "../../utils/str";
-import { initializeTemplateEditor } from "./monacoEditor";
 
 export async function showTemplateEditor() {
   if (
@@ -204,18 +203,11 @@ export async function showTemplateEditor() {
     const isDark = editorWin?.matchMedia(
       "(prefers-color-scheme: dark)",
     ).matches;
+    // CodeMirror host (templateEditorCM.ts) returns a Monaco-shaped facade; it
+    // highlights Liquid/Markdown itself, so there's no language to register.
     const { monaco, editor } = await editorWin.loadMonaco({
-      language: "javascript",
       theme: "vs-" + (isDark ? "dark" : "light"),
     });
-
-    // Register custom language for template syntax
-    const success = initializeTemplateEditor(monaco, editor, isDark);
-    if (!success) {
-      ztoolkit.log(
-        "Failed to register template language, falling back to default",
-      );
-    }
 
     addon.data.template.editor.monaco = monaco;
     addon.data.template.editor.editor = editor;
@@ -456,17 +448,19 @@ async function initFormats() {
 
       editor.setSelection(newRange);
 
-      // If editor does not contain a line start with // @use-markdown, insert it
+      // Ensure the Liquid markdown sentinel is present so the inserted format
+      // (Markdown) is converted on render. (Was the removed JS engine's
+      // `// @use-markdown`.)
       if (
         !editor
           .getModel()
           .getLinesContent()
-          .some((line: any) => line.startsWith("// @use-markdown"))
+          .some((line: any) => line.trim().startsWith("<!--markdown-->"))
       ) {
         editor.executeEdits("", [
           {
             range: new monaco.Range(1, 1, 1, 1),
-            text: "// @use-markdown\n",
+            text: "<!--markdown-->\n",
             forceMoveMarkers: true,
           },
         ]);
