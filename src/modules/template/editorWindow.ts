@@ -196,6 +196,11 @@ export async function showTemplateEditor() {
       });
     // An ugly hack to make the editor refresh exposed
     _window.refresh = refresh;
+    // Preview-only refresh for the editor's live-typing updates. The full
+    // refresh() re-renders the template table and drops the selection (which
+    // then hides the editor) — so the CM host must update ONLY the preview on
+    // each keystroke, never the whole window.
+    _window.refreshPreview = updatePreview;
     addon.data.template.editor.window?.focus();
     const editorWin = (_window.document.querySelector("#editor") as any)
       .contentWindow;

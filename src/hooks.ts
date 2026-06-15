@@ -19,7 +19,7 @@ import {
   registerReaderAnnotationButton,
   syncAnnotationNoteTags,
 } from "./modules/annotationNote";
-import { setSyncing, callSyncing } from "./modules/sync/hooks";
+import { setSyncing, unsetSyncing, callSyncing } from "./modules/sync/hooks";
 import { syncLinkedNoteOnEdit } from "./modules/sync/autoLink";
 import { showTemplatePicker } from "./modules/template/picker";
 import { showImageViewer } from "./modules/imageViewer";
@@ -144,6 +144,10 @@ function onShutdown(): void {
       ztoolkit.log("onShutdown step failed", e);
     }
   };
+
+  // Stop the recurring auto-sync timer FIRST: a live setInterval keeps the
+  // plugin's code in use and makes Zotero defer removal to a restart.
+  step(() => unsetSyncing());
 
   step(() => closeRelationServer());
   step(() => closeParsingServer());

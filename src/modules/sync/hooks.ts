@@ -5,18 +5,28 @@ import { jointPath } from "../../utils/str";
 import { isElementVisible } from "../../utils/window";
 import { threeWayMerge } from "./merge";
 
-export { setSyncing, callSyncing };
+export { setSyncing, unsetSyncing, callSyncing };
+
+// The recurring auto-sync timer. Kept at module scope so it can be cleared
+// IMMEDIATELY on shutdown — a live setInterval holds the plugin's code alive,
+// which made Zotero defer plugin removal to a restart (the timer otherwise only
+// self-cleared on its NEXT tick, up to syncPeriodSeconds later, so it was still
+// running at uninstall time). Clearing it here is part of making the plugin
+// removable while enabled (alongside terminating the workers).
+let syncTimer: ReturnType<typeof setInterval> | undefined;
 
 function setSyncing() {
   const syncPeriod = getPref("syncPeriodSeconds") as number;
   const enableHint = addon.data.env === "development";
   if (syncPeriod > 0) {
     enableHint && showHint(`${getString("sync-start-hint")} ${syncPeriod} s`);
-    const timer = ztoolkit.getGlobal("setInterval")(
+    unsetSyncing(); // never leave a previous timer running
+    syncTimer = ztoolkit.getGlobal("setInterval")(
       () => {
         if (!addon.data.alive) {
           showHint(getString("sync-stop-hint"));
-          ztoolkit.getGlobal("clearInterval")(timer);
+          unsetSyncing();
+          return;
         }
         // Only when Zotero is active and focused
         if (
@@ -32,6 +42,14 @@ function setSyncing() {
       },
       Number(syncPeriod) * 1000,
     );
+  }
+}
+
+/** Stop the auto-sync timer. Safe to call when no timer is running. */
+function unsetSyncing() {
+  if (syncTimer !== undefined) {
+    ztoolkit.getGlobal("clearInterval")(syncTimer);
+    syncTimer = undefined;
   }
 }
 

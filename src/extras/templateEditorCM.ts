@@ -221,11 +221,15 @@ async function loadMonaco(options: { theme?: string } = {}) {
     if (!u.docChanged) {
       return;
     }
-    // Debounced live-preview refresh, driven by the host window.
+    // Debounced live-preview refresh, driven by the host window. Must be the
+    // PREVIEW-ONLY hook: the host's full refresh() re-renders the template table
+    // and drops the selection, which hides the editor (flash-then-disappear).
     clearTimeout(refreshTimer);
     refreshTimer = setTimeout(() => {
       try {
-        (window.parent as unknown as { refresh?: () => void })?.refresh?.();
+        (
+          window.parent as unknown as { refreshPreview?: () => void }
+        )?.refreshPreview?.();
       } catch (e) {
         // host gone / not ready
       }
