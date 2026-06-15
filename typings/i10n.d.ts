@@ -22,6 +22,7 @@ export type FluentMessageId =
   | 'cancel'
   | 'cleanup'
   | 'confirm'
+  | 'convertLegacy'
   | 'create'
   | 'delete'
   | 'detect'

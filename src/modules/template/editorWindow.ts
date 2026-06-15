@@ -5,6 +5,7 @@ import { itemPicker } from "../../utils/itemPicker";
 import { getString } from "../../utils/locale";
 import { waitUtilAsync } from "../../utils/wait";
 import { xhtmlEscape } from "../../utils/str";
+import { convertLegacyTemplate } from "./legacyConvert";
 
 export async function showTemplateEditor() {
   if (
@@ -178,6 +179,11 @@ export async function showTemplateEditor() {
       .querySelector("#importNote")
       ?.addEventListener("click", (ev) => {
         importNoteTemplate();
+      });
+    _window.document
+      .querySelector("#convertLegacy")
+      ?.addEventListener("click", (ev) => {
+        convertSelectedTemplate();
       });
     _window.document
       .querySelector("#backup")
@@ -580,6 +586,55 @@ async function importNoteTemplate() {
   };
   addon.api.template.setTemplate(template);
   refresh();
+}
+
+/**
+ * Convert the template currently open in the editor from the removed legacy
+ * JavaScript engine to Liquid (U6). Operates on the live editor buffer (not the
+ * saved copy), so the user can review the result and Save — or close without
+ * saving to discard. Un-mappable expressions are flagged inline with
+ * `{% comment %} BN-MIGRATE … {% endcomment %}`; a summary is shown afterwards.
+ */
+function convertSelectedTemplate() {
+  const win = addon.data.template.editor.window;
+  if (!win) {
+    return;
+  }
+  const name = getSelectedTemplateName();
+  if (!name) {
+    showHint("Select a template to convert first.");
+    return;
+  }
+  const editor = addon.data.template.editor.editor;
+  const source = (editor?.getValue() as string) || "";
+  const type = (
+    win.document.querySelector("#editor-type") as XULMenuListElement
+  )?.value as "item" | "text" | "unknown";
+
+  const result = convertLegacyTemplate(source, type || "item");
+  if (result.alreadyLiquid) {
+    showHint("This template is already Liquid — nothing to convert.");
+    return;
+  }
+
+  const summary =
+    `Convert "${name}" to Liquid?\n\n` +
+    `• ${result.mapped} expression(s) auto-converted\n` +
+    `• ${result.manual} expression(s) flagged for manual edit\n\n` +
+    result.notes.map((n) => `– ${n}`).join("\n\n") +
+    `\n\nThe editor buffer will be replaced. Review it, then Save to keep ` +
+    `the change (or close without saving to discard).`;
+  if (!win.confirm(summary)) {
+    return;
+  }
+
+  editor.setValue(result.liquid);
+  updatePreview();
+  showHint(
+    result.manual > 0
+      ? `Converted. ${result.manual} item(s) need manual edits — search for "BN-MIGRATE".`
+      : "Converted to Liquid. Review and Save.",
+  );
 }
 
 function saveSelectedTemplate() {
