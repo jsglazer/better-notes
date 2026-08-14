@@ -16,9 +16,13 @@ export {
  * Two entirely different mechanisms are involved, both verified against
  * Zotero 7's actual bundled client code (not guessed):
  *
- * 1. The "create a new highlight" selection popup is real HTML, rendered by
- *    the reader iframe (`src/common/components/view-popup/selection-popup.js`:
- *    `.selection-popup .colors .color-button`). DOM-patched directly,
+ * 1. The "create a new highlight" selection popup, and the sidebar's
+ *    color-filter row, are real HTML, rendered by the reader iframe
+ *    (`src/common/components/view-popup/selection-popup.js`:
+ *    `.selection-popup .colors .color-button`; `src/common/components/
+ *    sidebar/annotations-view.js`'s `Selector`: `.selector .colors
+ *    button.color`). Both use the same shape — a `<button title="Yellow">`
+ *    with the swatch color on an inner `<path fill>`. DOM-patched directly,
  *    refreshed via a `MutationObserver`.
  * 2. Every *context menu* that offers a color (the "..." -> Add to Note
  *    menu on an existing annotation, the toolbar's color dropdown) sets
@@ -44,7 +48,14 @@ export {
  * longer applying.
  */
 
-const COLOR_BUTTON_SELECTORS = [".selection-popup .colors .color-button"];
+const COLOR_BUTTON_SELECTORS = [
+  ".selection-popup .colors .color-button",
+  // sidebar's color-filter row (`Selector` in
+  // `src/common/components/sidebar/annotations-view.js`): same pattern —
+  // `<button class="color" title="Yellow">` with the swatch on an inner
+  // `<path fill>`.
+  ".selector .colors button.color",
+];
 
 // The 8 hex values Better Notes already exposes as `annotationColorLabel.<hex>`
 // prefs (addon/prefs.js) — Zotero's own default annotation color set
