@@ -17,18 +17,26 @@ export {
  * Zotero 7's actual bundled client code (not guessed):
  *
  * 1. The "create a new highlight" selection popup is real HTML, rendered by
- *    the reader iframe itself (`src/common/components/view-popup/
- *    selection-popup.js`: `.selection-popup .colors .color-button`). We
- *    DOM-patch it directly, refreshed via a `MutationObserver`.
+ *    the reader iframe (`src/common/components/view-popup/selection-popup.js`:
+ *    `.selection-popup .colors .color-button`). DOM-patched directly,
+ *    refreshed via a `MutationObserver`.
  * 2. Every *context menu* that offers a color (the "..." -> Add to Note
- *    menu on an existing annotation, the toolbar's color dropdown, etc.) is
- *    a native XUL `<menupopup>` built by chrome-side code
- *    (`ReaderInstance._openContextMenu()` in `chrome/content/zotero/xpcom/
- *    reader.js`) from `itemGroups` data — it never touches the reader
- *    iframe's DOM at all, so no amount of DOM-patching there can reach it.
- *    Each color item already carries its raw hex in `item.color`, so we
- *    monkey-patch `_openContextMenu` per reader instance to rewrite
- *    `item.label` before the native menu is built.
+ *    menu on an existing annotation, the toolbar's color dropdown) sets
+ *    `internal: true` on its returned data (`createColorContextMenu` /
+ *    `createAnnotationContextMenu` in the reader bundle). The iframe's
+ *    `window.createReader` wrapper branches on that flag
+ *    (`./src/index.zotero.js`): `internal: true` renders via the iframe's
+ *    OWN `reader.openContextMenu(params)` (a React-state update, HTML
+ *    `.context-menu`) and never reaches Zotero's chrome-side, native-XUL
+ *    `_openContextMenu` at all — a native-menu patch there is a dead end
+ *    for these two menus (confirmed the hard way: a chrome-side patch
+ *    installed and its mutation logic worked in isolation, but the actual
+ *    menu was still unaffected, because that method is simply never
+ *    called). Instead, `event.reader._internalReader` is the iframe-side
+ *    reader object itself (assigned from `wrappedJSObject.createReader()`
+ *    in chrome's `reader.js`), so `.openContextMenu` is patched there,
+ *    rewriting `params.itemGroups[].label` in place — using each item's
+ *    already-present raw hex (`.color`) — before the original renders.
  *
  * Both are unofficial and depend on Zotero's internals, so every step here
  * degrades silently on a mismatch instead of breaking the reader. A future
@@ -60,7 +68,7 @@ const detectedHex = new WeakMap<Element, string>();
 
 const observedDocs = new WeakSet<Document>();
 const activeObservers = new Set<MutationObserver>();
-const patchedContextMenuReaders = new WeakSet<object>();
+const patchedInternalReaders = new WeakSet<object>();
 
 function colorToHex(value?: string | null): string | null {
   if (!value) {
@@ -144,7 +152,10 @@ function applyColorLabelToButton(button: HTMLElement): void {
   }
 }
 
-function applyColorLabels(doc: Document): void {
+function applyColorLabels(doc: Document | undefined | null): void {
+  if (!doc) {
+    return;
+  }
   try {
     const buttons = new Set<Element>();
     for (const selector of COLOR_BUTTON_SELECTORS) {
@@ -167,8 +178,8 @@ function applyColorLabels(doc: Document): void {
  * popup — it mounts well after the triggering reader event fires, so a
  * one-shot pass in the event handler would miss it; the observer catches
  * the actual DOM insertion. */
-function ensureObserver(doc: Document): void {
-  if (observedDocs.has(doc) || !doc.body || !doc.defaultView) {
+function ensureObserver(doc: Document | undefined | null): void {
+  if (!doc || observedDocs.has(doc) || !doc.body || !doc.defaultView) {
     return;
   }
   observedDocs.add(doc);
@@ -188,58 +199,66 @@ interface ContextMenuItem {
   color?: string;
 }
 
-interface ContextMenuData {
-  itemGroups: ContextMenuItem[][];
+interface ContextMenuParams {
+  itemGroups?: ContextMenuItem[][];
 }
 
-/** Every reader context menu that offers a color (existing-annotation
- * "Add to Note" menu, toolbar color dropdown, ...) is a native XUL
- * `<menupopup>` built by `_openContextMenu` directly from `itemGroups` —
- * there's no HTML to DOM-patch. Each color item already carries its raw
- * hex in `.color`, so we rewrite `.label` before the menu is built.
- * Patched per reader instance (own-property shadow, not the shared
- * prototype) via the shared patch registry, so it's reverted on shutdown
- * along with the rest of this plugin's patches. */
-function patchReaderContextMenu(reader: unknown): void {
-  const target = reader as
-    | { _openContextMenu?: (data: ContextMenuData) => unknown }
+function relabelContextMenuItems(
+  params: ContextMenuParams | undefined | null,
+): void {
+  for (const group of params?.itemGroups || []) {
+    for (const item of group) {
+      if (item?.color) {
+        const label = getAnnotationColorLabel(item.color);
+        if (label) {
+          item.label = label;
+        }
+      }
+    }
+  }
+}
+
+/** `event.reader._internalReader` is the iframe-side reader object itself
+ * (see module doc comment). Its `openContextMenu(params)` is what actually
+ * renders the color/annotation context menus (`internal: true`) — patch it
+ * per reader instance via the shared patch registry so it's reverted on
+ * shutdown along with the rest of this plugin's patches. */
+function patchInternalReaderContextMenu(reader: unknown): void {
+  const internalReader = (
+    reader as { _internalReader?: unknown } | null | undefined
+  )?._internalReader as
+    | { openContextMenu?: (params: ContextMenuParams) => unknown }
     | null
     | undefined;
   if (
-    !target ||
-    typeof target._openContextMenu !== "function" ||
-    patchedContextMenuReaders.has(target)
+    !internalReader ||
+    typeof internalReader.openContextMenu !== "function" ||
+    patchedInternalReaders.has(internalReader)
   ) {
     return;
   }
-  patchedContextMenuReaders.add(target);
+  patchedInternalReaders.add(internalReader);
   applyPatch(
-    target,
-    "_openContextMenu",
+    internalReader,
+    "openContextMenu",
     (original) =>
-      function (this: unknown, data: ContextMenuData) {
-        for (const group of data?.itemGroups || []) {
-          for (const item of group) {
-            if (item?.color) {
-              const label = getAnnotationColorLabel(item.color);
-              if (label) {
-                item.label = label;
-              }
-            }
-          }
-        }
-        return original.call(this, data);
+      function (this: unknown, params: ContextMenuParams) {
+        relabelContextMenuItems(params);
+        return original.call(this, params);
       },
   );
 }
 
 function handleReaderEvent(event: {
-  doc: Document;
+  doc?: Document;
   reader: _ZoteroTypes.ReaderInstance;
 }): void {
+  // Patch first: this is what actually matters for the context-menu case,
+  // and must not be skipped if the doc-dependent calls below throw (e.g.
+  // `event.doc` isn't populated for every reader event type).
+  patchInternalReaderContextMenu(event.reader);
   applyColorLabels(event.doc);
   ensureObserver(event.doc);
-  patchReaderContextMenu(event.reader);
 }
 
 /** Registered once at startup; Zotero scopes reader event listeners to our
@@ -269,7 +288,7 @@ function registerAnnotationColorLabelPatch(): void {
 
 /** Disconnects observers we attached to reader documents. The reader event
  * listeners themselves are torn down by Zotero via the pluginID scoping;
- * the `_openContextMenu` per-instance patches are torn down by the shared
+ * the `openContextMenu` per-instance patches are torn down by the shared
  * `revertPatches()` call in `onShutdown`. */
 function unregisterAnnotationColorLabelPatch(): void {
   for (const observer of activeObservers) {
