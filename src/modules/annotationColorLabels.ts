@@ -1,5 +1,6 @@
 import { config } from "../../package.json";
 import { getAnnotationColorLabel } from "../utils/annotation";
+import { applyPatch } from "./patches/registry";
 
 export {
   registerAnnotationColorLabelPatch,
@@ -12,34 +13,36 @@ export {
  * official Zotero Reader API for this — `createColorContextMenu` etc. only
  * support *appending* menu content, not rewriting the built-in items.
  *
- * Selectors below are verified against Zotero 7's actual bundled reader
- * (`resource/reader/reader.js`, `src/common/components/view-popup/
- * selection-popup.js` and `src/common/components/context-menu.js`), not
- * guessed — but they're still unofficial DOM-patching, so every step here
+ * Two entirely different mechanisms are involved, both verified against
+ * Zotero 7's actual bundled client code (not guessed):
+ *
+ * 1. The "create a new highlight" selection popup is real HTML, rendered by
+ *    the reader iframe itself (`src/common/components/view-popup/
+ *    selection-popup.js`: `.selection-popup .colors .color-button`). We
+ *    DOM-patch it directly, refreshed via a `MutationObserver`.
+ * 2. Every *context menu* that offers a color (the "..." -> Add to Note
+ *    menu on an existing annotation, the toolbar's color dropdown, etc.) is
+ *    a native XUL `<menupopup>` built by chrome-side code
+ *    (`ReaderInstance._openContextMenu()` in `chrome/content/zotero/xpcom/
+ *    reader.js`) from `itemGroups` data — it never touches the reader
+ *    iframe's DOM at all, so no amount of DOM-patching there can reach it.
+ *    Each color item already carries its raw hex in `item.color`, so we
+ *    monkey-patch `_openContextMenu` per reader instance to rewrite
+ *    `item.label` before the native menu is built.
+ *
+ * Both are unofficial and depend on Zotero's internals, so every step here
  * degrades silently on a mismatch instead of breaking the reader. A future
- * Zotero reader update could stop matching without ill effect beyond the
- * rename no longer applying.
+ * Zotero update could stop matching without ill effect beyond the rename no
+ * longer applying.
  */
 
-// Tried together (union of matches, not first-match), since different
-// popups use different markup for the same 8 annotation colors:
-// - creating a new highlight: `.selection-popup .colors .color-button`
-//   (an icon-only <button title="Yellow">, no visible text)
-// - the color picker for an *existing* annotation ("..." -> Add to Note,
-//   and the toolbar's color dropdown): a generic `.context-menu` built from
-//   reusable `<button class="row basic">` rows, each holding an icon <div>
-//   plus a bare trailing text node with the visible label — no title attr.
-const COLOR_BUTTON_SELECTORS = [
-  ".selection-popup .colors .color-button",
-  ".context-menu button.row",
-  ".color-button",
-];
+const COLOR_BUTTON_SELECTORS = [".selection-popup .colors .color-button"];
 
 // The 8 hex values Better Notes already exposes as `annotationColorLabel.<hex>`
 // prefs (addon/prefs.js) — Zotero's own default annotation color set
 // (`ANNOTATION_COLORS` in the reader bundle). Used only as a last-resort
-// fallback to guess a button's color from its (English) title/text when the
-// color swatch's fill can't be read from the markup.
+// fallback to guess a selection-popup button's color from its (English)
+// title when the color swatch's fill can't be read from the markup.
 const DEFAULT_COLOR_NAMES: Record<string, string> = {
   ffd400: "yellow",
   ff6666: "red",
@@ -52,11 +55,12 @@ const DEFAULT_COLOR_NAMES: Record<string, string> = {
 };
 
 // Caches each button's detected color so a later pass (after we've already
-// overwritten its title/text) doesn't lose the ability to re-detect it.
+// overwritten its title) doesn't lose the ability to re-detect it.
 const detectedHex = new WeakMap<Element, string>();
 
 const observedDocs = new WeakSet<Document>();
 const activeObservers = new Set<MutationObserver>();
+const patchedContextMenuReaders = new WeakSet<object>();
 
 function colorToHex(value?: string | null): string | null {
   if (!value) {
@@ -123,48 +127,6 @@ function getButtonHex(button: HTMLElement): string | null {
   return hex;
 }
 
-/** Zotero's context-menu rows (`BasicRow` in `context-menu.js`) put the
- * visible label as a bare trailing text node alongside an icon `<div>` —
- * no wrapping element, no `title` attribute. Only touches it when exactly
- * one non-empty text-node child exists, so an ambiguous/unexpected shape
- * degrades silently instead of overwriting the wrong text. */
-function replaceButtonLabelText(button: HTMLElement, label: string): boolean {
-  const textNodes = Array.from(button.childNodes).filter(
-    (node) =>
-      node && node.nodeType === Node.TEXT_NODE && !!node.nodeValue?.trim(),
-  ) as Text[];
-  if (textNodes.length === 1) {
-    textNodes[0].nodeValue = label;
-    return true;
-  }
-  return false;
-}
-
-/** Last-resort fallback for markup this module doesn't otherwise recognize:
- * a leaf element whose visible text is the color's default English name. */
-function replaceLeafColorNameText(
-  button: HTMLElement,
-  hex: string,
-  label: string,
-): boolean {
-  const expected = DEFAULT_COLOR_NAMES[hex];
-  if (!expected) {
-    return false;
-  }
-  const candidates = [button, ...Array.from(button.querySelectorAll("*"))];
-  for (const el of candidates) {
-    if (
-      el instanceof HTMLElement &&
-      el.childElementCount === 0 &&
-      el.textContent?.trim().toLowerCase() === expected
-    ) {
-      el.textContent = label;
-      return true;
-    }
-  }
-  return false;
-}
-
 function applyColorLabelToButton(button: HTMLElement): void {
   const hex = getButtonHex(button);
   if (!hex) {
@@ -179,9 +141,6 @@ function applyColorLabelToButton(button: HTMLElement): void {
   }
   if (button.hasAttribute("aria-label")) {
     button.setAttribute("aria-label", label);
-  }
-  if (!replaceButtonLabelText(button, label)) {
-    replaceLeafColorNameText(button, hex, label);
   }
 }
 
@@ -204,10 +163,10 @@ function applyColorLabels(doc: Document): void {
   }
 }
 
-/** Re-applies the rename whenever the reader re-renders a color popup —
- * these popups (selection popup, context menus) mount well after the
- * triggering reader event fires, so a one-shot pass in the event handler
- * would miss them; the observer catches the actual DOM insertion. */
+/** Re-applies the rename whenever the reader re-renders the selection
+ * popup — it mounts well after the triggering reader event fires, so a
+ * one-shot pass in the event handler would miss it; the observer catches
+ * the actual DOM insertion. */
 function ensureObserver(doc: Document): void {
   if (observedDocs.has(doc) || !doc.body || !doc.defaultView) {
     return;
@@ -224,9 +183,63 @@ function ensureObserver(doc: Document): void {
   }
 }
 
-function handleReaderEvent(event: { doc: Document }): void {
+interface ContextMenuItem {
+  label?: string;
+  color?: string;
+}
+
+interface ContextMenuData {
+  itemGroups: ContextMenuItem[][];
+}
+
+/** Every reader context menu that offers a color (existing-annotation
+ * "Add to Note" menu, toolbar color dropdown, ...) is a native XUL
+ * `<menupopup>` built by `_openContextMenu` directly from `itemGroups` —
+ * there's no HTML to DOM-patch. Each color item already carries its raw
+ * hex in `.color`, so we rewrite `.label` before the menu is built.
+ * Patched per reader instance (own-property shadow, not the shared
+ * prototype) via the shared patch registry, so it's reverted on shutdown
+ * along with the rest of this plugin's patches. */
+function patchReaderContextMenu(reader: unknown): void {
+  const target = reader as
+    | { _openContextMenu?: (data: ContextMenuData) => unknown }
+    | null
+    | undefined;
+  if (
+    !target ||
+    typeof target._openContextMenu !== "function" ||
+    patchedContextMenuReaders.has(target)
+  ) {
+    return;
+  }
+  patchedContextMenuReaders.add(target);
+  applyPatch(
+    target,
+    "_openContextMenu",
+    (original) =>
+      function (this: unknown, data: ContextMenuData) {
+        for (const group of data?.itemGroups || []) {
+          for (const item of group) {
+            if (item?.color) {
+              const label = getAnnotationColorLabel(item.color);
+              if (label) {
+                item.label = label;
+              }
+            }
+          }
+        }
+        return original.call(this, data);
+      },
+  );
+}
+
+function handleReaderEvent(event: {
+  doc: Document;
+  reader: _ZoteroTypes.ReaderInstance;
+}): void {
   applyColorLabels(event.doc);
   ensureObserver(event.doc);
+  patchReaderContextMenu(event.reader);
 }
 
 /** Registered once at startup; Zotero scopes reader event listeners to our
@@ -255,7 +268,9 @@ function registerAnnotationColorLabelPatch(): void {
 }
 
 /** Disconnects observers we attached to reader documents. The reader event
- * listeners themselves are torn down by Zotero via the pluginID scoping. */
+ * listeners themselves are torn down by Zotero via the pluginID scoping;
+ * the `_openContextMenu` per-instance patches are torn down by the shared
+ * `revertPatches()` call in `onShutdown`. */
 function unregisterAnnotationColorLabelPatch(): void {
   for (const observer of activeObservers) {
     try {
