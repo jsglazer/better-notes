@@ -10,29 +10,36 @@ export {
  * Renames Zotero's own reader color-picker/popup labels (e.g. "Yellow" ->
  * "Key") using the existing per-color `colorLabel` prefs. There is no
  * official Zotero Reader API for this — `createColorContextMenu` etc. only
- * support *appending* menu content, not rewriting the built-in items. This
- * mirrors the confirmed DOM-patch technique from the third-party plugin
- * zotero-annotation-color-customizer (github.com/aidecameron/zotero-annotation-color-customizer):
- * find the reader's color buttons, match them to a color, and rewrite their
- * tooltip/text. It is unofficial and depends on the reader's internal
- * markup, so every step here degrades silently on a mismatch instead of
- * breaking the reader — a future Zotero reader update could stop matching
- * without ill effect beyond the rename no longer applying.
+ * support *appending* menu content, not rewriting the built-in items.
+ *
+ * Selectors below are verified against Zotero 7's actual bundled reader
+ * (`resource/reader/reader.js`, `src/common/components/view-popup/
+ * selection-popup.js` and `src/common/components/context-menu.js`), not
+ * guessed — but they're still unofficial DOM-patching, so every step here
+ * degrades silently on a mismatch instead of breaking the reader. A future
+ * Zotero reader update could stop matching without ill effect beyond the
+ * rename no longer applying.
  */
 
-// Tried in order; the first selector that matches anything in a given reader
-// document wins. Reader markup has varied across Zotero 7 point releases.
+// Tried together (union of matches, not first-match), since different
+// popups use different markup for the same 8 annotation colors:
+// - creating a new highlight: `.selection-popup .colors .color-button`
+//   (an icon-only <button title="Yellow">, no visible text)
+// - the color picker for an *existing* annotation ("..." -> Add to Note,
+//   and the toolbar's color dropdown): a generic `.context-menu` built from
+//   reusable `<button class="row basic">` rows, each holding an icon <div>
+//   plus a bare trailing text node with the visible label — no title attr.
 const COLOR_BUTTON_SELECTORS = [
   ".selection-popup .colors .color-button",
-  ".annotationPopup .colors .color-button",
-  ".colors .color-button",
+  ".context-menu button.row",
   ".color-button",
 ];
 
 // The 8 hex values Better Notes already exposes as `annotationColorLabel.<hex>`
-// prefs (addon/prefs.js) — Zotero's own default annotation color set, used
-// here only as a fallback to guess a button's color from its title text when
-// no fill/background color can be read from its markup.
+// prefs (addon/prefs.js) — Zotero's own default annotation color set
+// (`ANNOTATION_COLORS` in the reader bundle). Used only as a last-resort
+// fallback to guess a button's color from its (English) title/text when the
+// color swatch's fill can't be read from the markup.
 const DEFAULT_COLOR_NAMES: Record<string, string> = {
   ffd400: "yellow",
   ff6666: "red",
@@ -45,7 +52,7 @@ const DEFAULT_COLOR_NAMES: Record<string, string> = {
 };
 
 // Caches each button's detected color so a later pass (after we've already
-// overwritten its title) doesn't lose the ability to re-detect it.
+// overwritten its title/text) doesn't lose the ability to re-detect it.
 const detectedHex = new WeakMap<Element, string>();
 
 const observedDocs = new WeakSet<Document>();
@@ -69,11 +76,13 @@ function colorToHex(value?: string | null): string | null {
   return null;
 }
 
+/** Zotero's `IconColor16` renders the color on an inner `<path fill>`, not
+ * on the `<svg>` itself (the `<svg>` always has `fill="none"`) — checking
+ * the outer element alone silently finds nothing. This is language-
+ * independent, unlike the title-text fallback below, so it's tried first. */
 function detectHexFromStyle(button: HTMLElement): string | null {
-  const svg = button.querySelector("svg");
   const candidates = [
-    svg?.getAttribute("fill"),
-    svg?.style?.fill,
+    button.querySelector("svg path[fill]")?.getAttribute("fill"),
     button.style?.backgroundColor,
     (button.querySelector('[style*="background"]') as HTMLElement | null)?.style
       ?.backgroundColor,
@@ -87,6 +96,9 @@ function detectHexFromStyle(button: HTMLElement): string | null {
   return null;
 }
 
+/** English-name fallback only — Zotero's default color names are localized,
+ * so this misses on non-English UIs. Only reached when the SVG fill can't
+ * be read at all. */
 function detectHexFromTitle(title: string): string | null {
   const lower = title.toLowerCase();
   for (const [hex, name] of Object.entries(DEFAULT_COLOR_NAMES)) {
@@ -111,15 +123,33 @@ function getButtonHex(button: HTMLElement): string | null {
   return hex;
 }
 
-/** A leaf element whose visible text is the color's default English name
- * (e.g. a text label in a context-menu item), if the button has one. */
-function findColorNameNode(
+/** Zotero's context-menu rows (`BasicRow` in `context-menu.js`) put the
+ * visible label as a bare trailing text node alongside an icon `<div>` —
+ * no wrapping element, no `title` attribute. Only touches it when exactly
+ * one non-empty text-node child exists, so an ambiguous/unexpected shape
+ * degrades silently instead of overwriting the wrong text. */
+function replaceButtonLabelText(button: HTMLElement, label: string): boolean {
+  const textNodes = Array.from(button.childNodes).filter(
+    (node) =>
+      node && node.nodeType === Node.TEXT_NODE && !!node.nodeValue?.trim(),
+  ) as Text[];
+  if (textNodes.length === 1) {
+    textNodes[0].nodeValue = label;
+    return true;
+  }
+  return false;
+}
+
+/** Last-resort fallback for markup this module doesn't otherwise recognize:
+ * a leaf element whose visible text is the color's default English name. */
+function replaceLeafColorNameText(
   button: HTMLElement,
   hex: string,
-): HTMLElement | null {
+  label: string,
+): boolean {
   const expected = DEFAULT_COLOR_NAMES[hex];
   if (!expected) {
-    return null;
+    return false;
   }
   const candidates = [button, ...Array.from(button.querySelectorAll("*"))];
   for (const el of candidates) {
@@ -128,10 +158,11 @@ function findColorNameNode(
       el.childElementCount === 0 &&
       el.textContent?.trim().toLowerCase() === expected
     ) {
-      return el;
+      el.textContent = label;
+      return true;
     }
   }
-  return null;
+  return false;
 }
 
 function applyColorLabelToButton(button: HTMLElement): void {
@@ -149,24 +180,16 @@ function applyColorLabelToButton(button: HTMLElement): void {
   if (button.hasAttribute("aria-label")) {
     button.setAttribute("aria-label", label);
   }
-  const nameNode = findColorNameNode(button, hex);
-  if (nameNode) {
-    nameNode.textContent = label;
+  if (!replaceButtonLabelText(button, label)) {
+    replaceLeafColorNameText(button, hex, label);
   }
 }
 
 function applyColorLabels(doc: Document): void {
   try {
-    let buttons: NodeListOf<Element> | null = null;
+    const buttons = new Set<Element>();
     for (const selector of COLOR_BUTTON_SELECTORS) {
-      const found = doc.querySelectorAll(selector);
-      if (found.length) {
-        buttons = found;
-        break;
-      }
-    }
-    if (!buttons) {
-      return;
+      doc.querySelectorAll(selector).forEach((el) => buttons.add(el));
     }
     buttons.forEach((el) => {
       try {
@@ -182,7 +205,9 @@ function applyColorLabels(doc: Document): void {
 }
 
 /** Re-applies the rename whenever the reader re-renders a color popup —
- * mirrors the confirmed zotero-annotation-color-customizer technique. */
+ * these popups (selection popup, context menus) mount well after the
+ * triggering reader event fires, so a one-shot pass in the event handler
+ * would miss them; the observer catches the actual DOM insertion. */
 function ensureObserver(doc: Document): void {
   if (observedDocs.has(doc) || !doc.body || !doc.defaultView) {
     return;
