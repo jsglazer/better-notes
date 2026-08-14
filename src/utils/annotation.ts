@@ -15,7 +15,7 @@ function escapeHtml(s: string): string {
  * labeling (replaces the Highlight Descriptions plugin). Reads the per-color
  * pref keyed by lowercase hex (no '#'); "" when unset or color is unknown.
  */
-function getAnnotationColorLabel(color: string): string {
+export function getAnnotationColorLabel(color: string): string {
   if (!color) {
     return "";
   }

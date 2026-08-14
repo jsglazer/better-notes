@@ -19,6 +19,10 @@ import {
   registerReaderAnnotationButton,
   syncAnnotationNoteTags,
 } from "./modules/annotationNote";
+import {
+  registerAnnotationColorLabelPatch,
+  unregisterAnnotationColorLabelPatch,
+} from "./modules/annotationColorLabels";
 import { setSyncing, unsetSyncing, callSyncing } from "./modules/sync/hooks";
 import { syncLinkedNoteOnEdit } from "./modules/sync/autoLink";
 import { showTemplatePicker } from "./modules/template/picker";
@@ -77,6 +81,8 @@ async function onStartup() {
   registerPrefsWindow();
 
   registerReaderAnnotationButton();
+
+  registerAnnotationColorLabelPatch();
 
   registerNoteRelation();
 
@@ -164,6 +170,10 @@ function onShutdown(): void {
   step("unregisterNotify", () => unregisterNotify());
 
   step("unregisterEditorInstanceHook", () => unregisterEditorInstanceHook());
+
+  step("unregisterAnnotationColorLabelPatch", () =>
+    unregisterAnnotationColorLabelPatch(),
+  );
 
   // Restore every monkey-patched Zotero/global method to its original, so no
   // plugin code stays reachable from Zotero core after teardown.
