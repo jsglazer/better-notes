@@ -31,16 +31,39 @@ const ENDPOINT_PATH = "/better-notes/color-labels";
  * Only non-empty labels are included; a consumer should keep its own
  * default/fallback for any color missing from the response.
  */
+// Zotero.Server dispatches endpoints one of two ways depending on client
+// version: the newer `init(options) => Promise<[code, type, body]>`, or the
+// older `init(data, sendResponseCallback)` where the endpoint itself must
+// call the callback. Declaring `init()` with the promise signature alone
+// left a real 9.0.6 client waiting forever for a callback that never came
+// (confirmed: curl hung indefinitely against a live install, while
+// `/better-bibtex/...` on the same server responded instantly and an
+// unregistered path 404'd immediately — proving the request *was* reaching
+// this endpoint's `init`, just never producing a response). Support both
+// so this works regardless of which dispatch style the running client uses.
 class ColorLabelsEndpoint {
   supportedMethods = ["GET"];
 
-  async init(): Promise<[number, string, string]> {
+  init(
+    _optionsOrData: unknown,
+    sendResponseCallback?: (
+      code: number,
+      contentTypeOrHeaders?: string | Record<string, string>,
+      body?: string,
+    ) => void,
+  ): void | Promise<[number, string, string]> {
     const colorLabels: Record<string, string> = {};
     for (const [hex, name] of Object.entries(COLOR_NAMES)) {
       const label = getAnnotationColorLabel(hex);
       if (label) colorLabels[name] = label;
     }
-    return [200, "application/json", JSON.stringify({ colorLabels })];
+    const body = JSON.stringify({ colorLabels });
+
+    if (typeof sendResponseCallback === "function") {
+      sendResponseCallback(200, "application/json", body);
+      return;
+    }
+    return Promise.resolve([200, "application/json", body]);
   }
 }
 
