@@ -73,7 +73,7 @@ The template name's prefix selects the type and the data it receives:
 
 Standard [LiquidJS built-ins](https://liquidjs.com/filters/overview.html) are all
 available — e.g. `join`, `strip_newlines`, `upcase`, `truncate`, `default`, and
-`date` (`{{ now | date: "%Y-%m-%d" }}`). Custom filters added by Better Notes:
+`date` (`{{ now | date: "%Y-%m-%d" }}`). Custom filters added by Enhanced Notes:
 
 | Filter | Effect |
 |---|---|
@@ -84,7 +84,7 @@ available — e.g. `join`, `strip_newlines`, `upcase`, `truncate`, `default`, an
 
 ## Built-in (system) templates
 
-Alongside the templates you write, Better Notes ships a fixed set of **built-in
+Alongside the templates you write, Enhanced Notes ships a fixed set of **built-in
 templates** with reserved, bracketed names. You don't pick these from a menu —
 **the plugin renders them automatically** at specific moments (inserting a link,
 turning an annotation into a note, exporting to disk). They are ordinary Liquid

@@ -11,18 +11,18 @@ async function showUserGuide(win: _ZoteroTypes.MainWindow, force = false) {
   if (!force && getPref("latestTourVersion") == LATEST_TOUR_VERSION) return;
   setPref("latestTourVersion", LATEST_TOUR_VERSION);
   const exampleNote = `
-# Welcome to better-notes
+# Welcome to enhanced-notes
 
-This note is created by the better-notes user guide.
-You can always run the user guide again from menu Help -> better-notes User Guide.
+This note is created by the enhanced-notes user guide.
+You can always run the user guide again from menu Help -> enhanced-notes User Guide.
 
 ## 📝 Introduction
 
 > Everything about note management. All in Zotero.
 
-better-notes (BN) is a plugin for [Zotero](https://zotero.org).
+enhanced-notes (EN) is a plugin for [Zotero](https://zotero.org).
 
-BN streamlines your workflows of:
+EN streamlines your workflows of:
 
 - paper reading
 - annotating

@@ -42,7 +42,7 @@ declare interface EditorCore {
 }
 
 declare type EditorAPI =
-  typeof import("../src/extras/editorScript").BetterNotesEditorAPI;
+  typeof import("../src/extras/editorScript").EnhancedNotesEditorAPI;
 
 declare interface EditorElement extends XULBoxElement {
   _iframe: HTMLIFrameElement;

@@ -44,7 +44,7 @@ function initMarkdownPastePlugin(plugins: readonly Plugin[]) {
           }
 
           md2html(markdown).then((html: string) => {
-            const slice = window.BetterNotesEditorAPI.getSliceFromHTML(
+            const slice = window.EnhancedNotesEditorAPI.getSliceFromHTML(
               view.state,
               html,
             );
@@ -70,7 +70,7 @@ function initMarkdownPastePlugin(plugins: readonly Plugin[]) {
           }
 
           md2html(markdown).then((html: string) => {
-            const slice = window.BetterNotesEditorAPI.getSliceFromHTML(
+            const slice = window.EnhancedNotesEditorAPI.getSliceFromHTML(
               view.state,
               html,
             );

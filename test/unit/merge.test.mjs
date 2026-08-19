@@ -1,5 +1,5 @@
 /**
- * Better Notes U2b — unit tests for the pure 3-way merge (src/modules/sync/merge.ts).
+ * Enhanced Notes U2b — unit tests for the pure 3-way merge (src/modules/sync/merge.ts).
  * Bundled to /tmp/bn_u2b by bn_run_merge_tests.sh, run with `node --test`.
  */
 import test from "node:test";

@@ -1,5 +1,5 @@
 /**
- * Better Notes — unit tests for the dependency-free seeded PRNG
+ * Enhanced Notes — unit tests for the dependency-free seeded PRNG
  * (src/utils/seededRandom.ts) that replaced the `seedrandom` package. Bundled to
  * /tmp/bn_seeded by bn_run_seeded_random_tests.sh, run with `node --test`.
  */

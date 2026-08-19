@@ -1,5 +1,5 @@
 /**
- * Better Notes — unit tests for the pure annotation grouping
+ * Enhanced Notes — unit tests for the pure annotation grouping
  * (src/utils/annotationGroup.ts). Bundled to /tmp/bn_anngroup by
  * bn_run_annotation_group_tests.sh, run with `node --test`.
  */

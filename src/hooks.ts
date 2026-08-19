@@ -156,7 +156,7 @@ function onShutdown(): void {
       fn();
     } catch (e) {
       try {
-        Zotero.debug(`[better-notes] onShutdown step '${label}' failed: ${e}`);
+        Zotero.debug(`[enhanced-notes] onShutdown step '${label}' failed: ${e}`);
       } catch (_e) {
         /* no-op */
       }
@@ -325,7 +325,7 @@ async function onOpenNote<K extends keyof OpenNoteReturns>(
     case "preview":
       if (!workspaceUID) {
         throw new Error(
-          "better-notes onOpenNote mode=preview must have workspaceUID provided.",
+          "enhanced-notes onOpenNote mode=preview must have workspaceUID provided.",
         );
       }
       openNotePreview(noteItem, workspaceUID, options);

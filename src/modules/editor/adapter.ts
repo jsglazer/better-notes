@@ -15,7 +15,7 @@
  * - `editor._initPromise` — resolves once the editor is initialized
  * - `editor._iframeWindow.wrappedJSObject._currentEditorInstance._editorCore`
  *   — the injected ProseMirror `EditorCore` (the most fragile coupling)
- * - `editor._iframeWindow.wrappedJSObject.BetterNotesEditorAPI`
+ * - `editor._iframeWindow.wrappedJSObject.EnhancedNotesEditorAPI`
  *   — the API the injected script exposes back to the plugin
  *
  * Stable accessors (`getEditorWindow`/`getEditorItem`/…) are provided for call
@@ -88,7 +88,7 @@ export function getEditorCore(editor: EI): EditorCore {
   const core = tryGetEditorCore(editor);
   if (!core) {
     throw new Error(
-      "[BetterNotes] editor core unavailable — Zotero editor internals may have changed.",
+      "[EnhancedNotes] editor core unavailable — Zotero editor internals may have changed.",
     );
   }
   return core;
@@ -96,5 +96,5 @@ export function getEditorCore(editor: EI): EditorCore {
 
 /** The API the injected script exposes, or undefined if not ready. */
 export function getEditorAPI(editor: EI): EditorAPI | undefined {
-  return injectedGlobals(editor)?.BetterNotesEditorAPI as EditorAPI | undefined;
+  return injectedGlobals(editor)?.EnhancedNotesEditorAPI as EditorAPI | undefined;
 }

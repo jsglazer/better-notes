@@ -9,7 +9,7 @@ menuFile-exportTemplate =
     .label = Esporta Template...
 
 menuHelp-openUserGuide =
-    .label = Apri Guida Utente better-notes
+    .label = Apri Guida Utente enhanced-notes
 
 menuAddNote-importMD =
     .label = Importa da File Markdown

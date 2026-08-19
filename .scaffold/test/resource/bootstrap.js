@@ -53,7 +53,7 @@ async function launchTests() {
   // Delay to allow plugin to fully load before opening the test page
   await Zotero.Promise.delay(1000);
 
-  const waitForPlugin = "() => Zotero.BetterNotes.data.initialized";
+  const waitForPlugin = "() => Zotero.EnhancedNotes.data.initialized";
 
   if (waitForPlugin) {
     // Wait for a plugin to be installed

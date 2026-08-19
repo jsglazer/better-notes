@@ -60,14 +60,14 @@ function shutdown({ id, version, resourceURI, rootURI }, reason) {
   try {
     Zotero.__addonInstance__?.hooks?.onShutdown?.();
   } catch (e) {
-    Zotero.debug("[better-notes] onShutdown failed during teardown: " + e);
+    Zotero.debug("[enhanced-notes] onShutdown failed during teardown: " + e);
   }
 
   if (chromeHandle) {
     try {
       chromeHandle.destruct();
     } catch (e) {
-      Zotero.debug("[better-notes] chromeHandle.destruct failed: " + e);
+      Zotero.debug("[enhanced-notes] chromeHandle.destruct failed: " + e);
     }
     chromeHandle = null;
   }

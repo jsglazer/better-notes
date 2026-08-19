@@ -149,7 +149,7 @@ async function callSyncing(
     if (!quiet) {
       progress = new ztoolkit.ProgressWindow(
         `[${getString("sync-running-hint-title")}] ${
-          addon.data.env === "development" ? reason : "better-notes"
+          addon.data.env === "development" ? reason : "enhanced-notes"
         }`,
       )
         .createLine({
@@ -324,7 +324,7 @@ async function callSyncing(
       progress: 100,
     });
   } catch (e) {
-    ztoolkit.log("[BetterNotes Syncing Error]", e);
+    ztoolkit.log("[EnhancedNotes Syncing Error]", e);
     showHint(`Sync Error: ${String(e)}`);
   } finally {
     progress?.startCloseTimer(5000);

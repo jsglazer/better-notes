@@ -9,7 +9,7 @@ menuFile-exportTemplate =
     .label = Şablonu Dışa Aktar...
 
 menuHelp-openUserGuide =
-    .label = better-notes Kullanıcı Kılavuzunu Aç
+    .label = enhanced-notes Kullanıcı Kılavuzunu Aç
 
 menuAddNote-importMD =
     .label = Markdown Dosyasından İçe Aktar

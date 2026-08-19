@@ -1,8 +1,6 @@
 # Note Templates
 
-Better Notes templates let you generate note content (and exported file
-names/contents) from your Zotero items. Templates are written in a **sandboxed
-[Liquid](https://liquidjs.com/)** language.
+Enhanced Notes templates let you generate note content (and exported file names/contents) from your Zotero items. Templates are written in a **sandboxed [Liquid](https://liquidjs.com/)** language.
 
 > **Looking for syntax?** The full reference — sentinel header, the `item`/`note`
 > data model, filters, tags, side effects, and the built-in (system) templates —
@@ -20,22 +18,14 @@ names/contents) from your Zotero items. Templates are written in a **sandboxed
 
 A template has two parts:
 
-- **Name** — starts with a type tag in brackets: `[item]…` (renders from one or
-  more selected items) or `[text]…` (a basic template with no item). The name's
-  prefix selects what data the template receives.
-- **Content** — the Liquid template body, beginning with a `<!--liquid-->`
-  sentinel line. See [liquid-templates.md](./liquid-templates.md#anatomy).
+- **Name** — starts with a type tag in brackets: `[item]…` (renders from one or more selected items) or `[text]…` (a basic template with no item). The name's prefix selects what data the template receives.
+- **Content** — the Liquid template body, beginning with a `<!--liquid-->` sentinel line. See [liquid-templates.md](./liquid-templates.md#anatomy).
 
-Built-in templates (e.g. `[QuickInsertV3]`, `[ExportMDFileNameV2]`) have reserved
-names and are run automatically by the plugin — see
-[the built-in templates table](./liquid-templates.md#built-in-system-templates).
+Built-in templates (e.g. `[QuickInsertV3]`, `[ExportMDFileNameV2]`) have reserved names and are run automatically by the plugin — see [the built-in templates table](./liquid-templates.md#built-in-system-templates).
 
 ## Use a template
 
-Open a note (or the workspace), and in the editor toolbar click **Insert
-Template**. Pick a template and it is inserted at the cursor line. You can browse
-community templates
-[here](https://github.com/windingwind/zotero-better-notes/discussions/categories/note-templates).
+Open a note (or the workspace), and in the editor toolbar click **Insert Template**. Pick a template and it is inserted at the cursor line. You can browse community templates [here](https://github.com/windingwind/zotero-better-notes/discussions/categories/note-templates).
 
 ## Import a template
 
@@ -49,8 +39,7 @@ community templates
 2. Select the template in the list.
 3. **Options → Copy share code**.
 
-A share-code is YAML (preferred for multi-line content) or JSON with a `name` and
-a `content` field:
+A share-code is YAML (preferred for multi-line content) or JSON with a `name` and a `content` field:
 
 ```yaml
 name: "[text] Current Time"
@@ -67,5 +56,4 @@ content: |-
 }
 ```
 
-Post templates to share
-[here](https://github.com/windingwind/zotero-better-notes/discussions/categories/note-templates).
+Post templates to share [here](https://github.com/windingwind/zotero-better-notes/discussions/categories/note-templates).

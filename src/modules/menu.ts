@@ -212,13 +212,13 @@ export function registerMenus() {
   });
 
   Zotero.MenuManager.registerMenu({
-    menuID: `${config.addonRef}-menuItemBetterNotes`,
+    menuID: `${config.addonRef}-menuItemEnhancedNotes`,
     pluginID: config.addonID,
     target: "main/library/item",
     menus: [
       {
         menuType: "submenu",
-        l10nID: `${config.addonRef}-menuItem-betterNotes`,
+        l10nID: `${config.addonRef}-menuItem-enhancedNotes`,
         icon: `chrome://${config.addonRef}/content/icons/favicon.png`,
         menus: [
           {

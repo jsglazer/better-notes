@@ -1,7 +1,7 @@
 /**
  * Pure grouping of serialized annotations under color-label headings.
  *
- * Annotations carry a user-assigned color label (Better Notes' native color
+ * Annotations carry a user-assigned color label (Enhanced Notes' native color
  * labeling — see `getAnnotationColorLabel`). When a template requests grouped
  * output (`{% annotations grouped %}`), the host renders each annotation to HTML
  * and then groups the pieces by label into `<h2>Label</h2>` sections, ordered by

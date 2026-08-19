@@ -4032,11 +4032,11 @@ html {
 
   // package.json
   var config = {
-    addonName: "Better Notes",
-    addonID: "Knowledge4Zotero@windingwind.com",
-    addonRef: "BetterNotes",
-    prefsPrefix: "extensions.zotero.Knowledge4Zotero",
-    addonInstance: "BetterNotes",
+    addonName: "Enhanced Notes",
+    addonID: "enhanced-notes@jsglazer.com",
+    addonRef: "EnhancedNotes",
+    prefsPrefix: "extensions.zotero.EnhancedNotes",
+    addonInstance: "EnhancedNotes",
     dataSchemaVersion: "9"
   };
 

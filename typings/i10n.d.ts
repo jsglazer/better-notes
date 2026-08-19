@@ -121,7 +121,7 @@ export type FluentMessageId =
   | 'menuEditor-resizeImage'
   | 'menuFile-exportTemplate'
   | 'menuHelp-openUserGuide'
-  | 'menuItem-betterNotes'
+  | 'menuItem-enhancedNotes'
   | 'menuItem-exportCurrentNote'
   | 'menuItem-newItemNoteFromTemplate'
   | 'menuTab-moveNewWindow'

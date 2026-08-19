@@ -547,7 +547,7 @@ class PluginState {
       .querySelectorAll(`.${this.popupClass}`)
       .forEach((el) => el.remove());
     this.popup = null;
-    window.BetterNotesEditorAPI.refocusEditor();
+    window.EnhancedNotesEditorAPI.refocusEditor();
   }
 
   _hasPopup() {

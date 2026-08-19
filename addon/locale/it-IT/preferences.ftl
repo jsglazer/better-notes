@@ -49,7 +49,7 @@ annotationNote-title = Note from Annotation
 annotationNote-enableTagSync = 
     .label = Mantieni i tag di una nota derivata da un'annotazione sincronizzati con l'annotazione di origine
 
-about-title = Informazioni su better-notes
+about-title = Informazioni su enhanced-notes
 help =
     .value = { $name } VERSION { $version } Build { $time }
 # en fallback — untranslated

@@ -11,7 +11,7 @@ function escapeHtml(s: string): string {
 }
 
 /**
- * User-assigned label for an annotation color — Better Notes' native color
+ * User-assigned label for an annotation color — Enhanced Notes' native color
  * labeling (replaces the Highlight Descriptions plugin). Reads the per-color
  * pref keyed by lowercase hex (no '#'); "" when unset or color is unknown.
  */
@@ -225,7 +225,7 @@ function renderAnnotationPieces(
     const colorLabel = getAnnotationColorLabel(annotation.color || "");
     const vars = {
       color: annotation.color || "",
-      // Better Notes native color label (replaces Highlight Descriptions).
+      // Enhanced Notes native color label (replaces Highlight Descriptions).
       colorLabel,
       // Include quotation marks by default, but allow to disable with `quotes='false'`
       highlight: (attrs: any) =>

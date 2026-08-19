@@ -1,5 +1,5 @@
 /**
- * Better Notes U3 — executable unit tests for the pure template capability layer.
+ * Enhanced Notes U3 — executable unit tests for the pure template capability layer.
  *
  * The project's own test suite runs inside Zotero (mocha + Zotero globals), so it
  * can't run standalone. These tests cover only the *pure* exports (no Zotero

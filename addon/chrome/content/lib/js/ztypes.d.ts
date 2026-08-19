@@ -66024,7 +66024,7 @@ declare namespace _ZoteroTypes {
 }
 
 /**
- * Template-specific global variables for Better Notes templates
+ * Template-specific global variables for Enhanced Notes templates
  * Based on the note template documentation
  */
 

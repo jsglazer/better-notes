@@ -1,20 +1,20 @@
 {
-  "name": "zotero-better-notes",
+  "name": "zotero-enhanced-notes",
   "version": "1.0.75",
   "description": "A Zotero plugin to expand the capability of notes and sync notes to other locations. This is a fork of Windingwing's excellent zotero-better-notes plugin.",
   "config": {
-    "addonName": "Better Notes",
-    "addonID": "Knowledge4Zotero@windingwind.com",
-    "addonRef": "BetterNotes",
-    "prefsPrefix": "extensions.zotero.Knowledge4Zotero",
-    "addonInstance": "BetterNotes",
+    "addonName": "Enhanced Notes",
+    "addonID": "enhanced-notes@jsglazer.com",
+    "addonRef": "EnhancedNotes",
+    "prefsPrefix": "extensions.zotero.EnhancedNotes",
+    "addonInstance": "EnhancedNotes",
     "dataSchemaVersion": "9"
   },
   "main": "src/index.ts",
   "scripts": {
     "start": "zotero-plugin serve",
     "build": "tsc --noEmit && zotero-plugin build",
-    "build-dev": "tsc --noEmit && zotero-plugin build --dev && cd build/addon && zip -r ../zotero-better-notes-dev.xpi .",
+    "build-dev": "tsc --noEmit && zotero-plugin build --dev && cd build/addon && zip -r ../zotero-enhanced-notes-dev.xpi .",
     "release": "zotero-plugin release",
     "lint": "prettier --write . && eslint . --ext .ts --fix",
     "test": "zotero-plugin test  --abort-on-fail --exit-on-finish",
@@ -25,14 +25,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jsglazer/better-notes.git"
+    "url": "git+https://github.com/jsglazer/enhanced-notes.git"
   },
   "author": "Josh Glazer",
   "license": "AGPL-3.0-or-later",
   "bugs": {
-    "url": "https://github.com/jsglazer/better-notes/issues"
+    "url": "https://github.com/jsglazer/enhanced-notes/issues"
   },
-  "homepage": "https://github.com/jsglazer/better-notes",
+  "homepage": "https://github.com/jsglazer/enhanced-notes",
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.3",
     "@codemirror/commands": "^6.10.3",

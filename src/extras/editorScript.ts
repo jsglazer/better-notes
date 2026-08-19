@@ -377,7 +377,7 @@ function updateTableSize(pinLeft?: boolean, pinTop?: boolean) {
 
 window.addEventListener("resize", () => updateTableSize());
 
-export const BetterNotesEditorAPI = {
+export const EnhancedNotesEditorAPI = {
   deleteRange,
   deleteRangeAtCursor,
   replaceRange,
@@ -398,4 +398,4 @@ export const BetterNotesEditorAPI = {
 };
 
 // @ts-ignore
-window.BetterNotesEditorAPI = BetterNotesEditorAPI;
+window.EnhancedNotesEditorAPI = EnhancedNotesEditorAPI;

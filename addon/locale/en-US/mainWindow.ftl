@@ -11,7 +11,7 @@ menuFile-exportTemplate =
     .label = Export Template...
 
 menuHelp-openUserGuide =
-    .label = Open better-notes User Guide
+    .label = Open enhanced-notes User Guide
 
 menuAddNote-importMD =
     .label = Import from Markdown File
@@ -28,8 +28,8 @@ menuTab-moveNewWindow =
 menu-openNoteAsBNWindow =
     .label = Open Note in BN New Window
 
-menuItem-betterNotes =
-    .label = Better Notes
+menuItem-enhancedNotes =
+    .label = Enhanced Notes
 menuItem-newItemNoteFromTemplate =
     .label = New Item Note from Template
 menuItem-exportCurrentNote =

@@ -1,5 +1,5 @@
 /**
- * Better Notes — unit tests for the legacy-JS → Liquid template converter
+ * Enhanced Notes — unit tests for the legacy-JS → Liquid template converter
  * (src/modules/template/legacyConvert.ts). Bundled by test/bundle.mjs, run with
  * `node --test`.
  */

@@ -57,7 +57,7 @@ const COLOR_BUTTON_SELECTORS = [
   ".selector .colors button.color",
 ];
 
-// The 8 hex values Better Notes already exposes as `annotationColorLabel.<hex>`
+// The 8 hex values Enhanced Notes already exposes as `annotationColorLabel.<hex>`
 // prefs (addon/prefs.js) — Zotero's own default annotation color set
 // (`ANNOTATION_COLORS` in the reader bundle). Used only as a last-resort
 // fallback to guess a selection-popup button's color from its (English)

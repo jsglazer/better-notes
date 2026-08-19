@@ -1,4 +1,4 @@
-pref-title = Better Notes
+pref-title = Enhanced Notes
 
 menuEditor-resizeImage=缩放图片
 menuEditor-copy = 复制笔记链接...
@@ -58,7 +58,7 @@ sync-running-hint-diff=确认合并
 sync-running-hint-finish=同步完成
 sync-running-hint-synced=已同步
 sync-running-hint-upToDate=已最新
-sync-autoLink-selectFolder-title=better-notes - 自动同步链接笔记
+sync-autoLink-selectFolder-title=enhanced-notes - 自动同步链接笔记
 sync-autoLink-selectFolder-text=链接的笔记被同步到了多个不同的文件夹。请选择要将新链接的笔记同步到哪个文件夹：
 sync-autoLink-added-hint=链接笔记“{ $title }”已添加到同步：{ $dir }
 
@@ -96,8 +96,8 @@ alert-linkCreator-emptyNote = 无法从/向空笔记创建链接。
 alert-templateEditor-shouldImport = 似乎您正在尝试直接保存一个笔记模板分享代码。您想要将其导入为模板吗？
 alert-templateEditor-unsaved = 您在模板编辑器中有未保存的更改。您想要保存它们吗？
 
-userGuide-start-title = 欢迎使用better-notes！
-userGuide-start-desc = better-notes是一个强大的笔记工具，帮助您组织阅读论文时的概念和想法。本指南将帮助您开始使用better-notes，并向您展示如何充分利用其功能。
+userGuide-start-title = 欢迎使用enhanced-notes！
+userGuide-start-desc = enhanced-notes是一个强大的笔记工具，帮助您组织阅读论文时的概念和想法。本指南将帮助您开始使用enhanced-notes，并向您展示如何充分利用其功能。
 userGuide-start-close = 稍后提醒我
 userGuide-createNoteButton-title = 创建新笔记
 userGuide-createNoteButton-desc = 您可以在这里创建笔记：空白或从模板创建。
@@ -105,7 +105,7 @@ userGuide-createNote-title = 创建新笔记
 userGuide-createNote-desc = 看来您还没有任何笔记，让我们创建一个。
 userGuide-createNoteFound-desc = 在您的库中找到了一些笔记。将打开其中一个作为例子。
 userGuide-openNote-title = 打开笔记
-userGuide-openNote-desc = 您可以通过双击在better-notes标签页中打开一个笔记。
+userGuide-openNote-desc = 您可以通过双击在enhanced-notes标签页中打开一个笔记。
 userGuide-openNote-next = 打开笔记
 userGuide-workspace-title = 笔记标签页
 userGuide-workspace-desc = 笔记标签页（原工作区）是您可以编辑笔记内容、查看大纲和管理笔记链接关系的地方。
@@ -127,5 +127,5 @@ userGuide-workspaceOutlineSaveAs-desc = 您可以将笔记导出为多种格式�
 userGuide-workspaceNoteInfo-title = 笔记信息
 userGuide-workspaceNoteInfo-desc = 您可以查看、编辑和管理笔记的标签、关系和链接。
 userGuide-finish-title = 准备完成！
-userGuide-finish-desc = 享受您与better-notes的笔记旅程！
+userGuide-finish-desc = 享受您与enhanced-notes的笔记旅程！
     您可以随时从菜单栏 - 帮助再次运行此指南。

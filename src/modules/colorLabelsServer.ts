@@ -18,11 +18,11 @@ const COLOR_NAMES: Record<string, string> = {
   aaaaaa: "Gray",
 };
 
-const ENDPOINT_PATH = "/better-notes/color-labels";
+const ENDPOINT_PATH = "/enhanced-notes/color-labels";
 
 /**
  * Exposes the user's per-color annotation labels (Zotero prefs, set via
- * Better Notes' own settings) as JSON on Zotero's local HTTP server —
+ * Enhanced Notes' own settings) as JSON on Zotero's local HTTP server —
  * the same server (default port 23119) Better BibTeX registers
  * `/better-bibtex/...` on, and that zotero-manager already talks to. Lets
  * zotero-manager sync its `colorLabels` setting from this plugin instead of

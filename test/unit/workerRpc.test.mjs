@@ -1,5 +1,5 @@
 /**
- * Better Notes — unit tests for the owned worker RPC layer
+ * Enhanced Notes — unit tests for the owned worker RPC layer
  * (src/utils/workerRpc.ts + src/extras/lib/serveWorker.ts), which replaced the
  * toolkit's MessageHelper. Bundled to /tmp/bn_worker by
  * bn_run_worker_rpc_tests.sh, run with `node --test`.

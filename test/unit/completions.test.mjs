@@ -1,5 +1,5 @@
 /**
- * Better Notes — unit tests for the template-editor autocomplete resolver
+ * Enhanced Notes — unit tests for the template-editor autocomplete resolver
  * (src/modules/template/completions.ts). Bundled by test/bundle.mjs, run with
  * `node --test`.
  */

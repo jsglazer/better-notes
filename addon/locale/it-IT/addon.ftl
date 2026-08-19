@@ -1,4 +1,4 @@
-pref-title = Better Notes
+pref-title = Enhanced Notes
 
 menuEditor-resizeImage = Ridimensiona immagine
 menuEditor-copy =  Copia link della nota...
@@ -56,7 +56,7 @@ sync-running-hint-diff = Conferma unione
 sync-running-hint-finish = Terminato
 sync-running-hint-synced = Sincronizzato
 sync-running-hint-upToDate = Aggiornato
-sync-autoLink-selectFolder-title = better-notes - Sincronizzazione automatica nota collegata
+sync-autoLink-selectFolder-title = enhanced-notes - Sincronizzazione automatica nota collegata
 sync-autoLink-selectFolder-text = Le note collegate sono sincronizzate in diverse cartelle. Scegli in quale cartella sincronizzare le note appena collegate:
 sync-autoLink-added-hint = Nota collegata "{ $title }" aggiunta alla sincronizzazione in { $dir }
 
@@ -92,8 +92,8 @@ alert-linkCreator-emptyNote = Non è possibile creare un link da/a una nota vuot
 alert-templateEditor-shouldImport = Sembra che tu stia cercando di salvare direttamente un codice di condivisione di un template di nota. Vuoi importarlo come template?
 alert-templateEditor-unsaved = You have unsaved changes in the template editor. Do you want to save them?
 
-userGuide-start-title = Questo è better-notes!
-userGuide-start-desc = better-notes è un potente strumento di gestione delle note che ti può aiutare a organizzare pensieri e idee durante la lettura di articoli scientifici. Questa guida ti aiuterà a prendere confidenza con better-notes e ti mostrerà come usare al meglio le sue funzioni.
+userGuide-start-title = Questo è enhanced-notes!
+userGuide-start-desc = enhanced-notes è un potente strumento di gestione delle note che ti può aiutare a organizzare pensieri e idee durante la lettura di articoli scientifici. Questa guida ti aiuterà a prendere confidenza con enhanced-notes e ti mostrerà come usare al meglio le sue funzioni.
 userGuide-start-close = Ricordami più tardi
 userGuide-createNoteButton-title = Crea una nuova nota
 userGuide-createNoteButton-desc = Puoi creare una nuova nota da qui: vuota o da un template.
@@ -101,7 +101,7 @@ userGuide-createNote-title = Crea una nuova nota
 userGuide-createNote-desc = Sembra che tu non abbia ancora alcuna nota, creiamone una.
 userGuide-createNoteFound-desc = Sono state trovate delle note nella tua biblioteca. Apriamone una come esempio.
 userGuide-openNote-title = Apri nota
-userGuide-openNote-desc = Puoi aprire una nota nella scheda di lavoro di better-notes facendo doppio click su di essa.
+userGuide-openNote-desc = Puoi aprire una nota nella scheda di lavoro di enhanced-notes facendo doppio click su di essa.
 userGuide-openNote-next = Apri nota
 userGuide-workspace-title = Scheda della nota di lavoro
 userGuide-workspace-desc = La scheda della nota è il luogo dove puoi modificare il contenuto della nota, vederne lo schema e gestirne le relazioni.
@@ -123,5 +123,5 @@ userGuide-workspaceOutlineSaveAs-desc = Puoi esportare la nota in diversi format
 userGuide-workspaceNoteInfo-title = Informazioni della nota
 userGuide-workspaceNoteInfo-desc = Puoi vedere, modificare e gestire i tag della nota, le relazioni e i link.
 userGuide-finish-title = Fine del tutorial!
-userGuide-finish-desc = Divertiti a usare better-notes!
+userGuide-finish-desc = Divertiti a usare enhanced-notes!
     Puoi visualizzare nuovamente il tutorial dal menu aiuto.
