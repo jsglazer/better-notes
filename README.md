@@ -62,10 +62,10 @@ Output: `build/enhanced-notes.xpi`
 
 ## Credits
 
-Original plugin by [windingwind](https://github.com/windingwind/zotero-better-notes). Fork maintained by [Josh Glazer](https://github.com/jsglazer).
+**Enhanced Notes is a fork of [windingwind's zotero-better-notes](https://github.com/windingwind/zotero-better-notes)** — the original plugin, and the majority of its codebase, was created by windingwind. This fork reuses substantial portions of that code and builds on it with the changes described above (sandboxed Liquid templates, native annotation color labels, multiple synced notes per item, automatic 3-way merge, and other enhancements). Enhanced Notes is maintained independently by [Josh Glazer](https://github.com/jsglazer) and is not affiliated with or endorsed by windingwind — please direct Enhanced Notes-specific issues, questions, and feature requests to [this repo's issue tracker](https://github.com/jsglazer/enhanced-notes/issues) or [wiki](https://github.com/jsglazer/enhanced-notes/wiki), not upstream.
 
 ## License
 
-MIT
+[GNU AGPL-3.0-or-later](LICENSE), the same license as the upstream project it's forked from.
 
 (Re) Built with Claude!

@@ -152,7 +152,7 @@ export async function showTemplateEditor() {
             .join("\n"),
           onNextClick: () => {
             Zotero.launchURL(
-              "https://github.com/windingwind/zotero-better-notes/blob/master/docs/about-note-template.md",
+              "https://github.com/jsglazer/enhanced-notes/blob/main/docs/about-note-template.md",
             );
           },
           showButtons: ["next", "close"],
@@ -168,12 +168,12 @@ export async function showTemplateEditor() {
       });
     _window.document.querySelector("#help")?.addEventListener("click", (ev) => {
       Zotero.launchURL(
-        "https://github.com/windingwind/zotero-better-notes/blob/master/docs/about-note-template.md",
+        "https://github.com/jsglazer/enhanced-notes/blob/main/docs/about-note-template.md",
       );
     });
     _window.document.querySelector("#more")?.addEventListener("click", (ev) => {
       Zotero.launchURL(
-        "https://github.com/windingwind/zotero-better-notes/discussions/categories/note-templates",
+        "https://github.com/jsglazer/enhanced-notes/blob/main/docs/liquid-templates.md",
       );
     });
     _window.document.querySelector("#save")?.addEventListener("click", (ev) => {

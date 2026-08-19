@@ -20,7 +20,7 @@ You can always run the user guide again from menu Help -> enhanced-notes User Gu
 
 > Everything about note management. All in Zotero.
 
-enhanced-notes (EN) is a plugin for [Zotero](https://zotero.org).
+enhanced-notes (EN) is a plugin for [Zotero](https://zotero.org). It is an independently maintained fork of [windingwind's zotero-better-notes](https://github.com/windingwind/zotero-better-notes), reusing substantial portions of that codebase — full credit to windingwind for the original plugin. enhanced-notes is not affiliated with or endorsed by windingwind; please direct enhanced-notes-specific questions and issues to [its own repo](https://github.com/jsglazer/enhanced-notes), not upstream.
 
 EN streamlines your workflows of:
 
@@ -39,16 +39,16 @@ and:
 
 ## 🚀 Get Started
 
-See the [Quick Start Guide](https://github.com/windingwind/zotero-better-notes?tab=readme-ov-file#-quick-start) to get started.
+See the [Installation guide](https://github.com/jsglazer/enhanced-notes#installation) to get started.
 
 ## 📚 Resources
 
 You can find more information in the following links:
 
-- [Documentation](https://github.com/windingwind/zotero-better-notes)
-- [Issues](https://github.com/windingwind/zotero-better-notes/issues)
-- [Discussions](https://github.com/windingwind/zotero-better-notes/discussions)
-- [API](https://github.com/windingwind/zotero-better-notes?tab=readme-ov-file#-api)
+- [Documentation](https://github.com/jsglazer/enhanced-notes/wiki)
+- [Issues](https://github.com/jsglazer/enhanced-notes/issues)
+- [Templates reference](https://github.com/jsglazer/enhanced-notes/blob/main/docs/liquid-templates.md)
+- [Upstream project (windingwind/zotero-better-notes)](https://github.com/windingwind/zotero-better-notes)
 `;
   let noteItem: Zotero.Item | undefined;
   let tabID: string;

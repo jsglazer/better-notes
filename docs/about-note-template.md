@@ -25,7 +25,7 @@ Built-in templates (e.g. `[QuickInsertV3]`, `[ExportMDFileNameV2]`) have reserve
 
 ## Use a template
 
-Open a note (or the workspace), and in the editor toolbar click **Insert Template**. Pick a template and it is inserted at the cursor line. You can browse community templates [here](https://github.com/windingwind/zotero-better-notes/discussions/categories/note-templates).
+Open a note (or the workspace), and in the editor toolbar click **Insert Template**. Pick a template and it is inserted at the cursor line.
 
 ## Import a template
 
@@ -56,4 +56,4 @@ content: |-
 }
 ```
 
-Post templates to share [here](https://github.com/windingwind/zotero-better-notes/discussions/categories/note-templates).
+Post templates to share on the [enhanced-notes issue tracker](https://github.com/jsglazer/enhanced-notes/issues). (Note: share-codes use enhanced-notes' Liquid template format, not compatible with the legacy JavaScript templates from upstream windingwind/zotero-better-notes.)
