@@ -58,11 +58,7 @@ interface MonacoRange {
 }
 
 /** 1-based (line, column) → absolute document offset, clamped to the line. */
-function posToOffset(
-  state: EditorState,
-  line: number,
-  column: number,
-): number {
+function posToOffset(state: EditorState, line: number, column: number): number {
   const lineNo = Math.min(Math.max(line, 1), state.doc.lines);
   const l = state.doc.line(lineNo);
   return Math.min(l.from + Math.max(column - 1, 0), l.to);
@@ -73,7 +69,9 @@ function offsetToPos(
   state: EditorState,
   offset: number,
 ): { lineNumber: number; column: number } {
-  const line = state.doc.lineAt(Math.min(Math.max(offset, 0), state.doc.length));
+  const line = state.doc.lineAt(
+    Math.min(Math.max(offset, 0), state.doc.length),
+  );
   return { lineNumber: line.number, column: offset - line.from + 1 };
 }
 
@@ -116,7 +114,9 @@ const KIND_TO_TYPE: Record<string, string> = {
  * and entries → CM `Completion`s. Returns null outside `{{ … }}` / `{% … %}` so
  * the popup never fires while writing plain Markdown/HTML.
  */
-function liquidCompletionSource(ctx: CompletionContext): CompletionResult | null {
+function liquidCompletionSource(
+  ctx: CompletionContext,
+): CompletionResult | null {
   const res = computeCompletion(ctx.state.doc.toString(), ctx.pos);
   if (!res || res.options.length === 0) {
     return null;
@@ -144,8 +144,7 @@ function buildTheme(isDark: boolean) {
     {
       "&": { color: fg, backgroundColor: bg, height: "100%", fontSize: "13px" },
       ".cm-content": {
-        fontFamily:
-          "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+        fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
         caretColor: fg,
       },
       ".cm-scroller": { overflow: "auto" },

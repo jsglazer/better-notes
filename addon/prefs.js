@@ -44,3 +44,11 @@ pref(
   "__prefsPrefix__.annotationSectionOrder",
   "Background,Key,Argument,Error,Source,Data,Definition,Nav",
 );
+
+// Settings sync (Update018) — carries the plugin's prefs between computers
+// inside a Zotero note, replicated by Zotero's own data sync. Opt-in, because
+// enabling it creates an item in the user's library.
+pref("__prefsPrefix__.settingsSync.enabled", false);
+// Machine-local bookkeeping; both are excluded from the synced payload.
+pref("__prefsPrefix__.settingsSync.machineId", "");
+pref("__prefsPrefix__.settingsSync.lastSeen", "");

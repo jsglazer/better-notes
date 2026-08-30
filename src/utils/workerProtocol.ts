@@ -50,7 +50,9 @@ export function buildResponse(
 }
 
 /** Type guard for an inbound RPC frame (request or response). */
-export function isRpcFrame(data: unknown): data is { kind: typeof RPC_KIND; id: number } {
+export function isRpcFrame(
+  data: unknown,
+): data is { kind: typeof RPC_KIND; id: number } {
   return (
     !!data &&
     typeof data === "object" &&

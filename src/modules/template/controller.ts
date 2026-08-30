@@ -112,7 +112,11 @@ function importTemplateFromClipboard(
     const msg = parseError
       ? `The template could not be parsed.\n\n${parseError}`
       : "The copied template is invalid (no name found).";
-    Services.prompt.alert(null as unknown as mozIDOMWindowProxy, "Template Invalid", msg);
+    Services.prompt.alert(
+      null as unknown as mozIDOMWindowProxy,
+      "Template Invalid",
+      msg,
+    );
     return;
   }
 

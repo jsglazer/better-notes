@@ -4,9 +4,7 @@ import { getEditorItem, getEditorWindow } from "./adapter";
 export function initEditorImagePreviewer(editor: Zotero.EditorInstance) {
   const doc = getEditorWindow(editor).document;
   const openPreview = (e: MouseEvent) => {
-    const imgs = doc
-      .querySelector(".primary-editor")
-      ?.querySelectorAll("img");
+    const imgs = doc.querySelector(".primary-editor")?.querySelectorAll("img");
     if (!imgs?.length) {
       return;
     }

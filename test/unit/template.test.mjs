@@ -45,7 +45,10 @@ test("year: extracts a 4-digit year, else empty", () => {
 });
 
 test("sanitize_filename: replaces illegal chars + spaces with '-'", () => {
-  assert.equal(filters.sanitizeFilename('a/b\\c?d%e*f:g|h"i<j>k l'), "a-b-c-d-e-f-g-h-i-j-k-l");
+  assert.equal(
+    filters.sanitizeFilename('a/b\\c?d%e*f:g|h"i<j>k l'),
+    "a-b-c-d-e-f-g-h-i-j-k-l",
+  );
   assert.equal(filters.sanitizeFilename("hello world"), "hello-world");
   assert.equal(filters.sanitizeFilename("clean-name.md"), "clean-name.md");
   assert.equal(filters.sanitizeFilename(""), "");
@@ -58,18 +61,36 @@ test("CUSTOM_FILTERS: registry exposes the engine-facing names", () => {
 });
 
 test("extractCiteKeyFromExtra: parses a 'Citation Key:' line", () => {
-  assert.equal(model.extractCiteKeyFromExtra("Citation Key: smith2020"), "smith2020");
-  assert.equal(model.extractCiteKeyFromExtra("foo\nCitation Key: a_b-c\nbar"), "a_b-c");
-  assert.equal(model.extractCiteKeyFromExtra("Citation Key:\ttabbed2021"), "tabbed2021");
+  assert.equal(
+    model.extractCiteKeyFromExtra("Citation Key: smith2020"),
+    "smith2020",
+  );
+  assert.equal(
+    model.extractCiteKeyFromExtra("foo\nCitation Key: a_b-c\nbar"),
+    "a_b-c",
+  );
+  assert.equal(
+    model.extractCiteKeyFromExtra("Citation Key:\ttabbed2021"),
+    "tabbed2021",
+  );
   assert.equal(model.extractCiteKeyFromExtra("no key here"), "");
   assert.equal(model.extractCiteKeyFromExtra(""), "");
   assert.equal(model.extractCiteKeyFromExtra(undefined), "");
 });
 
 test("parseDirectives: addTags from string, array, dedupe, ignore junk", () => {
-  assert.deepEqual(directives.parseDirectives({ addTags: "ItemNote" }).addTags, ["ItemNote"]);
-  assert.deepEqual(directives.parseDirectives({ addTags: ["a", " b ", "a", ""] }).addTags, ["a", "b"]);
-  assert.deepEqual(directives.parseDirectives({ addTags: "  spaced  " }).addTags, ["spaced"]);
+  assert.deepEqual(
+    directives.parseDirectives({ addTags: "ItemNote" }).addTags,
+    ["ItemNote"],
+  );
+  assert.deepEqual(
+    directives.parseDirectives({ addTags: ["a", " b ", "a", ""] }).addTags,
+    ["a", "b"],
+  );
+  assert.deepEqual(
+    directives.parseDirectives({ addTags: "  spaced  " }).addTags,
+    ["spaced"],
+  );
   assert.deepEqual(directives.parseDirectives({}).addTags, []);
   assert.deepEqual(directives.parseDirectives({ addTags: 42 }).addTags, []);
   assert.deepEqual(directives.parseDirectives(null).addTags, []);
@@ -83,7 +104,7 @@ test("engine: renders an ItemNoteMD05-style template against the model", async (
     "- Year: {{ item.year }}",
     "- Authors:",
     "{% for a in item.authors %}  - {{ a.name }}",
-    "{% endfor %}- Tags: {{ item.tags | join: \", \" }}",
+    '{% endfor %}- Tags: {{ item.tags | join: ", " }}',
     "- Abstract: {{ item.abstract | strip_newlines }}",
   ].join("\n");
   const out = await engine.renderTemplate(tpl, { item: ITEM });
@@ -98,15 +119,23 @@ test("engine: renders an ItemNoteMD05-style template against the model", async (
 });
 
 test("engine: custom filters work inside templates", async () => {
-  assert.equal(await engine.renderTemplate("{{ d | year }}", { d: "March 2019" }), "2019");
   assert.equal(
-    await engine.renderTemplate("{{ item.title | sanitize_filename }}", { item: ITEM }),
+    await engine.renderTemplate("{{ d | year }}", { d: "March 2019" }),
+    "2019",
+  );
+  assert.equal(
+    await engine.renderTemplate("{{ item.title | sanitize_filename }}", {
+      item: ITEM,
+    }),
     "A-Study-of-Things",
   );
 });
 
 test("engine: unknown variables render empty, not errors", async () => {
-  assert.equal(await engine.renderTemplate("[{{ item.nope }}]", { item: ITEM }), "[]");
+  assert.equal(
+    await engine.renderTemplate("[{{ item.nope }}]", { item: ITEM }),
+    "[]",
+  );
 });
 
 test("engine: renderTemplateSafe never throws on bad markup", async () => {
@@ -189,7 +218,9 @@ test("engine: {% annotations %} tag emits host-precomputed HTML from context", a
 });
 
 test("engine: {% annotations %} is empty (not an error) when context key absent", async () => {
-  const out = await engine.renderTemplate("[{% annotations %}]", { item: ITEM });
+  const out = await engine.renderTemplate("[{% annotations %}]", {
+    item: ITEM,
+  });
   assert.equal(out, "[]");
 });
 
@@ -252,10 +283,13 @@ test("engine: [QuickNoteV5] emits precomputed comment HTML + annotation HTML", a
 });
 
 test("engine: [QuickNoteV5] with no comment → just the annotation", async () => {
-  const out = await engine.renderTemplate("{{ commentHTML }}{% annotations %}", {
-    commentHTML: "",
-    __annotationsHTML__: "<div>annotation</div>",
-  });
+  const out = await engine.renderTemplate(
+    "{{ commentHTML }}{% annotations %}",
+    {
+      commentHTML: "",
+      __annotationsHTML__: "<div>annotation</div>",
+    },
+  );
   assert.equal(out, "<div>annotation</div>");
 });
 

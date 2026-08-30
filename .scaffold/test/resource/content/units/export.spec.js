@@ -6,7 +6,7 @@
     addonRef: "EnhancedNotes",
     prefsPrefix: "extensions.zotero.EnhancedNotes",
     addonInstance: "EnhancedNotes",
-    dataSchemaVersion: "9"
+    dataSchemaVersion: "9",
   };
 
   // test/utils/global.ts
@@ -17,7 +17,7 @@
   // test/utils/status.ts
   async function resetData() {
     const collections = await Zotero.Collections.getAllIDs(
-      Zotero.Libraries.userLibraryID
+      Zotero.Libraries.userLibraryID,
     );
     await Zotero.Collections.erase(collections);
     const items = await Zotero.Items.getAllIDs(Zotero.Libraries.userLibraryID);
@@ -727,14 +727,13 @@ This document contains a wide range of LaTeX elements, including headers, lists,
   }
 
   // test/tests/export.spec.ts
-  describe("Export", function() {
+  describe("Export", function () {
     const addon = getAddon();
-    this.beforeAll(async function() {
+    this.beforeAll(async function () {
       await resetAll();
     });
-    this.afterEach(async function() {
-    });
-    it("api.$export.saveMD", async function() {
+    this.afterEach(async function () {});
+    it("api.$export.saveMD", async function () {
       const note = new Zotero.Item("note");
       note.setNote(getNoteContent());
       await note.saveTx();
@@ -742,7 +741,7 @@ This document contains a wide range of LaTeX elements, including headers, lists,
       const filePath = PathUtils.join(tempDir, "test.md");
       await addon.api.$export.saveMD(filePath, note.id, {
         keepNoteLink: true,
-        withYAMLHeader: false
+        withYAMLHeader: false,
       });
       debug("Note saved to", filePath);
       const content = await Zotero.File.getContentsAsync(filePath);
@@ -750,7 +749,7 @@ This document contains a wide range of LaTeX elements, including headers, lists,
       assert.equal(content, expected);
       await Zotero.Items.erase(note.id);
     });
-    it("api.$export.saveLatex", async function() {
+    it("api.$export.saveLatex", async function () {
       const note = new Zotero.Item("note");
       note.setNote(getNoteLatexContent());
       await note.saveTx();

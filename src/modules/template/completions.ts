@@ -53,7 +53,10 @@ const tag = (label: string, info: string): CompletionEntry => ({
 
 /** Top-level variables available in every item/text template context. */
 export const VARIABLES: CompletionEntry[] = [
-  v("item", "The primary item (first selected) — fields like item.title, item.authors."),
+  v(
+    "item",
+    "The primary item (first selected) — fields like item.title, item.authors.",
+  ),
   v("items", "All selected items, e.g. {% for item in items %}…{% endfor %}."),
   v("note", "The target note — note.title, note.citekey, note.parentTitle, …"),
   v("now", 'The current date/time, e.g. {{ now | date: "%Y-%m-%d" }}.'),
@@ -62,7 +65,10 @@ export const VARIABLES: CompletionEntry[] = [
 /** Fields on an `item` (and on `items[i]`). Mirrors ItemModel in model.ts. */
 export const ITEM_FIELDS: CompletionEntry[] = [
   f("title", "Item title."),
-  f("authors", "Creators (alias of creators); loop with {% for a in item.authors %}."),
+  f(
+    "authors",
+    "Creators (alias of creators); loop with {% for a in item.authors %}.",
+  ),
   f("creators", "Creators; each has firstName, lastName, name."),
   f("date", "Raw date field."),
   f("year", "4-digit year extracted from the date."),
@@ -96,7 +102,10 @@ export const CREATOR_FIELDS: CompletionEntry[] = [
 /** Liquid's `forloop` object inside a {% for %}. */
 export const FORLOOP_FIELDS: CompletionEntry[] = [
   f("first", "True on the first iteration."),
-  f("last", "True on the last iteration (e.g. {% unless forloop.last %}, {% endunless %})."),
+  f(
+    "last",
+    "True on the last iteration (e.g. {% unless forloop.last %}, {% endunless %}).",
+  ),
   f("index", "1-based iteration number."),
   f("index0", "0-based iteration number."),
   f("length", "Total number of iterations."),
@@ -106,11 +115,23 @@ export const FORLOOP_FIELDS: CompletionEntry[] = [
 /** Custom plugin filters + the commonly-used LiquidJS built-ins. */
 export const FILTERS: CompletionEntry[] = [
   filt("year", "Custom: extract a 4-digit year from a date string."),
-  filt("oneline", "Custom: collapse newlines to single spaces (abstract-friendly)."),
-  filt("sanitize_filename", "Custom: replace filesystem-illegal chars + spaces with '-'."),
-  filt("md", "Custom: render a Markdown string to note HTML (async, via the convert worker)."),
+  filt(
+    "oneline",
+    "Custom: collapse newlines to single spaces (abstract-friendly).",
+  ),
+  filt(
+    "sanitize_filename",
+    "Custom: replace filesystem-illegal chars + spaces with '-'.",
+  ),
+  filt(
+    "md",
+    "Custom: render a Markdown string to note HTML (async, via the convert worker).",
+  ),
   filt("date", 'Built-in: format a date, e.g. | date: "%Y-%m-%d".'),
-  filt("default", 'Built-in: fallback when the value is empty, e.g. | default: "n/a".'),
+  filt(
+    "default",
+    'Built-in: fallback when the value is empty, e.g. | default: "n/a".',
+  ),
   filt("join", 'Built-in: join an array, e.g. item.tags | join: ", ".'),
   filt("split", "Built-in: split a string into an array."),
   filt("upcase", "Built-in: uppercase."),
@@ -139,11 +160,17 @@ export const TAGS: CompletionEntry[] = [
   tag("endunless", "Close an {% unless %}."),
   tag("for", "Loop: {% for item in items %}…{% endfor %}."),
   tag("endfor", "Close a {% for %}."),
-  tag("assign", 'Set a variable: {% assign x = item.title %}.'),
+  tag("assign", "Set a variable: {% assign x = item.title %}."),
   tag("capture", "Capture rendered output into a variable."),
-  tag("comment", "Comment block: {% comment %}…{% endcomment %} (renders nothing)."),
+  tag(
+    "comment",
+    "Comment block: {% comment %}…{% endcomment %} (renders nothing).",
+  ),
   tag("endcomment", "Close a {% comment %}."),
-  tag("annotations", "Plugin: emit the item's annotation HTML. `grouped` buckets by color label."),
+  tag(
+    "annotations",
+    "Plugin: emit the item's annotation HTML. `grouped` buckets by color label.",
+  ),
 ];
 
 export interface CompletionResult {

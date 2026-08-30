@@ -116,8 +116,7 @@ async function ensureUniqueItemNoteTitle(
       await appendToNoteTitleLine(note, id);
       return;
     }
-    message =
-      `"${title} - ${id}" is also taken.\nEnter a different identifier:`;
+    message = `"${title} - ${id}" is also taken.\nEnter a different identifier:`;
   }
 }
 

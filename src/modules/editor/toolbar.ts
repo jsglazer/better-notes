@@ -140,7 +140,9 @@ async function getMenuData(editor: Zotero.EditorInstance) {
       id: makeId("settings-showInLibrary"),
       text: getString("editor-toolbar-settings-showInLibrary"),
       callback: (e) => {
-        Zotero.getMainWindow().ZoteroPane.selectItems([getEditorItem(e.editor).id]);
+        Zotero.getMainWindow().ZoteroPane.selectItems([
+          getEditorItem(e.editor).id,
+        ]);
       },
     },
   ];
@@ -211,7 +213,9 @@ async function getMenuData(editor: Zotero.EditorInstance) {
           id: makeId("settings-updateRelatedNotes"),
           text: getString("editor-toolbar-settings-updateRelatedNotes"),
           callback: (e) => {
-            addon.api.relation.updateNoteLinkRelation(getEditorItem(e.editor).id);
+            addon.api.relation.updateNoteLinkRelation(
+              getEditorItem(e.editor).id,
+            );
           },
         },
       ]),

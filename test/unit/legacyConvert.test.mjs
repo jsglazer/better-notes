@@ -16,8 +16,14 @@ const { convertLegacyTemplate, convertExpression } = require(
 );
 
 test("convertExpression: getField maps known fields", () => {
-  assert.equal(convertExpression('topItem.getField("title")').liquid, "{{ item.title }}");
-  assert.equal(convertExpression("topItem.getField('DOI')").liquid, "{{ item.doi }}");
+  assert.equal(
+    convertExpression('topItem.getField("title")').liquid,
+    "{{ item.title }}",
+  );
+  assert.equal(
+    convertExpression("topItem.getField('DOI')").liquid,
+    "{{ item.doi }}",
+  );
   assert.equal(
     convertExpression('topItem.getField("abstractNote")').liquid,
     "{{ item.abstract }}",
@@ -25,7 +31,10 @@ test("convertExpression: getField maps known fields", () => {
 });
 
 test("convertExpression: unknown field flagged (null)", () => {
-  assert.equal(convertExpression('topItem.getField("publicationTitle")').liquid, null);
+  assert.equal(
+    convertExpression('topItem.getField("publicationTitle")').liquid,
+    null,
+  );
 });
 
 test("convertExpression: citationKey with guard maps to citekey", () => {
@@ -52,7 +61,10 @@ test("convertExpression: tags map → for loop, default separator", () => {
 });
 
 test("convertExpression: new Date() → now filter", () => {
-  assert.match(convertExpression("new Date().toLocaleString()").liquid, /now \| date:/);
+  assert.match(
+    convertExpression("new Date().toLocaleString()").liquid,
+    /now \| date:/,
+  );
 });
 
 test("convertExpression: unrecognised → null", () => {
@@ -66,7 +78,10 @@ test("convert: already-Liquid passthrough", () => {
 });
 
 test("convert: use-markdown pragma → sentinel + header", () => {
-  const r = convertLegacyTemplate('// @use-markdown\n# ${topItem.getField("title")}', "item");
+  const r = convertLegacyTemplate(
+    '// @use-markdown\n# ${topItem.getField("title")}',
+    "item",
+  );
   assert.match(r.liquid, /^<!--liquid-->\n<!--markdown-->/);
   assert.match(r.liquid, /\{\{ item\.title \}\}/);
   assert.equal(r.manual, 0);
@@ -74,7 +89,10 @@ test("convert: use-markdown pragma → sentinel + header", () => {
 });
 
 test("convert: topItem body gets wrapped in per-item loop", () => {
-  const r = convertLegacyTemplate('Title: ${topItem.getField("title")}', "item");
+  const r = convertLegacyTemplate(
+    'Title: ${topItem.getField("title")}',
+    "item",
+  );
   assert.match(r.liquid, /\{% for item in items %\}/);
   assert.match(r.liquid, /\{% endfor %\}/);
 });
@@ -99,11 +117,14 @@ test("convert: unknown field flagged inline, output still valid Liquid", () => {
 
 test("convert: DOI link with two expressions on one line", () => {
   const r = convertLegacyTemplate(
-    '[${topItem.getField("DOI")}](https://doi.org/${topItem.getField(\'DOI\')})',
+    "[${topItem.getField(\"DOI\")}](https://doi.org/${topItem.getField('DOI')})",
     "item",
   );
   assert.equal(r.mapped, 2);
-  assert.match(r.liquid, /\[\{\{ item\.doi \}\}\]\(https:\/\/doi\.org\/\{\{ item\.doi \}\}\)/);
+  assert.match(
+    r.liquid,
+    /\[\{\{ item\.doi \}\}\]\(https:\/\/doi\.org\/\{\{ item\.doi \}\}\)/,
+  );
 });
 
 test("convert: stage markers produce a for-loop from default stage", () => {

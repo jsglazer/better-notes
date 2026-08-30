@@ -63,6 +63,16 @@ import {
   registerKeyboardShortcuts,
   unregisterKeyboardShortcuts,
 } from "./modules/shortcuts";
+import {
+  registerSettingsSync,
+  unregisterSettingsSync,
+  onSettingsNoteModified,
+  isSettingsNote,
+  pushSettings,
+  pullSettings,
+  exportSettingsToFile,
+  importSettingsFromFile,
+} from "./modules/settingsSync";
 
 async function onStartup() {
   await Promise.all([
@@ -98,6 +108,8 @@ async function onStartup() {
   patchNotes();
 
   initSyncList();
+
+  registerSettingsSync();
 
   setSyncing();
 
@@ -156,7 +168,9 @@ function onShutdown(): void {
       fn();
     } catch (e) {
       try {
-        Zotero.debug(`[enhanced-notes] onShutdown step '${label}' failed: ${e}`);
+        Zotero.debug(
+          `[enhanced-notes] onShutdown step '${label}' failed: ${e}`,
+        );
       } catch (_e) {
         /* no-op */
       }
@@ -166,6 +180,8 @@ function onShutdown(): void {
   // Stop the recurring auto-sync timer FIRST: a live setInterval keeps the
   // plugin's code in use and makes Zotero defer removal to a restart.
   step("unsetSyncing", () => unsetSyncing());
+
+  step("unregisterSettingsSync", () => unregisterSettingsSync());
 
   step("closeRelationServer", () => closeRelationServer());
   step("closeParsingServer", () => closeParsingServer());
@@ -227,7 +243,18 @@ async function onNotify(
     }
   }
   if (event === "modify" && type === "item") {
-    const modifiedNotes = Zotero.Items.get(ids).filter((item) => item.isNote());
+    const allModifiedNotes = Zotero.Items.get(ids).filter((item) =>
+      item.isNote(),
+    );
+    // The settings note is plugin bookkeeping, not user content: pull from it,
+    // but keep it out of markdown sync and link-relation maintenance.
+    const settingsNotes = allModifiedNotes.filter(isSettingsNote);
+    for (const item of settingsNotes) {
+      await onSettingsNoteModified(item);
+    }
+    const modifiedNotes = allModifiedNotes.filter(
+      (item) => !isSettingsNote(item),
+    );
     if (modifiedNotes.length) {
       addon.hooks.onSyncing(modifiedNotes, {
         quiet: true,
@@ -384,6 +411,26 @@ function onShowLinkCreator() {
   setTimeout(() => openLinkCreator(noteItem), 0);
 }
 
+function onSettingsSyncPush() {
+  pushSettings()
+    .then(() => showHint("Settings written to the shared Zotero note."))
+    .catch((e) => showHint(`Could not write settings: ${e}`));
+}
+
+function onSettingsSyncPull() {
+  pullSettings({ quiet: false }).catch((e) =>
+    showHint(`Could not read settings: ${e}`),
+  );
+}
+
+function onSettingsSyncExport() {
+  exportSettingsToFile().catch((e) => showHint(`Export failed: ${e}`));
+}
+
+function onSettingsSyncImport() {
+  importSettingsFromFile().catch((e) => showHint(`Import failed: ${e}`));
+}
+
 // Add your hooks here. For element click, etc.
 // Keep in mind hooks only do dispatch. Don't add code that does real jobs in hooks.
 // Otherwise the code would be hard to read and maintain.
@@ -412,4 +459,8 @@ export default {
   onCreateNote,
   onShowUserGuide,
   onShowLinkCreator,
+  onSettingsSyncPush,
+  onSettingsSyncPull,
+  onSettingsSyncExport,
+  onSettingsSyncImport,
 };

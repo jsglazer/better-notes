@@ -150,13 +150,15 @@ export async function buildItemModel(item: Zotero.Item): Promise<ItemModel> {
 }
 
 /** Build the `note` model for a Zotero note item (uses its parent for citekey). */
-export async function buildNoteModel(noteItem: Zotero.Item): Promise<NoteModel> {
+export async function buildNoteModel(
+  noteItem: Zotero.Item,
+): Promise<NoteModel> {
   const parent = noteItem.parentItem;
   return {
     title: noteItem.getNoteTitle().trim(),
     tags: noteItem.getTags().map((t) => t.tag),
     key: noteItem.key,
-    parentTitle: parent ? ((parent.getField("title") as string) || "") : "",
+    parentTitle: parent ? (parent.getField("title") as string) || "" : "",
     collections: await collectionNames(parent || noteItem),
     citekey: parent ? getCiteKey(parent) : "",
   };

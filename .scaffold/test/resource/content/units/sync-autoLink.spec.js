@@ -6,7 +6,7 @@
     addonRef: "EnhancedNotes",
     prefsPrefix: "extensions.zotero.EnhancedNotes",
     addonInstance: "EnhancedNotes",
-    dataSchemaVersion: "9"
+    dataSchemaVersion: "9",
   };
 
   // test/utils/global.ts
@@ -17,7 +17,7 @@
   // test/utils/status.ts
   async function resetData() {
     const collections = await Zotero.Collections.getAllIDs(
-      Zotero.Libraries.userLibraryID
+      Zotero.Libraries.userLibraryID,
     );
     await Zotero.Collections.erase(collections);
     const items = await Zotero.Items.getAllIDs(Zotero.Libraries.userLibraryID);
@@ -55,14 +55,14 @@
   function setFeatureEnabled(enabled) {
     Zotero.Prefs.set(PREF_KEY, enabled, true);
   }
-  describe("Sync - Auto-sync linked notes", function() {
+  describe("Sync - Auto-sync linked notes", function () {
     const addon = getAddon();
     this.timeout(3e4);
     const createdNoteIds = /* @__PURE__ */ new Set();
-    this.beforeAll(async function() {
+    this.beforeAll(async function () {
       await resetAll();
     });
-    this.afterEach(async function() {
+    this.afterEach(async function () {
       setFeatureEnabled(false);
       for (const id of createdNoteIds) {
         addon.api.sync.removeSyncNote(id);
@@ -87,7 +87,7 @@
         filename: `${note.key}.md`,
         md5: "",
         noteMd5: Zotero.Utilities.Internal.md5(note.getNote(), false),
-        lastsync: (/* @__PURE__ */ new Date()).getTime()
+        lastsync: /* @__PURE__ */ new Date().getTime(),
       });
       createdNoteIds.add(note.id);
     }
@@ -97,17 +97,17 @@
         await addon.api.relation.updateNoteLinkRelation(fromNote.id);
         await Zotero.Promise.delay(300);
         const outbound = await addon.api.relation.getNoteLinkOutboundRelation(
-          fromNote.id
+          fromNote.id,
         );
         if (outbound.some((link) => link.toKey === toNote.key)) {
           return;
         }
       }
       throw new Error(
-        `Link relation ${fromNote.key} -> ${toNote.key} was not built in time`
+        `Link relation ${fromNote.key} -> ${toNote.key} was not built in time`,
       );
     }
-    it("syncs an unsynced note that links to a synced note", async function() {
+    it("syncs an unsynced note that links to a synced note", async function () {
       const dir = await getTempDirectory();
       const synced = await createNote();
       const edited = await createNote(linkTo(synced));
@@ -117,13 +117,13 @@
       await addon.api.sync.syncLinkedNoteOnEdit(edited.id);
       expect(addon.api.sync.isSyncNote(edited.id)).to.be.true;
       expect(addon.api.sync.getSyncStatus(edited.id).path).to.equal(
-        addon.api.sync.getSyncStatus(synced.id).path
+        addon.api.sync.getSyncStatus(synced.id).path,
       );
       const status = addon.api.sync.getSyncStatus(edited.id);
       const filePath = PathUtils.join(status.path, status.filename);
       expect(await IOUtils.exists(filePath)).to.be.true;
     });
-    it("syncs an unsynced note that is linked from a synced note", async function() {
+    it("syncs an unsynced note that is linked from a synced note", async function () {
       const dir = await getTempDirectory();
       const edited = await createNote();
       const synced = await createNote(linkTo(edited));
@@ -133,10 +133,10 @@
       await addon.api.sync.syncLinkedNoteOnEdit(edited.id);
       expect(addon.api.sync.isSyncNote(edited.id)).to.be.true;
       expect(addon.api.sync.getSyncStatus(edited.id).path).to.equal(
-        addon.api.sync.getSyncStatus(synced.id).path
+        addon.api.sync.getSyncStatus(synced.id).path,
       );
     });
-    it("propagates sync from a synced note to its unsynced linked note", async function() {
+    it("propagates sync from a synced note to its unsynced linked note", async function () {
       const dir = await getTempDirectory();
       const neighbor = await createNote();
       const edited = await createNote(linkTo(neighbor));
@@ -147,10 +147,10 @@
       await addon.api.sync.syncLinkedNoteOnEdit(edited.id);
       expect(addon.api.sync.isSyncNote(neighbor.id)).to.be.true;
       expect(addon.api.sync.getSyncStatus(neighbor.id).path).to.equal(
-        addon.api.sync.getSyncStatus(edited.id).path
+        addon.api.sync.getSyncStatus(edited.id).path,
       );
     });
-    it("does nothing when no linked note is synced", async function() {
+    it("does nothing when no linked note is synced", async function () {
       const synced = await createNote();
       const edited = await createNote(linkTo(synced));
       await ensureLink(edited, synced);
@@ -159,7 +159,7 @@
       expect(addon.api.sync.isSyncNote(edited.id)).to.be.false;
       expect(addon.api.sync.isSyncNote(synced.id)).to.be.false;
     });
-    it("does nothing when the preference is disabled", async function() {
+    it("does nothing when the preference is disabled", async function () {
       const dir = await getTempDirectory();
       const synced = await createNote();
       const edited = await createNote(linkTo(synced));
@@ -169,7 +169,7 @@
       await addon.api.sync.syncLinkedNoteOnEdit(edited.id);
       expect(addon.api.sync.isSyncNote(edited.id)).to.be.false;
     });
-    it("prompts to choose a folder when synced neighbors are in different folders", async function() {
+    it("prompts to choose a folder when synced neighbors are in different folders", async function () {
       const dir1 = await getTempDirectory();
       const dir2 = await getTempDirectory();
       const syncedA = await createNote();
@@ -188,7 +188,7 @@
           const idx = folders.indexOf(wantPath);
           selection.value = idx < 0 ? 0 : idx;
           return true;
-        }
+        },
       };
       try {
         setFeatureEnabled(true);

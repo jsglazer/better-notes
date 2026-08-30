@@ -400,10 +400,14 @@ async function tryAutoMerge(
   }
   try {
     // mine: the note as an MD body, in the same representation as baseMd.
-    const mineFull = await addon.api.convert.note2md(noteItem, syncStatus.path, {
-      withYAMLHeader: true,
-      keepNoteLink: false,
-    });
+    const mineFull = await addon.api.convert.note2md(
+      noteItem,
+      syncStatus.path,
+      {
+        withYAMLHeader: true,
+        keepNoteLink: false,
+      },
+    );
     const mine = addon.api.sync.getMDStatusFromContent(mineFull).content;
     const theirs = mdStatus.content;
 

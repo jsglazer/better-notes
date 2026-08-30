@@ -96,5 +96,7 @@ export function getEditorCore(editor: EI): EditorCore {
 
 /** The API the injected script exposes, or undefined if not ready. */
 export function getEditorAPI(editor: EI): EditorAPI | undefined {
-  return injectedGlobals(editor)?.EnhancedNotesEditorAPI as EditorAPI | undefined;
+  return injectedGlobals(editor)?.EnhancedNotesEditorAPI as
+    | EditorAPI
+    | undefined;
 }

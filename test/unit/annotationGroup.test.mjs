@@ -11,8 +11,12 @@ import { join } from "node:path";
 
 const require = createRequire(import.meta.url);
 const BUNDLES = fileURLToPath(new URL("../.bundles", import.meta.url));
-const { groupAnnotationPieces, orderLabels, parseSectionOrder, DEFAULT_SECTION_ORDER } =
-  require(join(BUNDLES, "annotationGroup.cjs"));
+const {
+  groupAnnotationPieces,
+  orderLabels,
+  parseSectionOrder,
+  DEFAULT_SECTION_ORDER,
+} = require(join(BUNDLES, "annotationGroup.cjs"));
 
 const ORDER = DEFAULT_SECTION_ORDER;
 

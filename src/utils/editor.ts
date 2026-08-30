@@ -558,8 +558,8 @@ function initEditorPlugins(editor: Zotero.EditorInstance) {
               copyNoteLink(editor, mode);
             },
             openAttachment: () => {
-              getEditorItem(editor).parentItem
-                ?.getBestAttachment()
+              getEditorItem(editor)
+                .parentItem?.getBestAttachment()
                 .then((attachment) => {
                   if (!attachment) {
                     return;
@@ -574,7 +574,9 @@ function initEditorPlugins(editor: Zotero.EditorInstance) {
                 return false;
               }
               return (
-                (getEditorItem(editor).parentItem as Zotero.Item).numAttachments() > 0
+                (
+                  getEditorItem(editor).parentItem as Zotero.Item
+                ).numAttachments() > 0
               );
             },
             enable: getPref("editor.useMagicKey") as boolean,

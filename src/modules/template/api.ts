@@ -192,7 +192,12 @@ async function runItemTemplateLiquid(
   }
 
   const { ok, html } = await renderLiquid(meta, context, options.dryRun);
-  if (ok && !options.dryRun && targetNoteItem && meta.directives.addTags.length) {
+  if (
+    ok &&
+    !options.dryRun &&
+    targetNoteItem &&
+    meta.directives.addTags.length
+  ) {
     await applyDirectives(targetNoteItem, meta.directives);
   }
   return html;

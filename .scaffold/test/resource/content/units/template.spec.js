@@ -6,7 +6,7 @@
     addonRef: "EnhancedNotes",
     prefsPrefix: "extensions.zotero.EnhancedNotes",
     addonInstance: "EnhancedNotes",
-    dataSchemaVersion: "9"
+    dataSchemaVersion: "9",
   };
 
   // test/utils/global.ts
@@ -17,7 +17,7 @@
   // test/utils/status.ts
   async function resetData() {
     const collections = await Zotero.Collections.getAllIDs(
-      Zotero.Libraries.userLibraryID
+      Zotero.Libraries.userLibraryID,
     );
     await Zotero.Collections.erase(collections);
     const items = await Zotero.Items.getAllIDs(Zotero.Libraries.userLibraryID);
@@ -274,35 +274,34 @@ This should not be italic.
   }
 
   // test/tests/template.spec.ts
-  describe("Template", function() {
+  describe("Template", function () {
     const addon = getAddon();
-    this.beforeAll(async function() {
+    this.beforeAll(async function () {
       await resetAll();
     });
-    this.afterEach(async function() {
-    });
-    it("hooks.onImportTemplateFromClipboard", async function() {
+    this.afterEach(async function () {});
+    it("hooks.onImportTemplateFromClipboard", async function () {
       const key = importTemplate();
       assert.isNotEmpty(key);
       addon.api.template.removeTemplate(key);
     });
-    it("api.template.getTemplateText", async function() {
+    it("api.template.getTemplateText", async function () {
       const key = importTemplate();
       assert.isNotEmpty(addon.api.template.getTemplateText(key));
       addon.api.template.removeTemplate(key);
     });
-    it("api.template.getTemplateText", async function() {
+    it("api.template.getTemplateText", async function () {
       const key = importTemplate();
       assert.isTrue(addon.api.template.getTemplateKeys().includes(key));
       addon.api.template.removeTemplate(key);
     });
-    it("api.template.removeTemplate", async function() {
+    it("api.template.removeTemplate", async function () {
       const key = importTemplate();
       assert.isNotEmpty(key);
       addon.api.template.removeTemplate(key);
       assert.isFalse(addon.api.template.getTemplateKeys().includes(key));
     });
-    it("api.template.renderTemplatePreview", async function() {
+    it("api.template.renderTemplatePreview", async function () {
       const key = importTemplate();
       const preview = await addon.api.template.renderTemplatePreview(key);
       const expected = `<div data-schema-version="9"><h1>Markdown Test Document</h1>
@@ -555,22 +554,25 @@ This should not be italic.
       assert.equal(preview, expected);
       addon.api.template.removeTemplate(key);
     });
-    it("api.template.runTextTemplate", async function() {
+    it("api.template.runTextTemplate", async function () {
       addon.api.template.setTemplate({
         name: "[text]Test",
-        text: "<h1>Test</h1>\n<p>${targetNoteItem.id}</p>"
+        text: "<h1>Test</h1>\n<p>${targetNoteItem.id}</p>",
       });
       const note = new Zotero.Item("note");
       await note.saveTx();
       const html = await addon.api.template.runTextTemplate("[text]Test", {
-        targetNoteId: note.id
+        targetNoteId: note.id,
       });
-      assert.equal(html, `<h1>Test</h1>
-<p>${note.id}</p>`);
+      assert.equal(
+        html,
+        `<h1>Test</h1>
+<p>${note.id}</p>`,
+      );
       await Zotero.Items.erase(note.id);
       addon.api.template.removeTemplate("[text]Test");
     });
-    it("api.template.runItemTemplate", async function() {
+    it("api.template.runItemTemplate", async function () {
       addon.api.template.setTemplate({
         name: "[item]Test",
         text: `
@@ -589,7 +591,7 @@ This should not be italic.
 > Done! But Markdown is not rendered correctly. Try to add 
 \`// @use-markdown\` pragma before this line.
 // @afterloop-end
-`
+`,
       });
       const items = [];
       for (let i = 0; i < 3; i++) {
@@ -602,7 +604,7 @@ This should not be italic.
       await note.saveTx();
       const html = await addon.api.template.runItemTemplate("[item]Test", {
         itemIds: items.map((item) => item.id),
-        targetNoteId: note.id
+        targetNoteId: note.id,
       });
       const expected = `<h1>Hi! This only renders once</h1>
 <p>Title: <span style="color: #ffcb00">]Title 0</span></p>
@@ -632,10 +634,13 @@ zoteroVersion: "7.0.12-beta.1+31bbf2acf"
 pluginVersion: "2.2.3-beta.2"
 savedAt: "2025-01-06T09:12:14.939Z"
 content: |-
-${getNoteContent().split("\n").map((line) => `  ${line}`).join("\n")}
+${getNoteContent()
+  .split("\n")
+  .map((line) => `  ${line}`)
+  .join("\n")}
 `;
     return getAddon().hooks.onImportTemplateFromClipboard(shareCode, {
-      quiet: true
+      quiet: true,
     });
   }
 })();

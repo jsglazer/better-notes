@@ -134,7 +134,7 @@ async function buildExportHeader(
   const header: Record<string, any> = {};
   header.tags = noteItem.getTags().map((t) => t.tag);
   header.parent = noteItem.parentItem
-    ? ((noteItem.parentItem.getField("title") as string) || "")
+    ? (noteItem.parentItem.getField("title") as string) || ""
     : "";
   try {
     const cols = await Zotero.Collections.getCollectionsContainingItems([

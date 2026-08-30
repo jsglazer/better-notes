@@ -33,11 +33,11 @@ and `{% … %}` for logic, preceded by an optional sentinel header:
 
 ### Sentinel header (leading `<!-- … -->` lines)
 
-| Sentinel | Effect |
-|---|---|
-| `<!--liquid-->` | **Required.** Marks the template as Liquid (vs legacy JS). |
-| `<!--markdown-->` | The rendered output is Markdown → converted to note HTML. |
-| `<!--addTags: A, B-->` | After rendering, add tags `A`, `B` to the target note. |
+| Sentinel               | Effect                                                     |
+| ---------------------- | ---------------------------------------------------------- |
+| `<!--liquid-->`        | **Required.** Marks the template as Liquid (vs legacy JS). |
+| `<!--markdown-->`      | The rendered output is Markdown → converted to note HTML.  |
+| `<!--addTags: A, B-->` | After rendering, add tags `A`, `B` to the target note.     |
 
 The header is stripped before rendering.
 
@@ -52,17 +52,17 @@ The template name's prefix selects the type and the data it receives:
 
 ### `item` fields
 
-| Field | Notes |
-|---|---|
-| `item.title` | |
-| `item.authors` / `item.creators` | array of `{ firstName, lastName, name }` where `name` is `"Last, First"` |
-| `item.date` | raw date string |
-| `item.year` | 4-digit year extracted from the date |
-| `item.tags` | array of tag strings |
-| `item.abstract` | |
-| `item.citekey` | Better BibTeX key → `extra` "Citation Key:" → native `citationKey` |
-| `item.collections` | array of collection names |
-| `item.doi`, `item.url`, `item.itemType`, `item.key` | |
+| Field                                               | Notes                                                                    |
+| --------------------------------------------------- | ------------------------------------------------------------------------ |
+| `item.title`                                        |                                                                          |
+| `item.authors` / `item.creators`                    | array of `{ firstName, lastName, name }` where `name` is `"Last, First"` |
+| `item.date`                                         | raw date string                                                          |
+| `item.year`                                         | 4-digit year extracted from the date                                     |
+| `item.tags`                                         | array of tag strings                                                     |
+| `item.abstract`                                     |                                                                          |
+| `item.citekey`                                      | Better BibTeX key → `extra` "Citation Key:" → native `citationKey`       |
+| `item.collections`                                  | array of collection names                                                |
+| `item.doi`, `item.url`, `item.itemType`, `item.key` |                                                                          |
 
 ### `note` fields
 
@@ -75,12 +75,12 @@ Standard [LiquidJS built-ins](https://liquidjs.com/filters/overview.html) are al
 available — e.g. `join`, `strip_newlines`, `upcase`, `truncate`, `default`, and
 `date` (`{{ now | date: "%Y-%m-%d" }}`). Custom filters added by Enhanced Notes:
 
-| Filter | Effect |
-|---|---|
-| `year` | extract a 4-digit year from a date string |
-| `sanitize_filename` | replace filename-illegal chars and spaces with `-` |
-| `oneline` | collapse newline runs to a single space (e.g. for abstracts) |
-| `md` | render a Markdown string to note HTML |
+| Filter              | Effect                                                       |
+| ------------------- | ------------------------------------------------------------ |
+| `year`              | extract a 4-digit year from a date string                    |
+| `sanitize_filename` | replace filename-illegal chars and spaces with `-`           |
+| `oneline`           | collapse newline runs to a single space (e.g. for abstracts) |
+| `md`                | render a Markdown string to note HTML                        |
 
 ## Built-in (system) templates
 
@@ -88,14 +88,14 @@ Alongside the templates you write, Enhanced Notes ships a fixed set of **built-i
 templates** with reserved, bracketed names. You don't pick these from a menu —
 **the plugin renders them automatically** at specific moments (inserting a link,
 turning an annotation into a note, exporting to disk). They are ordinary Liquid
-templates, so you *can* open them in the Template Editor to see how they work,
+templates, so you _can_ open them in the Template Editor to see how they work,
 but two rules apply:
 
 - **Their names are reserved** — `[QuickInsertV3]`, `[ExportMDFileContent]`, etc.
   The plugin looks each one up by name, so renaming it would break the feature.
 - **They are reset to their shipped defaults on every Zotero startup**
   (`initTemplates` in `template/controller.ts`). Edits to a built-in template are
-  therefore *not* persistent across a restart — treat them as read-only unless
+  therefore _not_ persistent across a restart — treat them as read-only unless
   you're changing the shipped default in source.
 
 Each receives a small **curated context** (primitives + the `note`/`item` models
@@ -103,14 +103,14 @@ above — never the raw Zotero API). When a built-in's first line is not
 `<!--liquid-->`, the plugin falls back to safe default behavior instead of
 running it.
 
-| Template | Rendered when… | Context it receives | Output |
-|---|---|---|---|
-| `[QuickInsertV3]` | you insert a link to another note (outbound/inbound link, section/line/selection link) | `link`, `linkText`, `lineIndex`, `sectionName`, `selectionText`, `note`, `now` | Markdown link |
-| `[QuickImportV2]` | you embed a linked note's content | `link`, `linkContent` (the linked note already rendered to HTML, with images), `note`, `now` | HTML (a blockquote) |
-| `[QuickNoteV5]` | a note is created from a single annotation | `commentHTML` (the annotation's comment → HTML, if any), the annotation via `{% annotations %}`, `note`, `now` | HTML |
-| `[ExportMDFileNameV2]` | a note is exported/synced to a `.md` file | `note`, `now` | a bare filename (e.g. `smith2020.md`) |
-| `[ExportMDFileContent]` | the body of an exported `.md` file is written | `mdContent` (the note already rendered to Markdown) | raw Markdown (passthrough by default) |
-| `[ExportLatexFileContent]` | a note is exported to LaTeX | `latexContent` (the note already rendered to LaTeX) | raw LaTeX (passthrough by default) |
+| Template                   | Rendered when…                                                                         | Context it receives                                                                                            | Output                                |
+| -------------------------- | -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| `[QuickInsertV3]`          | you insert a link to another note (outbound/inbound link, section/line/selection link) | `link`, `linkText`, `lineIndex`, `sectionName`, `selectionText`, `note`, `now`                                 | Markdown link                         |
+| `[QuickImportV2]`          | you embed a linked note's content                                                      | `link`, `linkContent` (the linked note already rendered to HTML, with images), `note`, `now`                   | HTML (a blockquote)                   |
+| `[QuickNoteV5]`            | a note is created from a single annotation                                             | `commentHTML` (the annotation's comment → HTML, if any), the annotation via `{% annotations %}`, `note`, `now` | HTML                                  |
+| `[ExportMDFileNameV2]`     | a note is exported/synced to a `.md` file                                              | `note`, `now`                                                                                                  | a bare filename (e.g. `smith2020.md`) |
+| `[ExportMDFileContent]`    | the body of an exported `.md` file is written                                          | `mdContent` (the note already rendered to Markdown)                                                            | raw Markdown (passthrough by default) |
+| `[ExportLatexFileContent]` | a note is exported to LaTeX                                                            | `latexContent` (the note already rendered to LaTeX)                                                            | raw LaTeX (passthrough by default)    |
 
 Notes:
 
@@ -118,7 +118,7 @@ Notes:
   **HTML, not Markdown** — their context values are already converted, so these
   templates deliberately omit `<!--markdown-->` to avoid double-conversion.
 - The two `Export…Content` templates are **passthroughs**: by default they emit
-  their input verbatim. Liquid never re-parses a variable's *value*, so note
+  their input verbatim. Liquid never re-parses a variable's _value_, so note
   content containing `{{ }}` or `{% %}` is exported literally rather than being
   treated as template syntax.
 - `[ExportMDFileNameV2]` resolves `note.citekey` (Better BibTeX key →
@@ -136,6 +136,7 @@ declared in the header and applied by the engine after rendering. Currently:
 ## Examples
 
 **Citation link** (`[text]`):
+
 ```liquid
 <!--liquid-->
 <!--markdown-->

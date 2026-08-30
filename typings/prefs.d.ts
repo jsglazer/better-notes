@@ -34,6 +34,9 @@ declare namespace _ZoteroTypes {
       "annotationColorLabel.f19837": string;
       "annotationColorLabel.aaaaaa": string;
       "annotationSectionOrder": string;
+      "settingsSync.enabled": boolean;
+      "settingsSync.machineId": string;
+      "settingsSync.lastSeen": string;
     };
   }
 }

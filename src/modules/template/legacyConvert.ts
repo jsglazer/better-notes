@@ -283,7 +283,10 @@ export function convertLegacyTemplate(
   if (hasStages) {
     const seg = (a: number, b: number) =>
       a === -1 ? "" : kept.slice(a, b === -1 ? kept.length : b).join("\n");
-    const before = seg(stageMarkers.beforeloop.begin, stageMarkers.beforeloop.end);
+    const before = seg(
+      stageMarkers.beforeloop.begin,
+      stageMarkers.beforeloop.end,
+    );
     const loop = seg(stageMarkers.default.begin, stageMarkers.default.end);
     const after = seg(stageMarkers.afterloop.begin, stageMarkers.afterloop.end);
     const parts: string[] = [];

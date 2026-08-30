@@ -266,21 +266,40 @@ interface PaletteItem {
 
 // Sentinels aren't in the catalog (they're document directives, not data).
 const SYNTAX_ITEMS: PaletteItem[] = [
-  { label: "liquid header", code: "<!--liquid-->\n", kind: "syntax", info: "Required first line — marks the template as Liquid." },
-  { label: "markdown", code: "<!--markdown-->\n", kind: "syntax", info: "Render the output as Markdown, then convert to note HTML." },
-  { label: "add tags", code: "<!--addTags: -->\n", kind: "syntax", info: "After rendering, add the listed tags to the target note." },
+  {
+    label: "liquid header",
+    code: "<!--liquid-->\n",
+    kind: "syntax",
+    info: "Required first line — marks the template as Liquid.",
+  },
+  {
+    label: "markdown",
+    code: "<!--markdown-->\n",
+    kind: "syntax",
+    info: "Render the output as Markdown, then convert to note HTML.",
+  },
+  {
+    label: "add tags",
+    code: "<!--addTags: -->\n",
+    kind: "syntax",
+    info: "After rendering, add the listed tags to the target note.",
+  },
 ];
 
 // Array fields read better as a loop than `{{ item.authors }}` (object dump).
 const ITEM_ARRAY_INSERT: Record<string, string> = {
-  authors: "{% for a in item.authors %}{{ a.name }}{% unless forloop.last %}; {% endunless %}{% endfor %}",
-  creators: "{% for a in item.creators %}{{ a.name }}{% unless forloop.last %}; {% endunless %}{% endfor %}",
+  authors:
+    "{% for a in item.authors %}{{ a.name }}{% unless forloop.last %}; {% endunless %}{% endfor %}",
+  creators:
+    "{% for a in item.creators %}{{ a.name }}{% unless forloop.last %}; {% endunless %}{% endfor %}",
   tags: "{% for t in item.tags %}{{ t }}{% unless forloop.last %}, {% endunless %}{% endfor %}",
-  collections: "{% for c in item.collections %}{{ c }}{% unless forloop.last %}, {% endunless %}{% endfor %}",
+  collections:
+    "{% for c in item.collections %}{{ c }}{% unless forloop.last %}, {% endunless %}{% endfor %}",
 };
 const NOTE_ARRAY_INSERT: Record<string, string> = {
   tags: "{% for t in note.tags %}{{ t }}{% unless forloop.last %}, {% endunless %}{% endfor %}",
-  collections: "{% for c in note.collections %}{{ c }}{% unless forloop.last %}, {% endunless %}{% endfor %}",
+  collections:
+    "{% for c in note.collections %}{{ c }}{% unless forloop.last %}, {% endunless %}{% endfor %}",
 };
 
 // Block/opener tags get a full skeleton; the catalog's close/branch tokens
@@ -319,7 +338,12 @@ function filterGroup(): PaletteItem[] {
 
 function tagGroup(): PaletteItem[] {
   const items: PaletteItem[] = TAGS.filter((e) => TAG_INSERT[e.label]).map(
-    (e) => ({ label: e.label, code: TAG_INSERT[e.label], info: e.info, kind: "tag" }),
+    (e) => ({
+      label: e.label,
+      code: TAG_INSERT[e.label],
+      info: e.info,
+      kind: "tag",
+    }),
   );
   items.push({
     label: "annotations (grouped)",
@@ -342,16 +366,27 @@ function variableGroup(): PaletteItem[] {
 }
 
 /** Palette groups for the given editor template type. */
-function paletteGroups(type: string): { title: string; items: PaletteItem[] }[] {
+function paletteGroups(
+  type: string,
+): { title: string; items: PaletteItem[] }[] {
   const groups: { title: string; items: PaletteItem[] }[] = [
     { title: "Syntax", items: SYNTAX_ITEMS },
     { title: "Variables", items: variableGroup() },
   ];
   if (type === "item") {
-    groups.push({ title: "Item fields", items: fieldGroup(ITEM_FIELDS, "item", ITEM_ARRAY_INSERT) });
-    groups.push({ title: "Note fields", items: fieldGroup(NOTE_FIELDS, "note", NOTE_ARRAY_INSERT) });
+    groups.push({
+      title: "Item fields",
+      items: fieldGroup(ITEM_FIELDS, "item", ITEM_ARRAY_INSERT),
+    });
+    groups.push({
+      title: "Note fields",
+      items: fieldGroup(NOTE_FIELDS, "note", NOTE_ARRAY_INSERT),
+    });
   } else if (type === "text") {
-    groups.push({ title: "Note fields", items: fieldGroup(NOTE_FIELDS, "note", NOTE_ARRAY_INSERT) });
+    groups.push({
+      title: "Note fields",
+      items: fieldGroup(NOTE_FIELDS, "note", NOTE_ARRAY_INSERT),
+    });
   }
   groups.push({ title: "Filters", items: filterGroup() });
   groups.push({ title: "Tags", items: tagGroup() });

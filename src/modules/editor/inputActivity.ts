@@ -20,7 +20,8 @@ export const IDLE_MS = 3000;
 
 const lastInputAt = new Map<number, number>();
 const tracked = new WeakSet<object>();
-const registered: Array<{ ref: WeakRef<Document>; handler: EventListener }> = [];
+const registered: Array<{ ref: WeakRef<Document>; handler: EventListener }> =
+  [];
 
 const INPUT_EVENTS = ["keydown", "input", "compositionstart", "paste"] as const;
 
@@ -55,7 +56,10 @@ export function msSinceLastInput(noteId: number): number {
 }
 
 /** True when the note hasn't received input for at least `idleMs`. */
-export function isEditorIdle(noteId: number, idleMs: number = IDLE_MS): boolean {
+export function isEditorIdle(
+  noteId: number,
+  idleMs: number = IDLE_MS,
+): boolean {
   return msSinceLastInput(noteId) > idleMs;
 }
 

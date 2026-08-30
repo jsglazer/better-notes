@@ -45,9 +45,8 @@ export function registerKeyboardShortcuts(win: Window) {
         Zotero.openInViewer(
           "chrome://mozapps/content/extensions/aboutaddons.html",
           {
-            onLoad: (
-              Zotero.getMainWindow() as any
-            ).ZoteroStandalone?.updateAddonsPane,
+            onLoad: (Zotero.getMainWindow() as any).ZoteroStandalone
+              ?.updateAddonsPane,
           },
         );
         break;

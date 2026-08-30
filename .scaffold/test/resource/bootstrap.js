@@ -15,20 +15,16 @@ async function startup({ id, version, resourceURI, rootURI }, reason) {
 
   launchTests().catch((error) => {
     Zotero.debug(error);
-    Zotero.HTTP.request(
-      "POST",
-      "http://localhost:53100/update",
-      {
-        body: JSON.stringify({
-          type: "fail",
-          data: {
-            title: "Internal: Plugin awaiting timeout",
-            stack: "",
-            str: "Plugin awaiting timeout",
-          },
-        }),
-      }
-    );
+    Zotero.HTTP.request("POST", "http://localhost:53100/update", {
+      body: JSON.stringify({
+        type: "fail",
+        data: {
+          title: "Internal: Plugin awaiting timeout",
+          stack: "",
+          str: "Plugin awaiting timeout",
+        },
+      }),
+    });
   });
 }
 
@@ -73,7 +69,7 @@ async function launchTests() {
     "chrome://zotero-plugin-scaffold-test-runner/content/index.xhtml",
     "Zotero Plugin Scaffold Test Runnner",
     "chrome,centerscreen,resizable=yes",
-    {}
+    {},
   );
 }
 
