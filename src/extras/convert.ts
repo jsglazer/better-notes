@@ -342,6 +342,15 @@ function mergeAdjacentParagraphs(remark: any) {
   };
 
   for (const child of children) {
+    // U22: recurse into block quotes so a multi-line callout body renders as
+    // consecutive `> ` lines rather than one paragraph per line separated by
+    // blank `>` lines, which is how Obsidian writes them.
+    if (child.type === "blockquote") {
+      mergeAdjacentParagraphs(child);
+      merged.push(child);
+      endRun();
+      continue;
+    }
     if (isEmptyParagraph(child)) {
       // A deliberate blank line: close the run and drop the marker itself.
       // remark-stringify already puts a blank line between two blocks, so the
@@ -448,7 +457,7 @@ function remark2md(remark: MRoot) {
   // the note survives as a paragraph boundary because the empty <p> is dropped
   // upstream and breaks adjacency here.
   mergeAdjacentParagraphs(remark as any);
-  return String(
+  const md = String(
     unified()
       .use(remarkGfm)
       .use(remarkMath)
@@ -463,6 +472,21 @@ function remark2md(remark: MRoot) {
       } as any)
       .stringify(remark as any),
   );
+  return restoreCalloutMarkers(md);
+}
+
+/**
+ * U22: un-escape an Obsidian callout marker at the start of a block quote.
+ *
+ * `[!note]` is ordinary text to remark, so remark-stringify escapes the
+ * bracket (`> \[!note]`) to stop it being read as a link reference. Obsidian
+ * then no longer recognises the callout, and the note degrades to a plain
+ * quote on every sync. Only this exact shape is unescaped — a marker word in
+ * brackets, immediately after the quote marker — so real link references
+ * elsewhere keep their escaping.
+ */
+function restoreCalloutMarkers(md: string) {
+  return md.replace(/^((?:[ \t]*>)+[ \t]*)\\\[!/gm, "$1[!");
 }
 
 function remark2latex(remark: MRoot) {
@@ -494,6 +518,15 @@ function splitParagraphsOnLineBreaks(remark: any) {
   const out: any[] = [];
   let previousWasParagraph = false;
   for (const child of remark.children ?? []) {
+    // U22: recurse into block quotes, so each line of a callout body becomes
+    // its own <p> in the note (matching how Zotero models a visual line) and
+    // the round trip back to markdown stays stable.
+    if (child.type === "blockquote") {
+      splitParagraphsOnLineBreaks(child);
+      out.push(child);
+      previousWasParagraph = false;
+      continue;
+    }
     if (child.type !== "paragraph") {
       out.push(child);
       previousWasParagraph = false;

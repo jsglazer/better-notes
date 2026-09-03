@@ -585,6 +585,10 @@ function initEditorPlugins(editor: Zotero.EditorInstance) {
           markdownPaste: {
             enable: getPref("editor.useMarkdownPaste") as boolean,
           },
+          headingCollapse: getPref("editor.headingCollapse") as boolean,
+          codeHighlight: getPref("editor.codeHighlight") as boolean,
+          callouts: getPref("editor.callouts") as boolean,
+          inputRules: getPref("editor.markdownInputRules") as boolean,
         },
         getEditorWindow(editor),
         { wrapReflectors: true, cloneFunctions: true },
@@ -595,6 +599,7 @@ function initEditorPlugins(editor: Zotero.EditorInstance) {
     getPref("editor.pinTableLeft"),
     getPref("editor.pinTableTop"),
   );
+  EditorAPI.updateEditorLayout(getPref("editor.readableWidth") as boolean);
 }
 
 function safeCall(callback: () => void) {

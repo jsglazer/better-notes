@@ -219,3 +219,266 @@ body.pin-table-left.pin-table-top
   background-color: var(--fill-quinary, rgba(128, 128, 128, 0.12));
   border-radius: 3px;
 }
+
+/* ------------------------------------------------------------------------ */
+/* U22: comfortable measure                                                  */
+/*                                                                           */
+/* Opt-in via editor.readableWidth. The U21 rules above set max-width:unset  */
+/* so tables can use the full pane; this caps *text* blocks at a readable     */
+/* measure while leaving tables and images free to run wide.                 */
+/* ------------------------------------------------------------------------ */
+
+body.readable-width .primary-editor > p,
+body.readable-width .primary-editor > h1,
+body.readable-width .primary-editor > h2,
+body.readable-width .primary-editor > h3,
+body.readable-width .primary-editor > h4,
+body.readable-width .primary-editor > h5,
+body.readable-width .primary-editor > h6,
+body.readable-width .primary-editor > ul,
+body.readable-width .primary-editor > ol,
+body.readable-width .primary-editor > blockquote {
+  max-width: 34em;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ------------------------------------------------------------------------ */
+/* U22: heading collapse                                                     */
+/* ------------------------------------------------------------------------ */
+
+.primary-editor .enhanced-notes-section-hidden {
+  display: none;
+}
+
+.enhanced-notes-fold-toggle {
+  display: inline-block;
+  width: 1em;
+  margin-left: -1.1em;
+  padding-right: 0.1em;
+  font-size: 0.62em;
+  line-height: inherit;
+  vertical-align: middle;
+  color: var(--fill-secondary, #888);
+  cursor: pointer;
+  user-select: none;
+  opacity: 0;
+  transition: opacity 100ms ease-in-out;
+}
+
+/* The twisty stays out of the way until the heading is hovered — or the
+   section is folded, where it is the only cue that content is hidden. */
+.primary-editor h1:hover .enhanced-notes-fold-toggle,
+.primary-editor h2:hover .enhanced-notes-fold-toggle,
+.primary-editor h3:hover .enhanced-notes-fold-toggle,
+.primary-editor h4:hover .enhanced-notes-fold-toggle,
+.primary-editor h5:hover .enhanced-notes-fold-toggle,
+.primary-editor h6:hover .enhanced-notes-fold-toggle,
+.primary-editor .enhanced-notes-heading-collapsed .enhanced-notes-fold-toggle {
+  opacity: 1;
+}
+
+.primary-editor .enhanced-notes-heading-collapsed::after {
+  content: " …";
+  color: var(--fill-secondary, #888);
+  font-weight: normal;
+}
+
+/* ------------------------------------------------------------------------ */
+/* U22: callouts                                                             */
+/*                                                                           */
+/* Styled from a plain <blockquote> whose first line is `[!type]`, because    */
+/* the note schema is Zotero's and cannot gain a callout node. The marker     */
+/* stays real text, so Obsidian renders the same callout from the same        */
+/* characters.                                                               */
+/* ------------------------------------------------------------------------ */
+
+.primary-editor .enhanced-notes-callout {
+  --callout-color: var(--accent-blue, #2a7ad2);
+  border: 1px solid color-mix(in srgb, var(--callout-color) 35%, transparent);
+  border-left: 3px solid var(--callout-color);
+  border-radius: 4px;
+  background-color: color-mix(in srgb, var(--callout-color) 7%, transparent);
+  padding: 0.6em 0.9em;
+  margin: 0.8em 0;
+}
+
+.primary-editor .enhanced-notes-callout-title {
+  font-weight: 600;
+  color: var(--callout-color);
+}
+
+.primary-editor .enhanced-notes-callout-title::before {
+  content: var(--callout-icon, "ℹ");
+  margin-right: 0.45em;
+}
+
+/* A marker with no title text (`> [!warning]` alone) shows only the icon;
+   the raw `[!warning]` is collapsed to nothing but stays in the document. */
+.primary-editor .enhanced-notes-callout-title-empty {
+  font-size: 0;
+}
+
+.primary-editor .enhanced-notes-callout-title-empty::before {
+  font-size: 1rem;
+}
+
+.primary-editor .enhanced-notes-callout-note {
+  --callout-color: var(--accent-blue, #2a7ad2);
+  --callout-icon: "✎";
+}
+.primary-editor .enhanced-notes-callout-abstract {
+  --callout-color: #00b8a9;
+  --callout-icon: "≡";
+}
+.primary-editor .enhanced-notes-callout-info {
+  --callout-color: #2a7ad2;
+  --callout-icon: "ℹ";
+}
+.primary-editor .enhanced-notes-callout-todo {
+  --callout-color: #2a7ad2;
+  --callout-icon: "☑";
+}
+.primary-editor .enhanced-notes-callout-tip {
+  --callout-color: #00b8a9;
+  --callout-icon: "★";
+}
+.primary-editor .enhanced-notes-callout-success {
+  --callout-color: var(--accent-green, #3aa757);
+  --callout-icon: "✓";
+}
+.primary-editor .enhanced-notes-callout-question {
+  --callout-color: #d9a441;
+  --callout-icon: "?";
+}
+.primary-editor .enhanced-notes-callout-warning {
+  --callout-color: var(--accent-orange, #e07a2f);
+  --callout-icon: "⚠";
+}
+.primary-editor .enhanced-notes-callout-failure {
+  --callout-color: var(--accent-red, #d13c35);
+  --callout-icon: "✕";
+}
+.primary-editor .enhanced-notes-callout-danger {
+  --callout-color: var(--accent-red, #d13c35);
+  --callout-icon: "⚡";
+}
+.primary-editor .enhanced-notes-callout-bug {
+  --callout-color: var(--accent-red, #d13c35);
+  --callout-icon: "☣";
+}
+.primary-editor .enhanced-notes-callout-example {
+  --callout-color: #9a6fd0;
+  --callout-icon: "❋";
+}
+.primary-editor .enhanced-notes-callout-quote {
+  --callout-color: var(--fill-secondary, #888);
+  --callout-icon: "❝";
+}
+
+/* ------------------------------------------------------------------------ */
+/* U22: code block syntax highlighting                                       */
+/*                                                                           */
+/* Colors are set against Zotero's own theme tokens where possible so the     */
+/* palette follows light/dark rather than pinning one background.            */
+/* ------------------------------------------------------------------------ */
+
+.primary-editor pre {
+  background-color: var(--fill-quinary, rgba(128, 128, 128, 0.1));
+  border-radius: 4px;
+  padding: 0.7em 0.9em;
+  overflow-x: auto;
+}
+
+.primary-editor .hljs-comment,
+.primary-editor .hljs-quote {
+  color: #7f848e;
+  font-style: italic;
+}
+.primary-editor .hljs-keyword,
+.primary-editor .hljs-selector-tag,
+.primary-editor .hljs-literal,
+.primary-editor .hljs-doctag {
+  color: #a626a4;
+}
+.primary-editor .hljs-string,
+.primary-editor .hljs-regexp,
+.primary-editor .hljs-addition {
+  color: #50a14f;
+}
+.primary-editor .hljs-number,
+.primary-editor .hljs-built_in,
+.primary-editor .hljs-builtin-name,
+.primary-editor .hljs-type {
+  color: #986801;
+}
+.primary-editor .hljs-title,
+.primary-editor .hljs-section,
+.primary-editor .hljs-function .hljs-title {
+  color: #4078f2;
+}
+.primary-editor .hljs-attr,
+.primary-editor .hljs-attribute,
+.primary-editor .hljs-variable,
+.primary-editor .hljs-template-variable {
+  color: #c18401;
+}
+.primary-editor .hljs-symbol,
+.primary-editor .hljs-bullet,
+.primary-editor .hljs-link,
+.primary-editor .hljs-meta {
+  color: #0184bb;
+}
+.primary-editor .hljs-deletion {
+  color: #e45649;
+}
+.primary-editor .hljs-emphasis {
+  font-style: italic;
+}
+.primary-editor .hljs-strong {
+  font-weight: 600;
+}
+
+@media (prefers-color-scheme: dark) {
+  .primary-editor .hljs-comment,
+  .primary-editor .hljs-quote {
+    color: #8a919e;
+  }
+  .primary-editor .hljs-keyword,
+  .primary-editor .hljs-selector-tag,
+  .primary-editor .hljs-literal,
+  .primary-editor .hljs-doctag {
+    color: #c678dd;
+  }
+  .primary-editor .hljs-string,
+  .primary-editor .hljs-regexp,
+  .primary-editor .hljs-addition {
+    color: #98c379;
+  }
+  .primary-editor .hljs-number,
+  .primary-editor .hljs-built_in,
+  .primary-editor .hljs-builtin-name,
+  .primary-editor .hljs-type {
+    color: #d19a66;
+  }
+  .primary-editor .hljs-title,
+  .primary-editor .hljs-section,
+  .primary-editor .hljs-function .hljs-title {
+    color: #61afef;
+  }
+  .primary-editor .hljs-attr,
+  .primary-editor .hljs-attribute,
+  .primary-editor .hljs-variable,
+  .primary-editor .hljs-template-variable {
+    color: #e5c07b;
+  }
+  .primary-editor .hljs-symbol,
+  .primary-editor .hljs-bullet,
+  .primary-editor .hljs-link,
+  .primary-editor .hljs-meta {
+    color: #56b6c2;
+  }
+  .primary-editor .hljs-deletion {
+    color: #e06c75;
+  }
+}

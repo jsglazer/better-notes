@@ -375,6 +375,17 @@ function updateTableSize(pinLeft?: boolean, pinTop?: boolean) {
   }
 }
 
+/**
+ * U22: toggle the comfortable-measure body class.
+ *
+ * A body class rather than a stylesheet swap, so the width preference can
+ * change live without re-injecting CSS, and so `editor.css` keeps every rule
+ * about how it looks in one place.
+ */
+function updateEditorLayout(readableWidth: boolean) {
+  document.body.classList.toggle("readable-width", !!readableWidth);
+}
+
 window.addEventListener("resize", () => updateTableSize());
 
 export const EnhancedNotesEditorAPI = {
@@ -395,6 +406,7 @@ export const EnhancedNotesEditorAPI = {
   setSelection,
   initPlugins,
   updateTableSize,
+  updateEditorLayout,
 };
 
 // @ts-ignore

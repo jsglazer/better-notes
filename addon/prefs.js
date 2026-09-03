@@ -22,6 +22,11 @@ pref("__prefsPrefix__.editor.pinTableLeft", true);
 pref("__prefsPrefix__.editor.pinTableTop", true);
 // Appended after the plugin's own editor.css, so it can override anything there.
 pref("__prefsPrefix__.editor.customCSS", "");
+pref("__prefsPrefix__.editor.readableWidth", false);
+pref("__prefsPrefix__.editor.headingCollapse", true);
+pref("__prefsPrefix__.editor.codeHighlight", true);
+pref("__prefsPrefix__.editor.callouts", true);
+pref("__prefsPrefix__.editor.markdownInputRules", true);
 
 pref("__prefsPrefix__.exportNotes.takeover", true);
 

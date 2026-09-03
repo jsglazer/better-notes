@@ -23,6 +23,11 @@ declare namespace _ZoteroTypes {
       "editor.pinTableLeft": boolean;
       "editor.pinTableTop": boolean;
       "editor.customCSS": string;
+      "editor.readableWidth": boolean;
+      "editor.headingCollapse": boolean;
+      "editor.codeHighlight": boolean;
+      "editor.callouts": boolean;
+      "editor.markdownInputRules": boolean;
       "exportNotes.takeover": boolean;
       "annotationNote.enableTagSync": boolean;
       "annotationNote.enableCreateNoteButton": boolean;

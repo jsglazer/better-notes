@@ -105,6 +105,25 @@ test("paragraphs after a list are not merged into it", async () => {
   assert.equal(md, "- A\n- B\n\nAfter one\nAfter two\n");
 });
 
+test("an Obsidian callout survives the round trip unescaped", async () => {
+  const md = "> [!note] Title here\n> Body line one\n> Body line two\n";
+  const out = await md2note(md);
+  // Each body line is its own <p>, matching how Zotero models a visual line.
+  assert.equal(
+    out,
+    "<blockquote>\n<p>[!note] Title here</p>\n<p>Body line one</p>\n<p>Body line two</p>\n</blockquote>",
+  );
+  const back = await note2md(out);
+  // The marker must not come back escaped (`\[!note]`), or Obsidian stops
+  // recognising the callout and it degrades to a plain quote.
+  assert.equal(back, md);
+});
+
+test("a multi-line block quote keeps its lines separate", async () => {
+  const md = "> A plain quote\n> second line\n";
+  assert.equal(await note2md(await md2note(md)), md);
+});
+
 test("an empty <p> inside a list item is layout, not a blank line", async () => {
   // Must not be treated as a paragraph break; the list stays a single list.
   const { md } = await assertStable(note("<ul><li><p></p>Item</li></ul>"));

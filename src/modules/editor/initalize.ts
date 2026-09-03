@@ -3,6 +3,7 @@ import {
   getEditorInitPromise,
   getEditorInstances,
   getEditorItem,
+  getEditorAPI,
   getEditorWindow,
   isEditorAlive,
 } from "./adapter";
@@ -24,6 +25,7 @@ import { initEditorToolbar } from "./toolbar";
 
 let prefsObserver = Symbol();
 let customCSSObserver: symbol | undefined;
+let readableWidthObserver: symbol | undefined;
 
 export function registerEditorInstanceHook() {
   Zotero.Notes.registerEditorInstance = new Proxy(
@@ -56,6 +58,23 @@ export function registerEditorInstanceHook() {
       injectEditorCSS(getEditorWindow(editor));
     });
   });
+
+  // Width is a body class, so it can be flipped on open editors directly. The
+  // other new editor toggles (callouts, code highlighting, heading collapse,
+  // input rules) reconfigure the ProseMirror plugin list, which is only built
+  // when an editor opens — those take effect on newly opened notes.
+  readableWidthObserver = registerPrefObserver(
+    "editor.readableWidth",
+    (value) => {
+      getEditorInstances().forEach((editor) => {
+        try {
+          getEditorAPI(editor)?.updateEditorLayout(Boolean(value));
+        } catch (e) {
+          // A dead or half-initialized editor is expected here.
+        }
+      });
+    },
+  );
 }
 
 export function unregisterEditorInstanceHook() {
@@ -63,6 +82,10 @@ export function unregisterEditorInstanceHook() {
   if (customCSSObserver) {
     unregisterPrefObserver(customCSSObserver);
     customCSSObserver = undefined;
+  }
+  if (readableWidthObserver) {
+    unregisterPrefObserver(readableWidthObserver);
+    readableWidthObserver = undefined;
   }
   clearInputActivity();
 }
