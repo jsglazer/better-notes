@@ -42,7 +42,7 @@ A Zotero plugin to expand the capability of notes and to sync notes to other loc
 - **Callouts** — Obsidian's `> [!note]`, `> [!warning]`, `> [!tip]` and the rest render as coloured, icon-titled callouts in Zotero and stay callouts in your vault. The marker is ordinary text in an ordinary block quote, so both apps render the same note from the same characters
 - **Code blocks** — syntax highlighting for bash, CSS, Go, Java, JavaScript/TypeScript, JSON, Markdown, Python, R, SQL, XML/HTML and YAML; anything else is auto-detected
 - **Collapsible sections** — click the twisty beside a heading to fold everything under it. Folding is a view state and never edits the note, so it cannot trigger a sync
-- **Markdown shortcuts** — type `## ` for a heading, `- ` for a bullet, `1. ` for a numbered list, `> ` for a quote, ```` ```py ```` for a code block, or `**bold**`, `*italic*`, `` `code` ``, `~~strike~~` inline
+- **Markdown shortcuts** — type `## ` for a heading, `- ` for a bullet, `1. ` for a numbered list, `> ` for a quote, a triple-backtick fence (optionally with a language, such as `py`) for a code block, or `**bold**`, `*italic*`, `` `code` ``, `~~strike~~` inline
 - **Comfortable reading width** — optional cap on the width of text blocks in a wide window; tables and images still use the full pane
 - **Custom CSS** — restyle the note editor from Settings → Enhanced Notes. Your rules are applied after the plugin's own, so they win, and they take effect immediately in notes you already have open. Presentation only: the note content and the synced Markdown are untouched
 
