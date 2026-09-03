@@ -22,6 +22,7 @@ declare namespace _ZoteroTypes {
       "editor.useMarkdownPaste": boolean;
       "editor.pinTableLeft": boolean;
       "editor.pinTableTop": boolean;
+      "editor.customCSS": string;
       "exportNotes.takeover": boolean;
       "annotationNote.enableTagSync": boolean;
       "annotationNote.enableCreateNoteButton": boolean;

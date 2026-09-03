@@ -7,6 +7,10 @@ import {
   isEditorAlive,
 } from "./adapter";
 import { initEditorImagePreviewer } from "./image";
+import {
+  registerPrefObserver,
+  unregisterPrefObserver,
+} from "../../utils/prefs";
 import { clearInputActivity, trackEditorInput } from "./inputActivity";
 import {
   injectEditorCSS,
@@ -19,6 +23,7 @@ import { initEditorPopup } from "./popup";
 import { initEditorToolbar } from "./toolbar";
 
 let prefsObserver = Symbol();
+let customCSSObserver: symbol | undefined;
 
 export function registerEditorInstanceHook() {
   Zotero.Notes.registerEditorInstance = new Proxy(
@@ -42,10 +47,23 @@ export function registerEditorInstanceHook() {
       injectEditorCSS(getEditorWindow(editor));
     });
   });
+
+  // Re-inject when the user's custom CSS changes, so an edit in the
+  // preferences pane shows up in the notes they already have open instead of
+  // waiting for a reopen or a restart.
+  customCSSObserver = registerPrefObserver("editor.customCSS", () => {
+    getEditorInstances().forEach((editor) => {
+      injectEditorCSS(getEditorWindow(editor));
+    });
+  });
 }
 
 export function unregisterEditorInstanceHook() {
   Zotero.Prefs.unregisterObserver(prefsObserver);
+  if (customCSSObserver) {
+    unregisterPrefObserver(customCSSObserver);
+    customCSSObserver = undefined;
+  }
   clearInputActivity();
 }
 

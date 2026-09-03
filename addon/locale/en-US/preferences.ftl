@@ -30,6 +30,10 @@ editor-pinTableLeft =
     .label = First column
 editor-pinTableTop =
     .label = First row when scrolling
+editor-customCSS-label = Custom CSS for the note editor
+editor-customCSS-placeholder =
+    .placeholder = .primary-editor h1 { color: #7a3e9d; }
+editor-customCSS-description = Applied on top of the plugin's own editor styles, so these rules win. Changes apply immediately to open notes. Affects how notes look in Zotero only — it does not change the note content or the synced Markdown file.
 
 sync-title = Sync
 sync-period-label = Auto-sync period (seconds)
