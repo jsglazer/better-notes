@@ -124,3 +124,98 @@ body.pin-table-left.pin-table-top
   cursor: ew-resize;
   cursor: col-resize;
 }
+
+/* ------------------------------------------------------------------------ */
+/* U21: heading typography                                                   */
+/*                                                                           */
+/* The rules above only add the H1-H6 badge in the margin; the heading text   */
+/* itself inherited Zotero's body styling, so a heading read the same size    */
+/* and weight as a paragraph and the note's structure was invisible while     */
+/* editing. Sizes are in `em` so they track the editor's font-size            */
+/* preference, and the scale is deliberately restrained - a note is a         */
+/* document, not a web page.                                                  */
+/* ------------------------------------------------------------------------ */
+
+.primary-editor h1,
+.primary-editor h2,
+.primary-editor h3,
+.primary-editor h4,
+.primary-editor h5,
+.primary-editor h6 {
+  font-weight: 600;
+  line-height: 1.25;
+  /* Space above a heading, less below, so it binds to the text it heads. */
+  margin-top: 1.2em;
+  margin-bottom: 0.4em;
+}
+
+.primary-editor h1 {
+  font-size: 1.7em;
+}
+
+.primary-editor h2 {
+  font-size: 1.45em;
+}
+
+.primary-editor h3 {
+  font-size: 1.25em;
+}
+
+.primary-editor h4 {
+  font-size: 1.1em;
+}
+
+.primary-editor h5 {
+  font-size: 1em;
+}
+
+/* H6 is the "label" level: no larger than body text, distinguished by case. */
+.primary-editor h6 {
+  font-size: 0.9em;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.8;
+}
+
+/* A rule under the top two levels, the way a printed document separates
+   sections. Uses Zotero's own border token so it follows light/dark themes. */
+.primary-editor h1,
+.primary-editor h2 {
+  padding-bottom: 0.15em;
+  border-bottom: 1px solid var(--color-border, rgba(128, 128, 128, 0.3));
+}
+
+/* The first heading in a note should not push the whole note down. */
+.primary-editor > h1:first-child,
+.primary-editor > h2:first-child,
+.primary-editor > h3:first-child {
+  margin-top: 0.2em;
+}
+
+/* ------------------------------------------------------------------------ */
+/* U21: rendered math                                                        */
+/*                                                                           */
+/* The math preview plugin adds a KaTeX widget next to each formula and tags  */
+/* the source node so it can be hidden - except for the formula the cursor is */
+/* in, which keeps its source visible for editing.                           */
+/* ------------------------------------------------------------------------ */
+
+.primary-editor .enhanced-notes-math-rendered {
+  display: none;
+}
+
+.primary-editor .enhanced-notes-math-preview {
+  cursor: pointer;
+}
+
+.primary-editor .enhanced-notes-math-preview-display {
+  display: block;
+  margin: 0.6em 0;
+  text-align: center;
+}
+
+/* Make it discoverable that the rendered formula is clickable to edit. */
+.primary-editor .enhanced-notes-math-preview:hover {
+  background-color: var(--fill-quinary, rgba(128, 128, 128, 0.12));
+  border-radius: 3px;
+}

@@ -29,7 +29,6 @@ import {
 } from "./modules/colorLabelsServer";
 import { registerTagEndpoint, unregisterTagEndpoint } from "./modules/tagServer";
 import { setSyncing, unsetSyncing, callSyncing } from "./modules/sync/hooks";
-import { syncLinkedNoteOnEdit } from "./modules/sync/autoLink";
 import { showTemplatePicker } from "./modules/template/picker";
 import { showImageViewer } from "./modules/imageViewer";
 import { showExportNoteOptions } from "./modules/export/exportWindow";
@@ -47,9 +46,7 @@ import { createZToolkit } from "./utils/ztoolkit";
 import { waitUtilAsync } from "./utils/wait";
 import { initSyncList } from "./modules/sync/api";
 import { getFocusedWindow } from "./utils/window";
-import { registerNoteRelation } from "./modules/workspace/relation";
 import { closeRelationServer } from "./utils/relation";
-import { registerNoteLinkSection } from "./modules/workspace/link";
 import { showUserGuide } from "./modules/userGuide";
 import { refreshTemplatesInNote } from "./modules/template/refresh";
 import { closeParsingServer } from "./utils/parsing";
@@ -103,11 +100,6 @@ async function onStartup() {
 
   registerTagEndpoint();
 
-  registerNoteRelation();
-
-  registerNoteLinkSection("inbound");
-  registerNoteLinkSection("outbound");
-
   patchNotes();
 
   initSyncList();
@@ -154,7 +146,6 @@ async function onMainWindowUnload(win: Window): Promise<void> {
   win.document.l10n?.removeResourceIds([
     `${config.addonRef}-mainWindow.ftl`,
     `${config.addonRef}-notePreview.ftl`,
-    `${config.addonRef}-noteRelation.ftl`,
     `${config.addonRef}-outline.ftl`,
   ]);
   unregisterKeyboardShortcuts(win);
@@ -268,7 +259,6 @@ async function onNotify(
       });
       for (const item of modifiedNotes) {
         await addon.api.relation.updateNoteLinkRelation(item.id);
-        await syncLinkedNoteOnEdit(item.id);
       }
     }
   }

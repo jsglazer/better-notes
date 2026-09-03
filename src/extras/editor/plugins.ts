@@ -1,6 +1,7 @@
 import { initLinkPreviewPlugin, LinkPreviewOptions } from "./linkPreview";
 import { initMagicKeyPlugin, MagicKeyOptions } from "./magicKey";
 import { initMarkdownPastePlugin, MarkdownPasteOptions } from "./markdownPaste";
+import { initMathPreviewPlugin } from "./mathPreview";
 // Use custom column resizing plugin, since the original one breaks
 import { columnResizing } from "./columnResizing";
 import { initNodeViews } from "./nodeViews";
@@ -22,6 +23,7 @@ function initPlugins(options: {
     plugins = initLinkPreviewPlugin(plugins, options.linkPreview);
   if (options.markdownPaste.enable) plugins = initMarkdownPastePlugin(plugins);
   plugins = initMagicKeyPlugin(plugins, options.magicKey);
+  plugins = initMathPreviewPlugin(plugins);
   // Collect all plugins and reconfigure the state only once
   const newState = core.view.state.reconfigure({
     plugins: [

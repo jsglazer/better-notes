@@ -93,16 +93,31 @@ function note2rehype(str: string) {
     },
   );
 
-  // Make sure empty <p> under root node is removed
+  // Empty <p> under the root node is Zotero's representation of a deliberate
+  // blank line. U21: it used to be deleted outright; it is now tagged and kept,
+  // because `mergeAdjacentParagraphs` (remark2md) needs it to tell "two lines
+  // the user typed one after another" from "two paragraphs the user separated".
+  // Consumers that don't want it strip it themselves — see `dropEmptyParagraphs`.
+  // Note the test is structural rather than "is a direct child of the root":
+  // a real Zotero note is wrapped in <div data-schema-version="…">, so its
+  // paragraphs are never root children and the old parent check never matched.
+  // A blank line is any empty <p> that is not inside a list item, table cell or
+  // block quote (where an empty <p> is layout, not a blank line).
+  const blankLineExcluded = ["li", "td", "th", "blockquote"];
   visitParents(
     rehype,
     (_n: any) => _n.type === "element" && _n.tagName === "p",
     (_n: any, ancestors) => {
-      if (ancestors.length) {
-        const parentNode = ancestors[ancestors.length - 1];
-        if (parentNode === rehype && !_n.children.length && !toText(_n)) {
-          parentNode.children.splice(parentNode.children.indexOf(_n), 1);
-        }
+      if (_n.children.length || toText(_n)) {
+        return;
+      }
+      const nested = ancestors.some(
+        (ancestor: any) =>
+          ancestor.type === "element" &&
+          blankLineExcluded.includes(ancestor.tagName),
+      );
+      if (!nested) {
+        _n.properties = { ..._n.properties, dataEmptyLine: "true" };
       }
     },
   );
@@ -127,6 +142,17 @@ async function rehype2remark(rehype: HRoot) {
           } else {
             return h(node, "paragraph", all(h, node));
           }
+        },
+        // U21: an empty <p> is Zotero's deliberate blank line. rehype-remark
+        // drops empty elements entirely, so the marker set in `note2rehype`
+        // would vanish here; emit an explicit node instead so
+        // `mergeAdjacentParagraphs` can see the paragraph boundary. It is
+        // consumed (and removed) there, and never reaches the output.
+        p: (h, node) => {
+          if (node.properties?.dataEmptyLine) {
+            return h(node, "emptyLine", "");
+          }
+          return rehype2remarkDefaultHandlers.p(h, node);
         },
         pre: (h, node) => {
           if (node.properties?.className?.includes("math")) {
@@ -272,6 +298,75 @@ async function rehype2remark(rehype: HRoot) {
     .run(rehype as any);
 }
 
+/** True for a paragraph carrying no rendered content (Zotero's blank line). */
+function isEmptyParagraph(node: any): boolean {
+  if (node?.type === "emptyLine") {
+    return true;
+  }
+  if (!node || node.type !== "paragraph") {
+    return false;
+  }
+  return !(node.children ?? []).some((child: any) => {
+    if (child.type === "text") {
+      return Boolean(child.value?.trim());
+    }
+    // Any non-text child (image, inline math, html, link…) counts as content.
+    return true;
+  });
+}
+
+/** Remove the blank-line marker paragraphs kept by `note2rehype`. */
+function dropEmptyParagraphs(remark: any) {
+  remark.children = (remark.children ?? []).filter(
+    (child: any) => !isEmptyParagraph(child),
+  );
+}
+
+/**
+ * U21: fold runs of directly-adjacent root-level paragraphs into a single
+ * paragraph whose parts are separated by a soft line break, so markdown mirrors
+ * Zotero's compact layout instead of double-spacing every line.
+ *
+ * An empty paragraph (Zotero's deliberate blank line) ends a run and is then
+ * dropped, leaving exactly one blank line at that point. Any other block —
+ * heading, list, table, code, thematic break — ends a run too, so structure is
+ * untouched.
+ */
+function mergeAdjacentParagraphs(remark: any) {
+  const children: any[] = remark.children ?? [];
+  const merged: any[] = [];
+  let run: any = null;
+
+  const endRun = () => {
+    run = null;
+  };
+
+  for (const child of children) {
+    if (isEmptyParagraph(child)) {
+      // A deliberate blank line: close the run and drop the marker itself.
+      // remark-stringify already puts a blank line between two blocks, so the
+      // separation is preserved without emitting an empty paragraph.
+      endRun();
+      continue;
+    }
+    if (child.type !== "paragraph") {
+      merged.push(child);
+      endRun();
+      continue;
+    }
+    if (run) {
+      // "\n" inside a paragraph is a soft break: one newline in the output,
+      // no trailing backslash or double space.
+      run.children.push({ type: "text", value: "\n" }, ...child.children);
+    } else {
+      run = child;
+      merged.push(child);
+    }
+  }
+
+  remark.children = merged;
+}
+
 function remark2md(remark: MRoot) {
   const handlers = {
     code: (node: { value: string }) => {
@@ -292,6 +387,9 @@ function remark2md(remark: MRoot) {
     styleTable: (node: { value: any }) => {
       return node.value;
     },
+    // U21: consumed by mergeAdjacentParagraphs; handled here only so an
+    // unmerged tree (e.g. a caller that stringifies directly) cannot throw.
+    emptyLine: () => "",
     wrapper: (node: { value: string }) => {
       return "\n<!-- " + node.value + " -->\n";
     },
@@ -340,6 +438,16 @@ function remark2md(remark: MRoot) {
   visit(remark as any, "listItem", (node: any) => {
     node.spread = false;
   });
+  // U21: Zotero's editor makes every visual line its own <p>, which markdown
+  // then separates with a blank line — so a note that is compact in Zotero
+  // comes out double-spaced in the vault. Merge runs of adjacent paragraphs
+  // into one paragraph whose parts are joined by a soft line break, so the .md
+  // mirrors what the note looks like in Zotero. Only *directly* adjacent
+  // paragraphs are merged; anything else between them (heading, list, code,
+  // table, thematic break) still ends the run, and a deliberately empty line in
+  // the note survives as a paragraph boundary because the empty <p> is dropped
+  // upstream and breaks adjacency here.
+  mergeAdjacentParagraphs(remark as any);
   return String(
     unified()
       .use(remarkGfm)
@@ -358,6 +466,9 @@ function remark2md(remark: MRoot) {
 }
 
 function remark2latex(remark: MRoot) {
+  // U21: the blank-line markers note2rehype now keeps are a markdown-layout
+  // concern only; LaTeX gets its paragraph breaks from block structure.
+  dropEmptyParagraphs(remark as any);
   return String(
     unified()
       .use(remarkGfm)
@@ -371,6 +482,73 @@ function remark2latex(remark: MRoot) {
       } as any)
       .stringify(remark as any),
   );
+}
+
+/**
+ * Split each root-level paragraph at its line breaks, so every visual line
+ * becomes its own paragraph (which `rehype2note` then renders as its own <p>,
+ * matching how Zotero's editor stores lines). Breaks nested inside other
+ * blocks — list items, table cells, block quotes — are left alone.
+ */
+function splitParagraphsOnLineBreaks(remark: any) {
+  const out: any[] = [];
+  let previousWasParagraph = false;
+  for (const child of remark.children ?? []) {
+    if (child.type !== "paragraph") {
+      out.push(child);
+      previousWasParagraph = false;
+      continue;
+    }
+    // Two markdown paragraphs in a row were separated by a blank line the user
+    // meant to keep. Zotero spells that as an empty <p>, so re-create it —
+    // otherwise the blank line is lost on md -> note and the next note -> md
+    // would merge the two runs back together (an unstable round trip).
+    if (previousWasParagraph) {
+      // Emitted as raw HTML rather than an empty mdast paragraph, because
+      // mdast-util-to-hast drops paragraphs with no children — the empty <p>
+      // would never reach the note.
+      out.push({ type: "html", value: "<p></p>" });
+    }
+    previousWasParagraph = true;
+    // Each element is the child list of one output paragraph.
+    let current: any[] = [];
+    const lines: any[][] = [current];
+    for (const node of child.children ?? []) {
+      if (node.type === "break") {
+        current = [];
+        lines.push(current);
+        continue;
+      }
+      if (node.type === "text" && node.value.includes("\n")) {
+        const parts = node.value.split("\n");
+        parts.forEach((part: string, index: number) => {
+          if (index > 0) {
+            current = [];
+            lines.push(current);
+          }
+          if (part) {
+            current.push({ ...node, value: part });
+          }
+        });
+        continue;
+      }
+      current.push(node);
+    }
+    // A paragraph with no internal break is passed through untouched, so the
+    // common case allocates nothing new.
+    if (lines.length === 1) {
+      out.push(child);
+      continue;
+    }
+    for (const line of lines) {
+      // Drop runs that held only the whitespace around a break.
+      if (!line.length) {
+        continue;
+      }
+      out.push({ ...child, children: line, position: undefined });
+    }
+  }
+  remark.children = out;
 }
 
 function md2remark(str: string) {
@@ -388,6 +566,12 @@ function md2remark(str: string) {
     .use(remarkMath)
     .use(remarkParse)
     .parse(str);
+  // U21: the counterpart to `mergeAdjacentParagraphs`. A line break inside a
+  // markdown paragraph (soft break, or an explicit two-space/backslash break)
+  // is one visual line, and Zotero models a visual line as its own <p>. Without
+  // this split those lines would collapse onto a single line in the note, so a
+  // note -> md -> note round trip would not be stable.
+  splitParagraphsOnLineBreaks(remark as any);
   // visit(
   //   remark,
   //   (_n) => _n.type === "image",
@@ -504,9 +688,19 @@ function rehype2note(rehype: HRoot) {
     const parent = ancestors.length
       ? ancestors[ancestors.length - 1]
       : undefined;
+    // U21: skip items that also carry raw inline HTML (e.g. a highlight span
+    // that came from markdown). There the raw open/close tags are separate
+    // siblings, so wrapping the text between them would nest a <span> inside
+    // the raw one — and nest one level deeper on every sync. The item is left
+    // unwrapped instead, which keeps the round trip stable; the wrapping only
+    // ever existed to give the diff view finer granularity.
+    const hasRawSibling = (parent?.children ?? []).some(
+      (sibling: any) => sibling.type === "raw",
+    );
     if (
       parent?.type == "element" &&
       ["li", "td"].includes(parent?.tagName) &&
+      !hasRawSibling &&
       node.value.replace(/[\r\n]/g, "")
     ) {
       node.type = "element";
@@ -528,6 +722,12 @@ function rehype2note(rehype: HRoot) {
       node.children = node.children.filter(
         (_n: { type: string; value: string }) =>
           _n.type === "element" ||
+          // U21: `raw` nodes are the inline HTML that came from markdown
+          // (e.g. `<span style="background-color: …">` around a highlight).
+          // They are neither `element` nor `text`, so the old filter dropped
+          // them — silently stripping every highlight/color inside a bullet on
+          // each md -> note sync. Keep any raw node that carries content.
+          (_n.type === "raw" && _n.value.replace(/[\r\n]/g, "")) ||
           (_n.type === "text" && _n.value.replace(/[\r\n]/g, "")),
       );
 
@@ -535,6 +735,11 @@ function rehype2note(rehype: HRoot) {
       // For all math-inline node in list, remove 1 space from its sibling text node
       if (node.tagName === "li") {
         for (const p of node.children) {
+          // U21: `raw`/`text` children have no `children` array — they now
+          // survive the filter above, so this loop must skip them.
+          if (!Array.isArray(p.children)) {
+            continue;
+          }
           for (let idx = 0; idx < p.children.length; idx++) {
             const _n = p.children[idx];
             if (_n.properties?.className?.includes("math-inline")) {

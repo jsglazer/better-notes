@@ -47,7 +47,6 @@ export class DetailsPane extends ItemDetails {
   init() {
     document.l10n?.addResourceIds([
       `${config.addonRef}-notePreview.ftl`,
-      `${config.addonRef}-noteRelation.ftl`,
     ]);
 
     this._prefObserverID = registerPrefObserver(

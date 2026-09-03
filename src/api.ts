@@ -35,7 +35,6 @@ import {
   getUniqueMDFileName,
   findAllSyncedFiles,
 } from "./modules/sync/api";
-import { syncLinkedNoteOnEdit } from "./modules/sync/autoLink";
 import {
   runTextTemplate,
   runItemTemplate,
@@ -111,7 +110,6 @@ const sync = {
   getMDFileName,
   getUniqueMDFileName,
   findAllSyncedFiles,
-  syncLinkedNoteOnEdit,
 };
 
 const convert = {
