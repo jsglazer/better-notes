@@ -106,11 +106,17 @@ function cache() {
 
   const markdownPrefs = ["autoSync", "withYAMLHeader", "autoFilename"];
   for (const pref of markdownPrefs) {
-    setPref(
-      `export.markdown-${pref}`,
-      (document.querySelector(`#markdown-${pref}`) as XULCheckboxElement)
-        .checked,
-    );
+    const el = document.querySelector(
+      `#markdown-${pref}`,
+    ) as XULCheckboxElement;
+    // A disabled checkbox is showing a state this dialog forced (or blocked),
+    // not the user's choice — writing it back would silently overwrite their
+    // stored preference. Leave the pref alone and let restore() bring the real
+    // choice back next time.
+    if (el.disabled) {
+      continue;
+    }
+    setPref(`export.markdown-${pref}`, el.checked);
   }
 }
 
@@ -137,11 +143,28 @@ function updateMarkdownOptions() {
     "#markdown-autoSync",
   ) as XULCheckboxElement;
 
-  if (linkModeRadio.value !== "standalone") {
+  // Auto-sync conflicts with ONE link mode: "embed". exportNotes() skips
+  // embedLinkedNotes() whenever setAutoSync is set, so the two can't both apply.
+  // It has no quarrel with "keep" — but this used to require "standalone", so on
+  // a default install (linkMode has no pref default and restore() falls back to
+  // "keep") the Sync checkbox was permanently unchecked and greyed out. Exporting
+  // Markdown therefore never registered a sync entry, the note silently never
+  // synced, and the Sync Manager had nothing to show. Worse, restore() would
+  // check the box from the saved pref and this function would immediately clear
+  // it, so cache() then persisted `false` — erasing the setting for good.
+  const syncable = linkModeRadio.value !== "embed";
+  if (!syncable) {
     autoSyncRadio.checked = false;
     autoSyncRadio.disabled = true;
+    autoSyncRadio.tooltipText =
+      "Not available with embedded links — embedding rewrites the note, so there is nothing stable to sync.";
   } else {
+    if (autoSyncRadio.disabled) {
+      // Re-enabling: bring back the user's stored choice, which cache() kept.
+      autoSyncRadio.checked = getPref("export.markdown-autoSync") as boolean;
+    }
     autoSyncRadio.disabled = false;
+    autoSyncRadio.tooltipText = "";
   }
 
   const autoFilename = document.querySelector(
@@ -151,14 +174,22 @@ function updateMarkdownOptions() {
     "#markdown-withYAMLHeader",
   ) as XULCheckboxElement;
 
-  if (autoSyncRadio.checked) {
-    autoFilename.checked = true;
-    autoFilename.disabled = true;
-    withYAMLHeader.checked = true;
-    withYAMLHeader.disabled = true;
-  } else {
-    autoFilename.disabled = false;
-    withYAMLHeader.disabled = false;
+  // Syncing requires both, so show them forced on — cache() won't write these
+  // forced values over the user's own preference.
+  const forced: Array<[XULCheckboxElement, string]> = [
+    [autoFilename, "autoFilename"],
+    [withYAMLHeader, "withYAMLHeader"],
+  ];
+  for (const [el, prefName] of forced) {
+    if (autoSyncRadio.checked) {
+      el.checked = true;
+      el.disabled = true;
+    } else {
+      if (el.disabled) {
+        el.checked = getPref(`export.markdown-${prefName}`) as boolean;
+      }
+      el.disabled = false;
+    }
   }
 }
 
@@ -182,9 +213,12 @@ function doAccept() {
   io.withYAMLHeader = (
     document.querySelector("#markdown-withYAMLHeader") as XULCheckboxElement
   ).checked;
-  io.setAutoSync = (
-    document.querySelector("#markdown-autoSync") as XULCheckboxElement
-  ).checked;
+  // A disabled Sync box can never mean "sync" — guard so a forced state can't
+  // switch the export mode behind the user's back.
+  const autoSyncEl = document.querySelector(
+    "#markdown-autoSync",
+  ) as XULCheckboxElement;
+  io.setAutoSync = autoSyncEl.checked && !autoSyncEl.disabled;
 
   // LaTeX options
   io.mergeLatex = (

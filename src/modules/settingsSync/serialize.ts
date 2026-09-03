@@ -25,10 +25,15 @@ const SETTINGS_PAYLOAD_VERSION = 1;
  * machines. Everything else under the plugin's branch is synced, per Update018:
  * "everything associated with the plugin but nothing not associated with it".
  *
- * A trailing "." marks a whole sub-branch.
+ * A trailing "." marks a whole sub-branch; a trailing "-" marks a key prefix.
  *
  *  - `syncNoteIds`            per-note sync state keyed by LOCAL item ids and
  *                             absolute file paths — meaningless on another box.
+ *  - `syncDetail-`            the values `syncNoteIds` indexes (one pref per
+ *                             note, holding that note's absolute path, filename
+ *                             and hashes). Excluding the key list but not the
+ *                             values still shipped every local path to the other
+ *                             machine, where they landed as unreferenced junk.
  *  - `windows.`               window geometry / last-used tab indexes.
  *  - `linkCreator.recentNotes` machine-local MRU list of note ids.
  *  - `latestTourVersion`      per-install onboarding state; syncing it would
@@ -40,6 +45,7 @@ const SETTINGS_PAYLOAD_VERSION = 1;
  */
 const EXCLUDED_KEYS = [
   "syncNoteIds",
+  "syncDetail-",
   "windows.",
   "linkCreator.recentNotes",
   "latestTourVersion",
@@ -47,8 +53,12 @@ const EXCLUDED_KEYS = [
 ];
 
 function isSyncablePref(relKey: string): boolean {
+  // A trailing "." (sub-branch) or "-" (key prefix, e.g. `syncDetail-<id>`)
+  // matches by prefix; anything else is an exact key.
   return !EXCLUDED_KEYS.some((ex) =>
-    ex.endsWith(".") ? relKey.startsWith(ex) : relKey === ex,
+    ex.endsWith(".") || ex.endsWith("-")
+      ? relKey.startsWith(ex)
+      : relKey === ex,
   );
 }
 
