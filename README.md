@@ -1,10 +1,12 @@
 # Enhanced Notes
 
-[![GitHub release](https://img.shields.io/github/v/release/jsglazer/enhanced-notes?logo=github)](https://github.com/jsglazer/enhanced-notes/releases) [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/jsglazer/enhanced-notes/blob/main/LICENSE) [![Made with Claude](https://img.shields.io/badge/Made_with-Claude-D97756?logo=anthropic)](https://claude.ai) [![Gemini Flash Antigravity](https://img.shields.io/badge/Gemini%20Flash-Antigravity-4f86f7?logo=google-gemini&logoColor=white)](https://github.com/google-gemini) [![CI](https://github.com/jsglazer/enhanced-notes/actions/workflows/ci.yml/badge.svg)](https://github.com/jsglazer/enhanced-notes/actions/workflows/ci.yml) [![CodeQL](https://github.com/jsglazer/enhanced-notes/actions/workflows/codeql.yml/badge.svg)](https://github.com/jsglazer/enhanced-notes/actions/workflows/codeql.yml) [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/jsglazer/enhanced-notes/badge)](https://scorecard.dev/viewer/?uri=github.com/jsglazer/enhanced-notes)
+[![GitHub release](https://img.shields.io/github/v/release/jsglazer/enhanced-notes?logo=github)](https://github.com/jsglazer/enhanced-notes/releases) [![License](https://img.shields.io/badge/License-AGPL--3.0--or--later-blue.svg)](https://github.com/jsglazer/enhanced-notes/blob/main/LICENSE) [![Made with Claude](https://img.shields.io/badge/Made_with-Claude-D97756?logo=anthropic)](https://claude.ai) [![Gemini Flash Antigravity](https://img.shields.io/badge/Gemini%20Flash-Antigravity-4f86f7?logo=google-gemini&logoColor=white)](https://github.com/google-gemini) [![CI](https://github.com/jsglazer/enhanced-notes/actions/workflows/ci.yml/badge.svg)](https://github.com/jsglazer/enhanced-notes/actions/workflows/ci.yml) [![CodeQL](https://github.com/jsglazer/enhanced-notes/actions/workflows/codeql.yml/badge.svg)](https://github.com/jsglazer/enhanced-notes/actions/workflows/codeql.yml) [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/jsglazer/enhanced-notes/badge)](https://scorecard.dev/viewer/?uri=github.com/jsglazer/enhanced-notes)
 
-A Zotero plugin to expand the capability of notes and to sync notes to other locations (e.g., Obsidian). This is a fork of [windingwind's zotero-better-notes](https://github.com/windingwind/zotero-better-notes). This fork adds: a **sandboxed Liquid template language** (replacing the original arbitrary-JavaScript template engine), **native annotation color labels**, **multiple synced notes per item**, **automatic 3-way merge** of non-conflicting sync edits, keyboard shortcuts, more sync management options, cleaner exports to Obsidian, better error handling, more menu items, and other enhancements.
+A Zotero plugin to expand the capability of notes and to sync notes to other locations (e.g., Obsidian). This is a fork of [windingwind's zotero-better-notes](https://github.com/windingwind/zotero-better-notes). This fork adds: a **sandboxed Liquid template language** (replacing the original arbitrary-JavaScript template engine), **native annotation color labels**, **multiple synced notes per item**, **automatic 3-way merge** of non-conflicting sync edits, a **richer note editor** (live math and callout rendering, code highlighting, collapsible sections, markdown shortcuts, custom CSS), a **faithful Markdown round trip**, keyboard shortcuts, more sync management options, cleaner exports to Obsidian, better error handling, more menu items, and other enhancements.
 
 ## Installation
+
+**Requires Zotero 8** (minimum 8.0-beta.21).
 
 1. Download `enhanced-notes.xpi` from above or from the [releases page](https://github.com/jsglazer/enhanced-notes/releases)
 2. In Zotero: **Tools → Plugins → gear icon → Install Plugin From File**
@@ -29,6 +31,7 @@ A Zotero plugin to expand the capability of notes and to sync notes to other loc
 - **Annotation color labels** — assign a meaning to each highlight color (e.g. Yellow = "Important"); shown before each exported annotation, used to **group annotations into per-label sections** (`{% annotations grouped %}`) in a configurable order, and applied throughout the reader's own color UI — the new-highlight color picker, the sidebar's color-filter row, and **changing an existing annotation's color** — so Zotero's built-in color names (e.g. "Yellow") are renamed everywhere, not just when the highlight is first created. Also exposed as JSON at `/enhanced-notes/color-labels` on Zotero's local HTTP server (the one Better BibTeX registers `/better-bibtex/...` on) so other tools — e.g. [zotero-manager](https://github.com/jsglazer/zotero-manager)'s **Sync from Enhanced Notes** — can read the mapping instead of maintaining a second copy
 - **Item tagging endpoint** — `POST /enhanced-notes/tag` on that same local HTTP server lets an external tool add tags to an item in your library. Zotero's own local API is read-only by construction (every endpoint is `GET`-only) and Better BibTeX's JSON-RPC is read/export only, so without this there is no way for a local tool to write a tag. Send `{ "itemKey": "ABCD2345", "libraryID": 1, "tags": ["2026-B", "POGO801"] }` and get back `{ itemKey, added, existing }`. Tags are added as **manual** tags, tags already on the item are reported and never duplicated, and the item isn't saved at all when nothing changed — so a tool can post the same tags repeatedly without bumping the item version or provoking a sync round-trip. An `itemKey` naming an attachment or child note tags its **parent**, so the source gets tagged rather than the PDF hanging off it. Built for an Obsidian Templater workflow that tags the cited work with the class it was assigned for. (Note: Zotero drops any request carrying an `Origin` header, so a browser-context caller — including Obsidian's `requestUrl` — can't reach this; use a plain HTTP client.)
 - **Settings Sync** — keep your colour labels, note templates, editor options and sync settings identical on every computer. Settings travel inside a single note in your library, carried by **Zotero's own sync** — no cloud folder, no extra account, nothing to configure per machine beyond ticking the box. (Zotero syncs library data but never `prefs.js`, so a library item is the only Zotero-native channel available to a plugin.) The note is filed under an **Enhanced Notes** collection and tagged; when settings change on another computer you're shown exactly which ones differ and asked before anything is applied. Machine-specific state — per-note sync paths, window sizes — is deliberately never synced. **Export…/Import…** buttons write the same payload to a JSON file, for moving settings between libraries that don't share a Zotero account. Off by default, since enabling it creates the note in your library
+- **Link Creator** (`⌃⌥L`) — build links between notes in either direction: an **outbound** link from this note to another, or an **inbound** link inserted into another note pointing back here, with a note picker, an outline picker for linking to a specific heading, and a live preview of the target
 - **Export** — export notes to Markdown, PDF, DOCX, LaTeX, or FreeMind
 - **Import** — import Markdown files as Zotero notes
 - **Math** — KaTeX math rendering, both in exports and **live in the note editor**: a formula displays as rendered math while you read, and reverts to editable TeX the moment you click into it
@@ -36,6 +39,12 @@ A Zotero plugin to expand the capability of notes and to sync notes to other loc
 - **Workspace** — dedicated note workspace with outline and context panes
 - **Readable headings** — headings in the editor are styled as headings (size, weight, and a rule under the top two levels) rather than inheriting body text, so a note's structure is visible while you write
 - **Faithful Markdown round trip** — the `.md` mirrors the note instead of double-spacing every line: consecutive lines stay consecutive, a deliberate blank line stays a blank line, and highlights or coloured text inside a bullet survive syncing in both directions
+- **Callouts** — Obsidian's `> [!note]`, `> [!warning]`, `> [!tip]` and the rest render as coloured, icon-titled callouts in Zotero and stay callouts in your vault. The marker is ordinary text in an ordinary block quote, so both apps render the same note from the same characters
+- **Code blocks** — syntax highlighting for bash, CSS, Go, Java, JavaScript/TypeScript, JSON, Markdown, Python, R, SQL, XML/HTML and YAML; anything else is auto-detected
+- **Collapsible sections** — click the twisty beside a heading to fold everything under it. Folding is a view state and never edits the note, so it cannot trigger a sync
+- **Markdown shortcuts** — type `## ` for a heading, `- ` for a bullet, `1. ` for a numbered list, `> ` for a quote, ```` ```py ```` for a code block, or `**bold**`, `*italic*`, `` `code` ``, `~~strike~~` inline
+- **Comfortable reading width** — optional cap on the width of text blocks in a wide window; tables and images still use the full pane
+- **Custom CSS** — restyle the note editor from Settings → Enhanced Notes. Your rules are applied after the plugin's own, so they win, and they take effect immediately in notes you already have open. Presentation only: the note content and the synced Markdown are untouched
 
 ## Command Palette
 
@@ -47,8 +56,15 @@ Type `/` in the note editor (or press `⌃/`) to open the command palette. Quick
 | `ob`               | Insert Outbound Link |
 | `ib`               | Insert Inbound Link  |
 | `ic`               | Insert Citation      |
+| `oa`               | Open Attachment      |
+| `csl`              | Copy Section Link    |
+| `cll`              | Copy Line Link       |
+| `rt`               | Refresh Templates    |
 | `h1` / `h2` / `h3` | Headings             |
+| `pg`               | Paragraph            |
 | `ul` / `ol`        | Lists                |
+| `bq`               | Block Quote          |
+| `ms`               | Monospaced           |
 | `mb`               | Math Block           |
 | `tb`               | Table                |
 | `cf`               | Clear Formatting     |
