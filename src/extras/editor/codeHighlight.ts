@@ -3,23 +3,15 @@ import { Decoration, DecorationSet } from "prosemirror-view";
 import hljs from "highlight.js/lib/core";
 
 import bash from "highlight.js/lib/languages/bash";
-import c from "highlight.js/lib/languages/c";
-import cpp from "highlight.js/lib/languages/cpp";
-import csharp from "highlight.js/lib/languages/csharp";
 import css from "highlight.js/lib/languages/css";
 import go from "highlight.js/lib/languages/go";
 import java from "highlight.js/lib/languages/java";
 import javascript from "highlight.js/lib/languages/javascript";
 import json from "highlight.js/lib/languages/json";
 import markdown from "highlight.js/lib/languages/markdown";
-import php from "highlight.js/lib/languages/php";
 import python from "highlight.js/lib/languages/python";
 import r from "highlight.js/lib/languages/r";
-import ruby from "highlight.js/lib/languages/ruby";
-import rust from "highlight.js/lib/languages/rust";
 import sql from "highlight.js/lib/languages/sql";
-import swift from "highlight.js/lib/languages/swift";
-import typescript from "highlight.js/lib/languages/typescript";
 import xml from "highlight.js/lib/languages/xml";
 import yaml from "highlight.js/lib/languages/yaml";
 
@@ -31,9 +23,14 @@ export { tokenize, decodeLength };
  * U22: syntax highlighting for code blocks.
  *
  * highlight.js is imported from `lib/core` with an explicit language list
- * rather than the default bundle: the full package registers ~190 grammars and
- * would dominate the size of the injected editor script, which is parsed on
- * every editor open.
+ * rather than the default bundle: the full package ships ~190 grammars (~1.5 MB
+ * of source) and this script is injected and parsed for *every* note editor
+ * that opens, not once per session.
+ *
+ * The list below is deliberately short (U22b) and covers what tends to get
+ * pasted into research notes. A fence naming anything else is not an error —
+ * `resolveLanguage` returns undefined and the block falls back to
+ * `highlightAuto`, which is also more accurate with fewer candidates.
  *
  * Highlighting is applied as inline decorations over the existing text, so the
  * document is never rewritten — no transaction, no dirty note, no sync.
@@ -41,33 +38,33 @@ export { tokenize, decodeLength };
 
 const LANGUAGES: Record<string, any> = {
   bash,
-  c,
-  cpp,
-  csharp,
   css,
   go,
   java,
   javascript,
   json,
   markdown,
-  php,
   python,
   r,
-  ruby,
-  rust,
   sql,
-  swift,
-  typescript,
   xml,
   yaml,
 };
 
-/** Common spellings users actually type in a fence. */
+/**
+ * Common spellings users actually type in a fence.
+ *
+ * `ts`/`tsx` deliberately resolve to the JavaScript grammar: the TypeScript
+ * grammar was dropped (U22b) to keep the injected script small, and JavaScript
+ * highlights TypeScript closely enough to be worth the zero extra bytes.
+ * Fences for languages with no grammar left (c, cpp, rust, …) simply fall
+ * through to `highlightAuto`.
+ */
 const ALIASES: Record<string, string> = {
   js: "javascript",
   jsx: "javascript",
-  ts: "typescript",
-  tsx: "typescript",
+  ts: "javascript",
+  tsx: "javascript",
   py: "python",
   sh: "bash",
   shell: "bash",
@@ -75,11 +72,6 @@ const ALIASES: Record<string, string> = {
   yml: "yaml",
   html: "xml",
   svg: "xml",
-  "c++": "cpp",
-  "c#": "csharp",
-  cs: "csharp",
-  rb: "ruby",
-  rs: "rust",
   golang: "go",
   postgres: "sql",
   psql: "sql",
