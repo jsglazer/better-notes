@@ -6,7 +6,7 @@
     addonRef: "EnhancedNotes",
     prefsPrefix: "extensions.zotero.EnhancedNotes",
     addonInstance: "EnhancedNotes",
-    dataSchemaVersion: "9",
+    dataSchemaVersion: "9"
   };
 
   // test/utils/global.ts
@@ -15,8 +15,8 @@
   }
 
   // test/tests/startup.spec.ts
-  describe("Startup", function () {
-    it("should have plugin instance defined", function () {
+  describe("Startup", function() {
+    it("should have plugin instance defined", function() {
       assert.isNotEmpty(getAddon());
     });
   });

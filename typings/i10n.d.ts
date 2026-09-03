@@ -101,6 +101,7 @@ export type FluentMessageId =
   | 'inbound-step3-middle'
   | 'keepLink'
   | 'latex-merge'
+  | 'link'
   | 'links-embed'
   | 'links-keep'
   | 'links-remove'

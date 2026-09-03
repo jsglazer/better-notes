@@ -24,10 +24,7 @@
       this.initializeDebugBridge();
     }
     static setModule(instance) {
-      if (
-        !instance.debugBridge?.version ||
-        instance.debugBridge.version < _DebugBridge.version
-      ) {
+      if (!instance.debugBridge?.version || instance.debugBridge.version < _DebugBridge.version) {
         instance.debugBridge = new _DebugBridge();
       }
     }
@@ -42,26 +39,16 @@
             return;
           }
           const params = {};
-          uriString
-            .split("?")
-            .pop()
-            ?.split("&")
-            .forEach((p) => {
-              params[p.split("=")[0]] = decodeURIComponent(p.split("=")[1]);
-            });
-          const skipPasswordCheck =
-            toolkitGlobal_default.getInstance()?.debugBridge
-              .disableDebugBridgePassword;
+          uriString.split("?").pop()?.split("&").forEach((p) => {
+            params[p.split("=")[0]] = decodeURIComponent(p.split("=")[1]);
+          });
+          const skipPasswordCheck = toolkitGlobal_default.getInstance()?.debugBridge.disableDebugBridgePassword;
           let allowed = false;
           if (skipPasswordCheck) {
             allowed = true;
           } else {
-            if (
-              typeof params.password === "undefined" &&
-              typeof this.password === "undefined"
-            ) {
-              allowed =
-                window2.confirm(`External App ${params.app} wants to execute command without password.
+            if (typeof params.password === "undefined" && typeof this.password === "undefined") {
+              allowed = window2.confirm(`External App ${params.app} wants to execute command without password.
 Command:
 ${(params.run || params.file || "").slice(0, 100)}
 If you do not know what it is, please click Cancel to deny.`);
@@ -72,9 +59,8 @@ If you do not know what it is, please click Cancel to deny.`);
           if (allowed) {
             if (params.run) {
               try {
-                const AsyncFunction = Object.getPrototypeOf(
-                  async () => {},
-                ).constructor;
+                const AsyncFunction = Object.getPrototypeOf(async () => {
+                }).constructor;
                 const f = new AsyncFunction("Zotero,window", params.run);
                 await f(Zotero2, window2);
               } catch (e) {
@@ -86,7 +72,7 @@ If you do not know what it is, please click Cancel to deny.`);
               try {
                 Services.scriptloader.loadSubScript(params.file, {
                   Zotero: Zotero2,
-                  window: window2,
+                  window: window2
                 });
               } catch (e) {
                 Zotero2.debug(e);
@@ -97,11 +83,9 @@ If you do not know what it is, please click Cancel to deny.`);
         },
         newChannel(uri) {
           this.doAction(uri);
-        },
+        }
       };
-      Services.io.getProtocolHandler("zotero").wrappedJSObject._extensions[
-        "zotero://ztoolkit-debug"
-      ] = debugBridgeExtension;
+      Services.io.getProtocolHandler("zotero").wrappedJSObject._extensions["zotero://ztoolkit-debug"] = debugBridgeExtension;
     }
   };
 
@@ -115,17 +99,12 @@ If you do not know what it is, please click Cancel to deny.`);
       this.initializePluginBridge();
     }
     static setModule(instance) {
-      if (
-        !instance.pluginBridge?.version ||
-        instance.pluginBridge.version < _PluginBridge.version
-      ) {
+      if (!instance.pluginBridge?.version || instance.pluginBridge.version < _PluginBridge.version) {
         instance.pluginBridge = new _PluginBridge();
       }
     }
     initializePluginBridge() {
-      const { AddonManager } = _importESModule(
-        "resource://gre/modules/AddonManager.sys.mjs",
-      );
+      const { AddonManager } = _importESModule("resource://gre/modules/AddonManager.sys.mjs");
       const Zotero2 = BasicTool.getZotero();
       const pluginBridgeExtension = {
         noContent: true,
@@ -136,24 +115,12 @@ If you do not know what it is, please click Cancel to deny.`);
               return;
             }
             const params = {};
-            uriString
-              .split("?")
-              .pop()
-              ?.split("&")
-              .forEach((p) => {
-                params[p.split("=")[0]] = decodeURIComponent(p.split("=")[1]);
-              });
+            uriString.split("?").pop()?.split("&").forEach((p) => {
+              params[p.split("=")[0]] = decodeURIComponent(p.split("=")[1]);
+            });
             if (params.action === "install" && params.url) {
-              if (
-                (params.minVersion &&
-                  Services.vc.compare(Zotero2.version, params.minVersion) <
-                    0) ||
-                (params.maxVersion &&
-                  Services.vc.compare(Zotero2.version, params.maxVersion) > 0)
-              ) {
-                throw new Error(
-                  `Plugin is not compatible with Zotero version ${Zotero2.version}.The plugin requires Zotero version between ${params.minVersion} and ${params.maxVersion}.`,
-                );
+              if (params.minVersion && Services.vc.compare(Zotero2.version, params.minVersion) < 0 || params.maxVersion && Services.vc.compare(Zotero2.version, params.maxVersion) > 0) {
+                throw new Error(`Plugin is not compatible with Zotero version ${Zotero2.version}.The plugin requires Zotero version between ${params.minVersion} and ${params.maxVersion}.`);
               }
               const addon = await AddonManager.getInstallForURL(params.url);
               if (addon && addon.state === AddonManager.STATE_AVAILABLE) {
@@ -170,22 +137,15 @@ If you do not know what it is, please click Cancel to deny.`);
         },
         newChannel(uri) {
           this.doAction(uri);
-        },
+        }
       };
-      Services.io.getProtocolHandler("zotero").wrappedJSObject._extensions[
-        "zotero://plugin"
-      ] = pluginBridgeExtension;
+      Services.io.getProtocolHandler("zotero").wrappedJSObject._extensions["zotero://plugin"] = pluginBridgeExtension;
     }
   };
   function hint(content, success) {
     const progressWindow = new Zotero.ProgressWindow({ closeOnClick: true });
     progressWindow.changeHeadline("Plugin Toolkit");
-    progressWindow.progress = new progressWindow.ItemProgress(
-      success
-        ? "chrome://zotero/skin/tick.png"
-        : "chrome://zotero/skin/cross.png",
-      content,
-    );
+    progressWindow.progress = new progressWindow.ItemProgress(success ? "chrome://zotero/skin/tick.png" : "chrome://zotero/skin/cross.png", content);
     progressWindow.progress.setProgress(100);
     progressWindow.show();
     progressWindow.startCloseTimer(5e3);
@@ -213,7 +173,8 @@ If you do not know what it is, please click Cancel to deny.`);
         } else {
           _Zotero = BasicTool.getZotero();
         }
-      } catch {}
+      } catch {
+      }
       if (!_Zotero) {
         return void 0;
       }
@@ -237,7 +198,7 @@ If you do not know what it is, please click Cancel to deny.`);
     new BasicTool().log("Initializing ToolkitGlobal modules");
     setModule(instance, "prompt", {
       _ready: false,
-      instance: void 0,
+      instance: void 0
     });
     DebugBridge.setModule(instance);
     PluginBridge.setModule(instance);
@@ -293,7 +254,7 @@ If you do not know what it is, please click Cancel to deny.`);
           _type: "toolkitlog",
           disableConsole: false,
           disableZLog: false,
-          prefix: "",
+          prefix: ""
         },
         // We will remove this in the future, for now just let it be lazy loaded.
         get debug() {
@@ -302,36 +263,32 @@ If you do not know what it is, please click Cancel to deny.`);
           }
           this._debug = toolkitGlobal_default.getInstance()?.debugBridge || {
             disableDebugBridgePassword: false,
-            password: "",
+            password: ""
           };
           return this._debug;
         },
         api: {
-          pluginID: "zotero-plugin-toolkit@windingwind.com",
+          pluginID: "zotero-plugin-toolkit@windingwind.com"
         },
         listeners: {
           callbacks: {
             onMainWindowLoad: /* @__PURE__ */ new Set(),
             onMainWindowUnload: /* @__PURE__ */ new Set(),
-            onPluginUnload: /* @__PURE__ */ new Set(),
+            onPluginUnload: /* @__PURE__ */ new Set()
           },
           _mainWindow: void 0,
-          _plugin: void 0,
-        },
+          _plugin: void 0
+        }
       };
       try {
-        if (
-          typeof globalThis.ChromeUtils?.importESModule !== "undefined" ||
-          typeof globalThis.ChromeUtils?.import !== "undefined"
-        ) {
-          const { ConsoleAPI } = _importESModule(
-            "resource://gre/modules/Console.sys.mjs",
-          );
+        if (typeof globalThis.ChromeUtils?.importESModule !== "undefined" || typeof globalThis.ChromeUtils?.import !== "undefined") {
+          const { ConsoleAPI } = _importESModule("resource://gre/modules/Console.sys.mjs");
           this._console = new ConsoleAPI({
-            consoleID: `${this._basicOptions.api.pluginID}-${Date.now()}`,
+            consoleID: `${this._basicOptions.api.pluginID}-${Date.now()}`
           });
         }
-      } catch {}
+      } catch {
+      }
       this.updateOptions(data);
     }
     getGlobal(k) {
@@ -366,10 +323,7 @@ If you do not know what it is, please click Cancel to deny.`);
      * @param elem
      */
     isXULElement(elem) {
-      return (
-        elem.namespaceURI ===
-        "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-      );
+      return elem.namespaceURI === "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
     }
     /**
      * Create an XUL element
@@ -405,7 +359,8 @@ If you do not know what it is, please click Cancel to deny.`);
         } else {
           _Zotero = _BasicTool.getZotero();
         }
-      } catch {}
+      } catch {
+      }
       let options;
       if (data[data.length - 1]?._type === "toolkitlog") {
         options = data.pop();
@@ -441,21 +396,18 @@ If you do not know what it is, please click Cancel to deny.`);
           if (typeof _Zotero === "undefined") {
             return;
           }
-          _Zotero.debug(
-            data
-              .map((d) => {
-                try {
-                  return typeof d === "object" ? JSON.stringify(d) : String(d);
-                } catch {
-                  _Zotero.debug(d);
-                  return "";
-                }
-              })
-              .join("\n"),
-          );
+          _Zotero.debug(data.map((d) => {
+            try {
+              return typeof d === "object" ? JSON.stringify(d) : String(d);
+            } catch {
+              _Zotero.debug(d);
+              return "";
+            }
+          }).join("\n"));
         }
       } catch (e) {
-        if (_Zotero) Zotero.logError(e);
+        if (_Zotero)
+          Zotero.logError(e);
         else {
           console.error(e);
         }
@@ -505,11 +457,7 @@ If you do not know what it is, please click Cancel to deny.`);
      */
     _ensureRemoveListener() {
       const { listeners } = this._basicOptions;
-      if (
-        listeners._mainWindow &&
-        listeners.callbacks.onMainWindowLoad.size === 0 &&
-        listeners.callbacks.onMainWindowUnload.size === 0
-      ) {
+      if (listeners._mainWindow && listeners.callbacks.onMainWindowLoad.size === 0 && listeners.callbacks.onMainWindowUnload.size === 0) {
         Services.wm.removeListener(listeners._mainWindow);
         delete listeners._mainWindow;
       }
@@ -530,14 +478,10 @@ If you do not know what it is, please click Cancel to deny.`);
           const domWindow = xulWindow.docShell.domWindow;
           const onload = async () => {
             domWindow.removeEventListener("load", onload, false);
-            if (
-              domWindow.location.href !==
-              "chrome://zotero/content/zoteroPane.xhtml"
-            ) {
+            if (domWindow.location.href !== "chrome://zotero/content/zoteroPane.xhtml") {
               return;
             }
-            for (const cbk of this._basicOptions.listeners.callbacks
-              .onMainWindowLoad) {
+            for (const cbk of this._basicOptions.listeners.callbacks.onMainWindowLoad) {
               try {
                 cbk(domWindow);
               } catch (e) {
@@ -549,21 +493,17 @@ If you do not know what it is, please click Cancel to deny.`);
         },
         onCloseWindow: async (xulWindow) => {
           const domWindow = xulWindow.docShell.domWindow;
-          if (
-            domWindow.location.href !==
-            "chrome://zotero/content/zoteroPane.xhtml"
-          ) {
+          if (domWindow.location.href !== "chrome://zotero/content/zoteroPane.xhtml") {
             return;
           }
-          for (const cbk of this._basicOptions.listeners.callbacks
-            .onMainWindowUnload) {
+          for (const cbk of this._basicOptions.listeners.callbacks.onMainWindowUnload) {
             try {
               cbk(domWindow);
             } catch (e) {
               this.log(e);
             }
           }
-        },
+        }
       };
       this._basicOptions.listeners._mainWindow = mainWindowListener;
       Services.wm.addListener(mainWindowListener);
@@ -577,15 +517,14 @@ If you do not know what it is, please click Cancel to deny.`);
       }
       const pluginListener = {
         shutdown: (...args) => {
-          for (const cbk of this._basicOptions.listeners.callbacks
-            .onPluginUnload) {
+          for (const cbk of this._basicOptions.listeners.callbacks.onPluginUnload) {
             try {
               cbk(...args);
             } catch (e) {
               this.log(e);
             }
           }
-        },
+        }
       };
       this._basicOptions.listeners._plugin = pluginListener;
       Zotero.Plugins.addObserver(pluginListener);
@@ -605,9 +544,7 @@ If you do not know what it is, please click Cancel to deny.`);
       if (typeof Zotero !== "undefined") {
         return Zotero;
       }
-      const { Zotero: _Zotero } = ChromeUtils.importESModule(
-        "chrome://zotero/content/zotero.mjs",
-      );
+      const { Zotero: _Zotero } = ChromeUtils.importESModule("chrome://zotero/content/zotero.mjs");
       return _Zotero;
     }
   };
@@ -623,10 +560,7 @@ If you do not know what it is, please click Cancel to deny.`);
   };
   function unregister(tools) {
     Object.values(tools).forEach((tool) => {
-      if (
-        tool instanceof ManagerTool ||
-        typeof tool?.unregisterAll === "function"
-      ) {
+      if (tool instanceof ManagerTool || typeof tool?.unregisterAll === "function") {
         tool.unregisterAll();
       }
     });
@@ -641,7 +575,7 @@ If you do not know what it is, please click Cancel to deny.`);
           _origin._version = BasicTool._version;
         }
         return _origin;
-      },
+      }
     });
   }
   function _importESModule(path) {
@@ -661,20 +595,15 @@ If you do not know what it is, please click Cancel to deny.`);
     filePath = "";
     constructor() {
       super();
-      this.transferable = Components.classes[
-        "@mozilla.org/widget/transferable;1"
-      ].createInstance(Components.interfaces.nsITransferable);
-      this.clipboardService = Components.classes[
-        "@mozilla.org/widget/clipboard;1"
-      ].getService(Components.interfaces.nsIClipboard);
+      this.transferable = Components.classes["@mozilla.org/widget/transferable;1"].createInstance(Components.interfaces.nsITransferable);
+      this.clipboardService = Components.classes["@mozilla.org/widget/clipboard;1"].getService(Components.interfaces.nsIClipboard);
       this.transferable.init(null);
     }
     addText(source, type = "text/plain") {
-      const str = Components.classes[
-        "@mozilla.org/supports-string;1"
-      ].createInstance(Components.interfaces.nsISupportsString);
+      const str = Components.classes["@mozilla.org/supports-string;1"].createInstance(Components.interfaces.nsISupportsString);
       str.data = source;
-      if (type === "text/unicode") type = "text/plain";
+      if (type === "text/unicode")
+        type = "text/plain";
       this.transferable.addDataFlavor(type);
       this.transferable.setTransferData(type, str, source.length * 2);
       return this;
@@ -691,9 +620,7 @@ If you do not know what it is, please click Cancel to deny.`);
       while (n--) {
         u8arr[n] = bstr.charCodeAt(n);
       }
-      const imgTools = Components.classes[
-        "@mozilla.org/image/tools;1"
-      ].getService(Components.interfaces.imgITools);
+      const imgTools = Components.classes["@mozilla.org/image/tools;1"].getService(Components.interfaces.imgITools);
       let mimeType;
       let img;
       if (this.getGlobal("Zotero").platformMajorVersion >= 102) {
@@ -701,9 +628,7 @@ If you do not know what it is, please click Cancel to deny.`);
         mimeType = "application/x-moz-nativeimage";
       } else {
         mimeType = `image/png`;
-        img = Components.classes[
-          "@mozilla.org/supports-interface-pointer;1"
-        ].createInstance(Components.interfaces.nsISupportsInterfacePointer);
+        img = Components.classes["@mozilla.org/supports-interface-pointer;1"].createInstance(Components.interfaces.nsISupportsInterfacePointer);
         img.data = imgTools.decodeImageFromArrayBuffer(u8arr.buffer, mimeType);
       }
       this.transferable.addDataFlavor(mimeType);
@@ -711,9 +636,7 @@ If you do not know what it is, please click Cancel to deny.`);
       return this;
     }
     addFile(path) {
-      const file = Components.classes[
-        "@mozilla.org/file/local;1"
-      ].createInstance(Components.interfaces.nsIFile);
+      const file = Components.classes["@mozilla.org/file/local;1"].createInstance(Components.interfaces.nsIFile);
       file.initWithPath(path);
       this.transferable.addDataFlavor("application/x-moz-file");
       this.transferable.setTransferData("application/x-moz-file", file);
@@ -722,16 +645,12 @@ If you do not know what it is, please click Cancel to deny.`);
     }
     copy() {
       try {
-        this.clipboardService.setData(
-          this.transferable,
-          null,
-          Components.interfaces.nsIClipboard.kGlobalClipboard,
-        );
+        this.clipboardService.setData(this.transferable, null, Components.interfaces.nsIClipboard.kGlobalClipboard);
       } catch (e) {
         if (this.filePath && Zotero.isMac) {
           Zotero.Utilities.Internal.exec(`/usr/bin/osascript`, [
             `-e`,
-            `set the clipboard to POSIX file "${this.filePath}"`,
+            `set the clipboard to POSIX file "${this.filePath}"`
           ]);
         } else {
           throw e;
@@ -764,7 +683,7 @@ If you do not know what it is, please click Cancel to deny.`);
         this._basicOptions.ui = {
           enableElementRecord: true,
           enableElementJSONLog: false,
-          enableElementDOMLog: true,
+          enableElementDOMLog: true
         };
       }
     }
@@ -797,14 +716,10 @@ If you do not know what it is, please click Cancel to deny.`);
       if (typeof args[2] === "string") {
         props = {
           namespace: args[2],
-          enableElementRecord: args[3],
+          enableElementRecord: args[3]
         };
       }
-      if (
-        (typeof props.enableElementJSONLog !== "undefined" &&
-          props.enableElementJSONLog) ||
-        this.basicOptions.ui.enableElementJSONLog
-      ) {
+      if (typeof props.enableElementJSONLog !== "undefined" && props.enableElementJSONLog || this.basicOptions.ui.enableElementJSONLog) {
         this.log(props);
       }
       props.properties = props.properties || props.directAttributes;
@@ -814,12 +729,7 @@ If you do not know what it is, please click Cancel to deny.`);
         const fragElem = doc.createDocumentFragment();
         elem = fragElem;
       } else {
-        let realElem =
-          props.id &&
-          (props.checkExistenceParent
-            ? props.checkExistenceParent
-            : doc
-          ).querySelector(`#${props.id}`);
+        let realElem = props.id && (props.checkExistenceParent ? props.checkExistenceParent : doc).querySelector(`#${props.id}`);
         if (realElem && props.ignoreIfExists) {
           return realElem;
         }
@@ -837,9 +747,7 @@ If you do not know what it is, please click Cancel to deny.`);
             const mightXUL = XULElementTagNames.includes(tagName);
             const mightSVG = SVGElementTagNames.includes(tagName);
             if (Number(mightHTML) + Number(mightXUL) + Number(mightSVG) > 1) {
-              this.log(
-                `[Warning] Creating element ${tagName} with no namespace specified. Found multiply namespace matches.`,
-              );
+              this.log(`[Warning] Creating element ${tagName} with no namespace specified. Found multiply namespace matches.`);
             }
             if (mightHTML) {
               namespace = "html";
@@ -854,19 +762,12 @@ If you do not know what it is, please click Cancel to deny.`);
           if (namespace === "xul") {
             realElem = this.createXULElement(doc, tagName);
           } else {
-            realElem = doc.createElementNS(
-              {
-                html: "http://www.w3.org/1999/xhtml",
-                svg: "http://www.w3.org/2000/svg",
-              }[namespace],
-              tagName,
-            );
+            realElem = doc.createElementNS({
+              html: "http://www.w3.org/1999/xhtml",
+              svg: "http://www.w3.org/2000/svg"
+            }[namespace], tagName);
           }
-          if (
-            typeof props.enableElementRecord !== "undefined"
-              ? props.enableElementRecord
-              : this.basicOptions.ui.enableElementRecord
-          ) {
+          if (typeof props.enableElementRecord !== "undefined" ? props.enableElementRecord : this.basicOptions.ui.enableElementRecord) {
             this.elementCache.push(new WeakRef(realElem));
           }
         }
@@ -902,19 +803,13 @@ If you do not know what it is, please click Cancel to deny.`);
         elem = realElem;
       }
       if (props.children?.length) {
-        const subElements = props.children
-          .map((childProps) => {
-            childProps.namespace = childProps.namespace || props.namespace;
-            return this.createElement(doc, childProps.tag, childProps);
-          })
-          .filter((e) => e);
+        const subElements = props.children.map((childProps) => {
+          childProps.namespace = childProps.namespace || props.namespace;
+          return this.createElement(doc, childProps.tag, childProps);
+        }).filter((e) => e);
         elem.append(...subElements);
       }
-      if (
-        typeof props.enableElementDOMLog !== "undefined"
-          ? props.enableElementDOMLog
-          : this.basicOptions.ui.enableElementDOMLog
-      ) {
+      if (typeof props.enableElementDOMLog !== "undefined" ? props.enableElementDOMLog : this.basicOptions.ui.enableElementDOMLog) {
         this.log(elem);
       }
       return elem;
@@ -928,9 +823,7 @@ If you do not know what it is, please click Cancel to deny.`);
      *          in which case the empty DocumentFragment is returned.
      */
     appendElement(properties, container) {
-      return container.appendChild(
-        this.createElement(container.ownerDocument, properties.tag, properties),
-      );
+      return container.appendChild(this.createElement(container.ownerDocument, properties.tag, properties));
     }
     /**
      * Inserts a node before a reference node as a child of its parent node.
@@ -940,18 +833,9 @@ If you do not know what it is, please click Cancel to deny.`);
      */
     insertElementBefore(properties, referenceNode) {
       if (referenceNode.parentNode)
-        return referenceNode.parentNode.insertBefore(
-          this.createElement(
-            referenceNode.ownerDocument,
-            properties.tag,
-            properties,
-          ),
-          referenceNode,
-        );
+        return referenceNode.parentNode.insertBefore(this.createElement(referenceNode.ownerDocument, properties.tag, properties), referenceNode);
       else
-        this.log(
-          `${referenceNode.tagName} has no parent, cannot insert ${properties.tag}`,
-        );
+        this.log(`${referenceNode.tagName} has no parent, cannot insert ${properties.tag}`);
     }
     /**
      * Replace oldNode with a new one.
@@ -961,14 +845,9 @@ If you do not know what it is, please click Cancel to deny.`);
      */
     replaceElement(properties, oldNode) {
       if (oldNode.parentNode)
-        return oldNode.parentNode.replaceChild(
-          this.createElement(oldNode.ownerDocument, properties.tag, properties),
-          oldNode,
-        );
+        return oldNode.parentNode.replaceChild(this.createElement(oldNode.ownerDocument, properties.tag, properties), oldNode);
       else
-        this.log(
-          `${oldNode.tagName} has no parent, cannot replace it with ${properties.tag}`,
-        );
+        this.log(`${oldNode.tagName} has no parent, cannot replace it with ${properties.tag}`);
     }
     /**
      * Parse XHTML to XUL fragment. For Zotero 6.
@@ -980,16 +859,11 @@ If you do not know what it is, please click Cancel to deny.`);
      */
     parseXHTMLToFragment(str, entities = [], defaultXUL = true) {
       const parser = new DOMParser();
-      const xulns =
-        "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
+      const xulns = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
       const htmlns = "http://www.w3.org/1999/xhtml";
-      const wrappedStr = `${
-        entities.length
-          ? `<!DOCTYPE bindings [ ${entities.reduce((preamble, url, index) => {
-              return `${preamble}<!ENTITY % _dtd-${index} SYSTEM "${url}"> %_dtd-${index}; `;
-            }, "")}]>`
-          : ""
-      }
+      const wrappedStr = `${entities.length ? `<!DOCTYPE bindings [ ${entities.reduce((preamble, url, index) => {
+        return `${preamble}<!ENTITY % _dtd-${index} SYSTEM "${url}"> %_dtd-${index}; `;
+      }, "")}]>` : ""}
       <html:div xmlns="${defaultXUL ? xulns : htmlns}"
           xmlns:xul="${xulns}" xmlns:html="${htmlns}">
       ${str}
@@ -1116,7 +990,7 @@ If you do not know what it is, please click Cancel to deny.`);
     "ul",
     "var",
     "video",
-    "wbr",
+    "wbr"
   ];
   var XULElementTagNames = [
     "action",
@@ -1229,7 +1103,7 @@ If you do not know what it is, please click Cancel to deny.`);
     "vbox",
     "window",
     "wizard",
-    "wizardpage",
+    "wizardpage"
   ];
   var SVGElementTagNames = [
     "a",
@@ -1294,7 +1168,7 @@ If you do not know what it is, please click Cancel to deny.`);
     "title",
     "tspan",
     "use",
-    "view",
+    "view"
   ];
 
   // node_modules/zotero-plugin-toolkit/dist/helpers/dialog.js
@@ -1323,28 +1197,28 @@ If you do not know what it is, please click Cancel to deny.`);
         attributes: { flex: 1 },
         styles: {
           width: "100%",
-          height: "100%",
+          height: "100%"
         },
-        children: [],
+        children: []
       };
       for (let i = 0; i < Math.max(row, 1); i++) {
         this.elementProps.children.push({
           tag: "hbox",
           attributes: { flex: 1 },
-          children: [],
+          children: []
         });
         for (let j = 0; j < Math.max(column, 1); j++) {
           this.elementProps.children[i].children.push({
             tag: "vbox",
             attributes: { flex: 1 },
-            children: [],
+            children: []
           });
         }
       }
       this.elementProps.children.push({
         tag: "hbox",
         attributes: { flex: 0, pack: "end" },
-        children: [],
+        children: []
       });
       this.dialogData = {};
     }
@@ -1356,19 +1230,13 @@ If you do not know what it is, please click Cancel to deny.`);
      * @param cellFlex If the cell is flex. Default true.
      */
     addCell(row, column, elementProps, cellFlex = true) {
-      if (
-        row >= this.elementProps.children.length ||
-        column >= this.elementProps.children[row].children.length
-      ) {
-        throw new Error(
-          `Cell index (${row}, ${column}) is invalid, maximum (${this.elementProps.children.length}, ${this.elementProps.children[0].children.length})`,
-        );
+      if (row >= this.elementProps.children.length || column >= this.elementProps.children[row].children.length) {
+        throw new Error(`Cell index (${row}, ${column}) is invalid, maximum (${this.elementProps.children.length}, ${this.elementProps.children[0].children.length})`);
       }
       this.elementProps.children[row].children[column].children = [
-        elementProps,
+        elementProps
       ];
-      this.elementProps.children[row].children[column].attributes.flex =
-        cellFlex ? 1 : 0;
+      this.elementProps.children[row].children[column].attributes.flex = cellFlex ? 1 : 0;
       return this;
     }
     /**
@@ -1381,15 +1249,11 @@ If you do not know what it is, please click Cancel to deny.`);
      * @param [options.callback] Callback of button click event.
      */
     addButton(label, id, options = {}) {
-      id =
-        id ||
-        `btn-${Zotero.Utilities.randomString()}-${/* @__PURE__ */ new Date().getTime()}`;
-      this.elementProps.children[
-        this.elementProps.children.length - 1
-      ].children.push({
+      id = id || `btn-${Zotero.Utilities.randomString()}-${(/* @__PURE__ */ new Date()).getTime()}`;
+      this.elementProps.children[this.elementProps.children.length - 1].children.push({
         tag: "vbox",
         styles: {
-          margin: "10px",
+          margin: "10px"
         },
         children: [
           {
@@ -1398,10 +1262,10 @@ If you do not know what it is, please click Cancel to deny.`);
             id,
             attributes: {
               type: "button",
-              "data-l10n-id": label,
+              "data-l10n-id": label
             },
             properties: {
-              innerHTML: label,
+              innerHTML: label
             },
             listeners: [
               {
@@ -1414,11 +1278,11 @@ If you do not know what it is, please click Cancel to deny.`);
                   if (!options.noClose) {
                     this.window.close();
                   }
-                },
-              },
-            ],
-          },
-        ],
+                }
+              }
+            ]
+          }
+        ]
       });
       return this;
     }
@@ -1460,37 +1324,20 @@ If you do not know what it is, please click Cancel to deny.`);
      * @param windowFeatures.noDialogMode Dialog mode window only has a close button. Set `true` to make maximize and minimize button visible.
      * @param windowFeatures.alwaysRaised Is the window always at the top.
      */
-    open(
-      title,
-      windowFeatures = {
-        centerscreen: true,
-        resizable: true,
-        fitContent: true,
-      },
-    ) {
-      this.window = openDialog(
-        this,
-        `dialog-${Zotero.Utilities.randomString()}-${/* @__PURE__ */ new Date().getTime()}`,
-        title,
-        this.elementProps,
-        this.dialogData,
-        windowFeatures,
-      );
+    open(title, windowFeatures = {
+      centerscreen: true,
+      resizable: true,
+      fitContent: true
+    }) {
+      this.window = openDialog(this, `dialog-${Zotero.Utilities.randomString()}-${(/* @__PURE__ */ new Date()).getTime()}`, title, this.elementProps, this.dialogData, windowFeatures);
       return this;
     }
   };
-  function openDialog(
-    dialogHelper,
-    targetId,
-    title,
-    elementProps,
-    dialogData,
-    windowFeatures = {
-      centerscreen: true,
-      resizable: true,
-      fitContent: true,
-    },
-  ) {
+  function openDialog(dialogHelper, targetId, title, elementProps, dialogData, windowFeatures = {
+    centerscreen: true,
+    resizable: true,
+    fitContent: true
+  }) {
     dialogData = dialogData || {};
     if (!dialogData.loadLock) {
       let loadResolve;
@@ -1504,7 +1351,7 @@ If you do not know what it is, please click Cancel to deny.`);
       dialogData.loadLock = {
         promise: loadPromise,
         resolve: loadResolve,
-        isResolved: () => isLoadResolved,
+        isResolved: () => isLoadResolved
       };
     }
     if (!dialogData.unloadLock) {
@@ -1514,7 +1361,7 @@ If you do not know what it is, please click Cancel to deny.`);
       });
       dialogData.unloadLock = {
         promise: unloadPromise,
-        resolve: unloadResolve,
+        resolve: unloadResolve
       };
     }
     let featureString = `resizable=${windowFeatures.resizable ? "yes" : "no"},`;
@@ -1536,118 +1383,90 @@ If you do not know what it is, please click Cancel to deny.`);
     if (windowFeatures.alwaysRaised) {
       featureString += "alwaysRaised=yes,";
     }
-    const win = dialogHelper.getGlobal("openDialog")(
-      "about:blank",
-      targetId || "_blank",
-      featureString,
-      dialogData,
-    );
-    dialogData.loadLock?.promise
-      .then(() => {
-        win.document.head.appendChild(
-          dialogHelper.createElement(win.document, "title", {
-            properties: { innerText: title },
-            attributes: { "data-l10n-id": title },
-          }),
-        );
-        let l10nFiles = dialogData.l10nFiles || [];
-        if (typeof l10nFiles === "string") {
-          l10nFiles = [l10nFiles];
-        }
-        l10nFiles.forEach((file) => {
-          win.document.head.appendChild(
-            dialogHelper.createElement(win.document, "link", {
-              properties: {
-                rel: "localization",
-                href: file,
-              },
-            }),
-          );
-        });
-        dialogHelper.appendElement(
+    const win = dialogHelper.getGlobal("openDialog")("about:blank", targetId || "_blank", featureString, dialogData);
+    dialogData.loadLock?.promise.then(() => {
+      win.document.head.appendChild(dialogHelper.createElement(win.document, "title", {
+        properties: { innerText: title },
+        attributes: { "data-l10n-id": title }
+      }));
+      let l10nFiles = dialogData.l10nFiles || [];
+      if (typeof l10nFiles === "string") {
+        l10nFiles = [l10nFiles];
+      }
+      l10nFiles.forEach((file) => {
+        win.document.head.appendChild(dialogHelper.createElement(win.document, "link", {
+          properties: {
+            rel: "localization",
+            href: file
+          }
+        }));
+      });
+      dialogHelper.appendElement({
+        tag: "fragment",
+        children: [
           {
-            tag: "fragment",
-            children: [
-              {
-                tag: "style",
-                properties: {
-                  // eslint-disable-next-line ts/no-use-before-define
-                  innerHTML: style,
-                },
-              },
-              {
-                tag: "link",
-                properties: {
-                  rel: "stylesheet",
-                  href: "chrome://zotero-platform/content/zotero.css",
-                },
-              },
-            ],
-          },
-          win.document.head,
-        );
-        replaceElement(elementProps, dialogHelper);
-        win.document.body.appendChild(
-          dialogHelper.createElement(win.document, "fragment", {
-            children: [elementProps],
-          }),
-        );
-        Array.from(win.document.querySelectorAll("*[data-bind]")).forEach(
-          (elem) => {
-            const bindKey = elem.getAttribute("data-bind");
-            const bindAttr = elem.getAttribute("data-attr");
-            const bindProp = elem.getAttribute("data-prop");
-            if (bindKey && dialogData && dialogData[bindKey]) {
-              if (bindProp) {
-                elem[bindProp] = dialogData[bindKey];
-              } else {
-                elem.setAttribute(bindAttr || "value", dialogData[bindKey]);
-              }
+            tag: "style",
+            properties: {
+              // eslint-disable-next-line ts/no-use-before-define
+              innerHTML: style
             }
           },
-        );
-        if (windowFeatures.fitContent) {
-          setTimeout(() => {
-            win.sizeToContent();
-          }, 300);
+          {
+            tag: "link",
+            properties: {
+              rel: "stylesheet",
+              href: "chrome://zotero-platform/content/zotero.css"
+            }
+          }
+        ]
+      }, win.document.head);
+      replaceElement(elementProps, dialogHelper);
+      win.document.body.appendChild(dialogHelper.createElement(win.document, "fragment", {
+        children: [elementProps]
+      }));
+      Array.from(win.document.querySelectorAll("*[data-bind]")).forEach((elem) => {
+        const bindKey = elem.getAttribute("data-bind");
+        const bindAttr = elem.getAttribute("data-attr");
+        const bindProp = elem.getAttribute("data-prop");
+        if (bindKey && dialogData && dialogData[bindKey]) {
+          if (bindProp) {
+            elem[bindProp] = dialogData[bindKey];
+          } else {
+            elem.setAttribute(bindAttr || "value", dialogData[bindKey]);
+          }
         }
-        win.focus();
-      })
-      .then(() => {
-        dialogData?.loadCallback && dialogData.loadCallback();
       });
+      if (windowFeatures.fitContent) {
+        setTimeout(() => {
+          win.sizeToContent();
+        }, 300);
+      }
+      win.focus();
+    }).then(() => {
+      dialogData?.loadCallback && dialogData.loadCallback();
+    });
     dialogData.unloadLock?.promise.then(() => {
       dialogData?.unloadCallback && dialogData.unloadCallback();
     });
-    win.addEventListener(
-      "DOMContentLoaded",
-      function onWindowLoad(_ev) {
-        win.arguments[0]?.loadLock?.resolve();
-        win.removeEventListener("DOMContentLoaded", onWindowLoad, false);
-      },
-      false,
-    );
+    win.addEventListener("DOMContentLoaded", function onWindowLoad(_ev) {
+      win.arguments[0]?.loadLock?.resolve();
+      win.removeEventListener("DOMContentLoaded", onWindowLoad, false);
+    }, false);
     win.addEventListener("beforeunload", function onWindowBeforeUnload(_ev) {
-      Array.from(win.document.querySelectorAll("*[data-bind]")).forEach(
-        (elem) => {
-          const dialogData2 = this.window.arguments[0];
-          const bindKey = elem.getAttribute("data-bind");
-          const bindAttr = elem.getAttribute("data-attr");
-          const bindProp = elem.getAttribute("data-prop");
-          if (bindKey && dialogData2) {
-            if (bindProp) {
-              dialogData2[bindKey] = elem[bindProp];
-            } else {
-              dialogData2[bindKey] = elem.getAttribute(bindAttr || "value");
-            }
+      Array.from(win.document.querySelectorAll("*[data-bind]")).forEach((elem) => {
+        const dialogData2 = this.window.arguments[0];
+        const bindKey = elem.getAttribute("data-bind");
+        const bindAttr = elem.getAttribute("data-attr");
+        const bindProp = elem.getAttribute("data-prop");
+        if (bindKey && dialogData2) {
+          if (bindProp) {
+            dialogData2[bindKey] = elem[bindProp];
+          } else {
+            dialogData2[bindKey] = elem.getAttribute(bindAttr || "value");
           }
-        },
-      );
-      this.window.removeEventListener(
-        "beforeunload",
-        onWindowBeforeUnload,
-        false,
-      );
+        }
+      });
+      this.window.removeEventListener("beforeunload", onWindowBeforeUnload, false);
       dialogData?.beforeUnloadCallback && dialogData.beforeUnloadCallback();
     });
     win.addEventListener("unload", function onWindowUnload(_ev) {
@@ -1675,8 +1494,8 @@ If you do not know what it is, please click Cancel to deny.`);
             listener: (ev) => {
               const select = ev.target.querySelector("select");
               select?.blur();
-            },
-          },
+            }
+          }
         ],
         children: [
           Object.assign({}, elementProps, {
@@ -1686,23 +1505,21 @@ If you do not know what it is, please click Cancel to deny.`);
                 type: "focus",
                 listener: (ev) => {
                   const select = ev.target;
-                  const dropdown =
-                    select.parentElement?.querySelector(".dropdown-content");
+                  const dropdown = select.parentElement?.querySelector(".dropdown-content");
                   dropdown && (dropdown.style.display = "block");
                   select.setAttribute("focus", "true");
-                },
+                }
               },
               {
                 type: "blur",
                 listener: (ev) => {
                   const select = ev.target;
-                  const dropdown =
-                    select.parentElement?.querySelector(".dropdown-content");
+                  const dropdown = select.parentElement?.querySelector(".dropdown-content");
                   dropdown && (dropdown.style.display = "none");
                   select.removeAttribute("focus");
-                },
-              },
-            ],
+                }
+              }
+            ]
           }),
           {
             tag: "div",
@@ -1710,29 +1527,25 @@ If you do not know what it is, please click Cancel to deny.`);
             children: elementProps.children?.map((option) => ({
               tag: "p",
               attributes: {
-                value: option.properties?.value,
+                value: option.properties?.value
               },
               properties: {
-                innerHTML:
-                  option.properties?.innerHTML ||
-                  option.properties?.textContent,
+                innerHTML: option.properties?.innerHTML || option.properties?.textContent
               },
               classList: ["dropdown-item"],
               listeners: [
                 {
                   type: "click",
                   listener: (ev) => {
-                    const select =
-                      ev.target.parentElement?.previousElementSibling;
-                    select &&
-                      (select.value = ev.target.getAttribute("value") || "");
+                    const select = ev.target.parentElement?.previousElementSibling;
+                    select && (select.value = ev.target.getAttribute("value") || "");
                     select?.blur();
-                  },
-                },
-              ],
-            })),
-          },
-        ],
+                  }
+                }
+              ]
+            }))
+          }
+        ]
       };
       for (const key in elementProps) {
         delete elementProps[key];
@@ -1750,7 +1563,7 @@ If you do not know what it is, please click Cancel to deny.`);
         listener: (ev) => {
           const href2 = ev.target?.getAttribute("zotero-href");
           href2 && uiTool.getGlobal("Zotero").launchURL(href2);
-        },
+        }
       });
       elementProps.classList ??= [];
       elementProps.classList.push("zotero-text-link");
@@ -1802,15 +1615,7 @@ html {
     directory;
     window;
     filterMask;
-    constructor(
-      title,
-      mode,
-      filters,
-      suggestion,
-      window2,
-      filterMask,
-      directory,
-    ) {
+    constructor(title, mode, filters, suggestion, window2, filterMask, directory) {
       super();
       this.title = title;
       this.mode = mode;
@@ -1821,21 +1626,18 @@ html {
       this.filterMask = filterMask;
     }
     async open() {
-      const Backend = ChromeUtils.importESModule(
-        "chrome://zotero/content/modules/filePicker.mjs",
-      ).FilePicker;
+      const Backend = ChromeUtils.importESModule("chrome://zotero/content/modules/filePicker.mjs").FilePicker;
       const fp = new Backend();
-      fp.init(
-        this.window || this.getGlobal("window"),
-        this.title,
-        this.getMode(fp),
-      );
+      fp.init(this.window || this.getGlobal("window"), this.title, this.getMode(fp));
       for (const [label, ext] of this.filters || []) {
         fp.appendFilter(label, ext);
       }
-      if (this.filterMask) fp.appendFilters(this.getFilterMask(fp));
-      if (this.suggestion) fp.defaultString = this.suggestion;
-      if (this.directory) fp.displayDirectory = this.directory;
+      if (this.filterMask)
+        fp.appendFilters(this.getFilterMask(fp));
+      if (this.suggestion)
+        fp.defaultString = this.suggestion;
+      if (this.directory)
+        fp.displayDirectory = this.directory;
       const userChoice = await fp.show();
       switch (userChoice) {
         case fp.returnOK:
@@ -2005,12 +1807,14 @@ html {
   `);
     }
     get currentStep() {
-      if (!this._steps) return void 0;
+      if (!this._steps)
+        return void 0;
       return this._steps[this._currentIndex];
     }
     get currentTarget() {
       const step = this.currentStep;
-      if (!step?.element) return void 0;
+      if (!step?.element)
+        return void 0;
       let elem;
       if (typeof step.element === "function") {
         elem = step.element();
@@ -2035,8 +1839,8 @@ html {
         state: {
           step: this._currentIndex,
           steps: this._steps,
-          controller: this,
-        },
+          controller: this
+        }
       };
     }
     get panel() {
@@ -2080,10 +1884,7 @@ html {
         this.moveNext();
       });
       this._panel.addEventListener("popupshown", this._handleShown.bind(this));
-      this._panel.addEventListener(
-        "popuphidden",
-        this._handleHidden.bind(this),
-      );
+      this._panel.addEventListener("popuphidden", this._handleHidden.bind(this));
       this._window.addEventListener("resize", this._centerPanel);
     }
     async show(steps) {
@@ -2096,7 +1897,8 @@ html {
       this._closed = false;
       this._autoNext = true;
       const step = this.currentStep;
-      if (!step) return;
+      if (!step)
+        return;
       const elem = this.currentTarget;
       if (step.onBeforeRender) {
         await step.onBeforeRender(this.hookProps);
@@ -2118,14 +1920,7 @@ html {
         x = this._window.innerWidth / 2;
         y = this._window.innerHeight / 2;
       }
-      this._panel.openPopup(
-        elem,
-        step.position || "after_start",
-        x,
-        y,
-        false,
-        false,
-      );
+      this._panel.openPopup(elem, step.position || "after_start", x, y, false, false);
     }
     hide() {
       this._panel.hidePopup();
@@ -2140,7 +1935,8 @@ html {
         this.hide();
         return;
       }
-      if (stepIndex < 0) stepIndex = 0;
+      if (stepIndex < 0)
+        stepIndex = 0;
       if (!this._steps[stepIndex]) {
         this._currentIndex = this._steps.length;
         this.hide();
@@ -2161,9 +1957,11 @@ html {
       this.moveTo(this._currentIndex - 1);
     }
     _handleShown() {
-      if (!this._steps) return;
+      if (!this._steps)
+        return;
       const step = this.currentStep;
-      if (!step) return;
+      if (!step)
+        return;
       this._header.innerHTML = step.title || "";
       this._body.innerHTML = step.description || "";
       this._panel.querySelectorAll(".guide-panel-button").forEach((elem) => {
@@ -2194,9 +1992,7 @@ html {
       }
       if (step.showProgress) {
         this._progress.hidden = false;
-        this._progress.textContent =
-          step.progressText ||
-          `${this._currentIndex + 1}/${this._steps.length}`;
+        this._progress.textContent = step.progressText || `${this._currentIndex + 1}/${this._steps.length}`;
       } else {
         this._progress.hidden = true;
       }
@@ -2216,15 +2012,14 @@ html {
       this._header.innerHTML = "";
       this._body.innerHTML = "";
       this._progress.textContent = "";
-      if (!this._steps) return;
+      if (!this._steps)
+        return;
       const step = this.currentStep;
       if (step && step.onExit) {
         await step.onExit(this.hookProps);
       }
       if (!this._noClose && (this._closed || !this.hasNext)) {
-        this._panel.dispatchEvent(
-          new this._window.CustomEvent("guide-finished"),
-        );
+        this._panel.dispatchEvent(new this._window.CustomEvent("guide-finished"));
         this._panel.remove();
         this._window.removeEventListener("resize", this._centerPanel);
         return;
@@ -2235,10 +2030,7 @@ html {
     }
     _centerPanel = () => {
       const win = this._window;
-      this._panel.moveTo(
-        win.screenX + win.innerWidth / 2 - this._panel.clientWidth / 2,
-        win.screenY + win.innerHeight / 2 - this._panel.clientHeight / 2,
-      );
+      this._panel.moveTo(win.screenX + win.innerWidth / 2 - this._panel.clientWidth / 2, win.screenY + win.innerHeight / 2 - this._panel.clientHeight / 2);
     };
     _createMask(targetElement) {
       const doc = targetElement?.ownerDocument || this._window.document;
@@ -2368,7 +2160,7 @@ html {
           return this.constructTempMap()[Symbol.iterator]();
         },
         [Symbol.toStringTag]: "MapLike",
-        _this: this,
+        _this: this
       };
       return mapLike;
     }
@@ -2419,7 +2211,7 @@ html {
     setValue(key, value) {
       const { key: newKey, value: newValue } = this.hooks.beforeSetValue({
         key,
-        value,
+        value
       });
       this.setKey(newKey);
       Zotero.Prefs.set(`${this.valuePrefPrefix}${newKey}`, newValue, true);
@@ -2489,7 +2281,7 @@ html {
             return true;
           }
           return Reflect.deleteProperty(target, p);
-        },
+        }
       });
     }
     constructTempMap() {
@@ -2502,7 +2294,7 @@ html {
   };
   var defaultHooks = {
     afterGetValue: ({ value }) => ({ value }),
-    beforeSetValue: ({ key, value }) => ({ key, value }),
+    beforeSetValue: ({ key, value }) => ({ key, value })
   };
   var parserHooks = {
     afterGetValue: ({ value }) => {
@@ -2516,7 +2308,7 @@ html {
     beforeSetValue: ({ key, value }) => {
       value = JSON.stringify(value);
       return { key, value };
-    },
+    }
   };
 
   // node_modules/zotero-plugin-toolkit/dist/helpers/patch.js
@@ -2532,7 +2324,7 @@ html {
       const { target, funcSign, patcher } = options;
       const origin = target[funcSign];
       this.log("patching ", funcSign);
-      target[funcSign] = function (...args) {
+      target[funcSign] = function(...args) {
         if (options.enabled)
           try {
             return patcher(origin).apply(this, args);
@@ -2544,12 +2336,14 @@ html {
       return this;
     }
     enable() {
-      if (!this.options) throw new Error("No patch data set");
+      if (!this.options)
+        throw new Error("No patch data set");
       this.options.enabled = true;
       return this;
     }
     disable() {
-      if (!this.options) throw new Error("No patch data set");
+      if (!this.options)
+        throw new Error("No patch data set");
       this.options.enabled = false;
       return this;
     }
@@ -2558,7 +2352,7 @@ html {
   // node_modules/zotero-plugin-toolkit/dist/helpers/progressWindow.js
   var icons = {
     success: "chrome://zotero/skin/tick.png",
-    fail: "chrome://zotero/skin/cross.png",
+    fail: "chrome://zotero/skin/cross.png"
   };
   var ProgressWindowHelper = class {
     win;
@@ -2573,14 +2367,11 @@ html {
      * @param options.closeTime
      * @param options.closeOtherProgressWindows
      */
-    constructor(
-      header,
-      options = {
-        closeOnClick: true,
-        closeTime: 5e3,
-      },
-    ) {
-      this.win = new (BasicTool.getZotero().ProgressWindow)(options);
+    constructor(header, options = {
+      closeOnClick: true,
+      closeTime: 5e3
+    }) {
+      this.win = new (BasicTool.getZotero()).ProgressWindow(options);
       this.lines = [];
       this.closeTime = options.closeTime || 5e3;
       this.win.changeHeadline(header);
@@ -2620,19 +2411,13 @@ html {
       if (this.lines?.length === 0) {
         return this;
       }
-      const idx =
-        typeof options.idx !== "undefined" &&
-        options.idx >= 0 &&
-        options.idx < this.lines.length
-          ? options.idx
-          : 0;
+      const idx = typeof options.idx !== "undefined" && options.idx >= 0 && options.idx < this.lines.length ? options.idx : 0;
       const icon = this.getIcon(options.type, options.icon);
       if (icon) {
         this.lines[idx].setItemTypeAndIcon(icon);
       }
       options.text && this.lines[idx].setText(options.text);
-      typeof options.progress === "number" &&
-        this.lines[idx].setProgress(options.progress);
+      typeof options.progress === "number" && this.lines[idx].setProgress(options.progress);
       this.updateIcons();
       return this;
     }
@@ -2665,7 +2450,8 @@ html {
             box.style.backgroundImage = `url(${box.dataset.itemType})`;
           }
         });
-      } catch {}
+      } catch {
+      }
     }
     changeHeadline(text, icon, postText) {
       this.win.changeHeadline(text, icon, postText);
@@ -2710,8 +2496,8 @@ html {
       this.VirtualizedTable = _require("components/virtualized-table");
       this.IntlProvider = _require("react-intl").IntlProvider;
       this.props = {
-        id: `vtable-${Zotero2.Utilities.randomString()}-${/* @__PURE__ */ new Date().getTime()}`,
-        getRowCount: () => 0,
+        id: `vtable-${Zotero2.Utilities.randomString()}-${(/* @__PURE__ */ new Date()).getTime()}`,
+        getRowCount: () => 0
       };
       this.localeStrings = Zotero2.Intl.strings;
     }
@@ -2760,31 +2546,21 @@ html {
             ref: (ref) => {
               this.treeInstance = ref;
               resolve(void 0);
-            },
+            }
           });
           if (vtableProps.getRowData && !vtableProps.renderItem) {
             Object.assign(vtableProps, {
-              renderItem: this.VirtualizedTable.makeRowRenderer(
-                vtableProps.getRowData,
-              ),
+              renderItem: this.VirtualizedTable.makeRowRenderer(vtableProps.getRowData)
             });
           }
-          const elem = this.React.createElement(
-            this.IntlProvider,
-            { locale: Zotero.locale, messages: Zotero.Intl.strings },
-            this.React.createElement(this.VirtualizedTable, vtableProps),
-          );
-          const container = this.window.document.getElementById(
-            this.containerId,
-          );
+          const elem = this.React.createElement(this.IntlProvider, { locale: Zotero.locale, messages: Zotero.Intl.strings }, this.React.createElement(this.VirtualizedTable, vtableProps));
+          const container = this.window.document.getElementById(this.containerId);
           this.ReactDOM.createRoot(container).render(elem);
-        })
-          .then(() => {
-            this.getGlobal("setTimeout")(() => {
-              refreshSelection();
-            });
-          })
-          .then(onfulfilled, onrejected);
+        }).then(() => {
+          this.getGlobal("setTimeout")(() => {
+            refreshSelection();
+          });
+        }).then(onfulfilled, onrejected);
       } else {
         refreshSelection();
       }
@@ -2797,12 +2573,12 @@ html {
     data = {
       getField: {},
       setField: {},
-      isFieldOfBase: {},
+      isFieldOfBase: {}
     };
     patchHelpers = {
       getField: new PatchHelper(),
       setField: new PatchHelper(),
-      isFieldOfBase: new PatchHelper(),
+      isFieldOfBase: new PatchHelper()
     };
     constructor(base) {
       super(base);
@@ -2812,26 +2588,19 @@ html {
         helper.setData({
           target: this.getGlobal("Zotero").Item.prototype,
           funcSign: type,
-          patcher: (original) =>
-            function (field, ...args) {
-              const originalThis = this;
-              const handler = _thisHelper.data[type][field];
-              if (typeof handler === "function") {
-                try {
-                  return handler(
-                    field,
-                    args[0],
-                    args[1],
-                    originalThis,
-                    original,
-                  );
-                } catch (e) {
-                  return field + String(e);
-                }
+          patcher: (original) => function(field, ...args) {
+            const originalThis = this;
+            const handler = _thisHelper.data[type][field];
+            if (typeof handler === "function") {
+              try {
+                return handler(field, args[0], args[1], originalThis, original);
+              } catch (e) {
+                return field + String(e);
               }
-              return original.apply(originalThis, [field, ...args]);
-            },
-          enabled: true,
+            }
+            return original.apply(originalThis, [field, ...args]);
+          },
+          enabled: true
         });
       }
     }
@@ -2883,8 +2652,7 @@ html {
     await reader._initPromise;
     await reader._lastView.initializedPromise;
     if (reader.type === "pdf")
-      await reader._lastView._iframeWindow.PDFViewerApplication
-        .initializedPromise;
+      await reader._lastView._iframeWindow.PDFViewerApplication.initializedPromise;
   }
 
   // node_modules/zotero-plugin-toolkit/dist/managers/keyboard.js
@@ -2897,10 +2665,7 @@ html {
       this.id = `kbd-${Zotero.Utilities.randomString()}`;
       this._ensureAutoUnregisterAll();
       this.addListenerCallback("onMainWindowLoad", this.initKeyboardListener);
-      this.addListenerCallback(
-        "onMainWindowUnload",
-        this.unInitKeyboardListener,
-      );
+      this.addListenerCallback("onMainWindowUnload", this.unInitKeyboardListener);
       this.initReaderKeyboardListener();
       for (const win of Zotero.getMainWindows()) {
         this.initKeyboardListener(win);
@@ -2925,14 +2690,8 @@ html {
      */
     unregisterAll() {
       this._keyboardCallbacks.clear();
-      this.removeListenerCallback(
-        "onMainWindowLoad",
-        this.initKeyboardListener,
-      );
-      this.removeListenerCallback(
-        "onMainWindowUnload",
-        this.unInitKeyboardListener,
-      );
+      this.removeListenerCallback("onMainWindowLoad", this.initKeyboardListener);
+      this.removeListenerCallback("onMainWindowUnload", this.unInitKeyboardListener);
       for (const win of Zotero.getMainWindows()) {
         this.unInitKeyboardListener(win);
       }
@@ -2940,14 +2699,8 @@ html {
     initKeyboardListener = this._initKeyboardListener.bind(this);
     unInitKeyboardListener = this._unInitKeyboardListener.bind(this);
     initReaderKeyboardListener() {
-      Zotero.Reader.registerEventListener(
-        "renderToolbar",
-        (event) => this.addReaderKeyboardCallback(event),
-        this._basicOptions.api.pluginID,
-      );
-      Zotero.Reader._readers.forEach((reader) =>
-        this.addReaderKeyboardCallback({ reader }),
-      );
+      Zotero.Reader.registerEventListener("renderToolbar", (event) => this.addReaderKeyboardCallback(event), this._basicOptions.api.pluginID);
+      Zotero.Reader._readers.forEach((reader) => this.addReaderKeyboardCallback({ reader }));
     }
     async addReaderKeyboardCallback(event) {
       const reader = event.reader;
@@ -2960,15 +2713,7 @@ html {
         return;
       }
       this._initKeyboardListener(reader._iframeWindow);
-      waitUntil(
-        () =>
-          !Components.utils.isDeadWrapper(reader._internalReader) &&
-          reader._internalReader?._primaryView?._iframeWindow,
-        () =>
-          this._initKeyboardListener(
-            reader._internalReader._primaryView?._iframeWindow,
-          ),
-      );
+      waitUntil(() => !Components.utils.isDeadWrapper(reader._internalReader) && reader._internalReader?._primaryView?._iframeWindow, () => this._initKeyboardListener(reader._internalReader._primaryView?._iframeWindow));
       reader._iframeWindow[initializedKey] = true;
     }
     _initKeyboardListener(win) {
@@ -2992,7 +2737,7 @@ html {
         this._cachedKey.merge(new KeyModifier(e), { allowOverwrite: false });
       }
       this.dispatchCallback(e, {
-        type: "keydown",
+        type: "keydown"
       });
     };
     triggerKeyup = async (e) => {
@@ -3003,7 +2748,7 @@ html {
       this._cachedKey = void 0;
       this.dispatchCallback(e, {
         keyboard: currentShortcut,
-        type: "keyup",
+        type: "keyup"
       });
     };
     dispatchCallback(...args) {
@@ -3029,9 +2774,7 @@ html {
         this.control = raw.includes("control");
         this.meta = raw.includes("meta");
         this.alt = raw.includes("alt");
-        this.key = raw
-          .replace(/(accel|shift|control|meta|alt|[ ,\-])/g, "")
-          .toLocaleLowerCase();
+        this.key = raw.replace(/(accel|shift|control|meta|alt|[ ,\-])/g, "").toLocaleLowerCase();
       } else if (raw instanceof _KeyModifier) {
         this.merge(raw, { allowOverwrite: true });
       } else {
@@ -3077,26 +2820,16 @@ html {
       if (typeof newMod === "string") {
         newMod = new _KeyModifier(newMod);
       }
-      if (
-        this.shift !== newMod.shift ||
-        this.alt !== newMod.alt ||
-        this.key.toLowerCase() !== newMod.key.toLowerCase()
-      ) {
+      if (this.shift !== newMod.shift || this.alt !== newMod.alt || this.key.toLowerCase() !== newMod.key.toLowerCase()) {
         return false;
       }
       if (this.accel || newMod.accel) {
         if (Zotero.isMac) {
-          if (
-            (this.accel || this.meta) !== (newMod.accel || newMod.meta) ||
-            this.control !== newMod.control
-          ) {
+          if ((this.accel || this.meta) !== (newMod.accel || newMod.meta) || this.control !== newMod.control) {
             return false;
           }
         } else {
-          if (
-            (this.accel || this.control) !== (newMod.accel || newMod.control) ||
-            this.meta !== newMod.meta
-          ) {
+          if ((this.accel || this.control) !== (newMod.accel || newMod.control) || this.meta !== newMod.meta) {
             return false;
           }
         }
@@ -3126,17 +2859,9 @@ html {
     getLocalized() {
       const raw = this.getRaw();
       if (Zotero.isMac) {
-        return raw
-          .replaceAll("control", "\u2303")
-          .replaceAll("alt", "\u2325")
-          .replaceAll("shift", "\u21E7")
-          .replaceAll("meta", "\u2318");
+        return raw.replaceAll("control", "\u2303").replaceAll("alt", "\u2325").replaceAll("shift", "\u21E7").replaceAll("meta", "\u2318");
       } else {
-        return raw
-          .replaceAll("control", "Ctrl")
-          .replaceAll("alt", "Alt")
-          .replaceAll("shift", "Shift")
-          .replaceAll("meta", "Win");
+        return raw.replaceAll("control", "Ctrl").replaceAll("alt", "Alt").replaceAll("shift", "Shift").replaceAll("meta", "Win");
       }
     }
     /**
@@ -3144,17 +2869,9 @@ html {
      */
     unLocalized(raw) {
       if (Zotero.isMac) {
-        return raw
-          .replaceAll("\u2303", "control")
-          .replaceAll("\u2325", "alt")
-          .replaceAll("\u21E7", "shift")
-          .replaceAll("\u2318", "meta");
+        return raw.replaceAll("\u2303", "control").replaceAll("\u2325", "alt").replaceAll("\u21E7", "shift").replaceAll("\u2318", "meta");
       } else {
-        return raw
-          .replaceAll("Ctrl", "control")
-          .replaceAll("Alt", "alt")
-          .replaceAll("Shift", "shift")
-          .replaceAll("Win", "meta");
+        return raw.replaceAll("Ctrl", "control").replaceAll("Alt", "alt").replaceAll("Shift", "shift").replaceAll("Win", "meta");
       }
     }
     mergeAttribute(attribute, value, allowOverwrite) {
@@ -3237,9 +2954,7 @@ html {
     register(menuPopup, options, insertPosition = "after", anchorElement) {
       let popup;
       if (typeof menuPopup === "string") {
-        popup = this.getGlobal("document").querySelector(
-          MenuSelector[menuPopup],
-        );
+        popup = this.getGlobal("document").querySelector(MenuSelector[menuPopup]);
       } else {
         popup = menuPopup;
       }
@@ -3257,12 +2972,12 @@ html {
             hidden: Boolean(menuitemOption.hidden),
             disabled: Boolean(menuitemOption.disabled),
             class: menuitemOption.class || "",
-            oncommand: menuitemOption.oncommand || "",
+            oncommand: menuitemOption.oncommand || ""
           },
           classList: menuitemOption.classList,
           styles: menuitemOption.styles || {},
           listeners: [],
-          children: [],
+          children: []
         };
         if (menuitemOption.icon) {
           if (!this.getGlobal("Zotero").isMac) {
@@ -3272,24 +2987,19 @@ html {
               elementOption.attributes.class += " menuitem-iconic";
             }
           }
-          elementOption.styles["list-style-image"] =
-            `url(${menuitemOption.icon})`;
+          elementOption.styles["list-style-image"] = `url(${menuitemOption.icon})`;
         }
         if (menuitemOption.commandListener) {
           elementOption.listeners?.push({
             type: "command",
-            listener: menuitemOption.commandListener,
+            listener: menuitemOption.commandListener
           });
         }
         if (menuitemOption.tag === "menuitem") {
           elementOption.attributes.type = menuitemOption.type || "";
           elementOption.attributes.checked = menuitemOption.checked || false;
         }
-        const menuItem = this.ui.createElement(
-          doc,
-          menuitemOption.tag,
-          elementOption,
-        );
+        const menuItem = this.ui.createElement(doc, menuitemOption.tag, elementOption);
         if (menuitemOption.isHidden || menuitemOption.getVisibility) {
           popup?.addEventListener("popupshowing", (ev) => {
             let hidden;
@@ -3322,11 +3032,7 @@ html {
             }
           });
         }
-        if (
-          (menuitemOption.tag === "menuitem" ||
-            menuitemOption.tag === "menuseparator") &&
-          menuitemOption.onShowing
-        ) {
+        if ((menuitemOption.tag === "menuitem" || menuitemOption.tag === "menuseparator") && menuitemOption.onShowing) {
           popup?.addEventListener("popupshowing", (ev) => {
             menuitemOption.onShowing(menuItem, ev);
           });
@@ -3334,7 +3040,7 @@ html {
         if (menuitemOption.tag === "menu") {
           const subPopup = this.ui.createElement(doc, "menupopup", {
             id: menuitemOption.popupId,
-            attributes: { onpopupshowing: menuitemOption.onpopupshowing || "" },
+            attributes: { onpopupshowing: menuitemOption.onpopupshowing || "" }
           });
           menuitemOption.children?.forEach((childOption) => {
             subPopup.append(genMenuElement(childOption));
@@ -3346,10 +3052,7 @@ html {
       const topMenuItem = genMenuElement(options);
       if (popup.childElementCount) {
         if (!anchorElement) {
-          anchorElement =
-            insertPosition === "after"
-              ? popup.lastElementChild
-              : popup.firstElementChild;
+          anchorElement = insertPosition === "after" ? popup.lastElementChild : popup.firstElementChild;
         }
         anchorElement[insertPosition](topMenuItem);
       } else {
@@ -3364,7 +3067,7 @@ html {
     }
   };
   var MenuSelector;
-  (function (MenuSelector2) {
+  (function(MenuSelector2) {
     MenuSelector2["menuFile"] = "#menu_FilePopup";
     MenuSelector2["menuEdit"] = "#menu_EditPopup";
     MenuSelector2["menuView"] = "#menu_viewPopup";
@@ -3391,7 +3094,7 @@ html {
      */
     defaultText = {
       placeholder: "Select a command...",
-      empty: "No commands found.",
+      empty: "No commands found."
     };
     /**
      * It controls the max line number of commands displayed in `commandsNode`.
@@ -3433,7 +3136,7 @@ html {
     createHTML() {
       this.promptNode = this.ui.createElement(this.document, "div", {
         styles: {
-          display: "none",
+          display: "none"
         },
         children: [
           {
@@ -3444,112 +3147,110 @@ html {
               top: "0",
               backgroundColor: "transparent",
               width: "100%",
-              height: "100%",
+              height: "100%"
             },
             listeners: [
               {
                 type: "click",
                 listener: () => {
                   this.promptNode.style.display = "none";
-                },
-              },
-            ],
-          },
-        ],
+                }
+              }
+            ]
+          }
+        ]
       });
-      this.promptNode.appendChild(
-        this.ui.createElement(this.document, "div", {
-          id: `zotero-plugin-toolkit-prompt`,
-          classList: ["prompt-container"],
-          children: [
-            {
-              tag: "div",
-              classList: ["input-container"],
-              children: [
-                {
-                  tag: "input",
-                  classList: ["prompt-input"],
-                  attributes: {
-                    type: "text",
-                    placeholder: this.defaultText.placeholder,
+      this.promptNode.appendChild(this.ui.createElement(this.document, "div", {
+        id: `zotero-plugin-toolkit-prompt`,
+        classList: ["prompt-container"],
+        children: [
+          {
+            tag: "div",
+            classList: ["input-container"],
+            children: [
+              {
+                tag: "input",
+                classList: ["prompt-input"],
+                attributes: {
+                  type: "text",
+                  placeholder: this.defaultText.placeholder
+                }
+              },
+              {
+                tag: "div",
+                classList: ["cta"]
+              }
+            ]
+          },
+          {
+            tag: "div",
+            classList: ["commands-containers"]
+          },
+          {
+            tag: "div",
+            classList: ["instructions"],
+            children: [
+              {
+                tag: "div",
+                classList: ["instruction"],
+                children: [
+                  {
+                    tag: "span",
+                    classList: ["key"],
+                    properties: {
+                      innerText: "\u2191\u2193"
+                    }
                   },
-                },
-                {
-                  tag: "div",
-                  classList: ["cta"],
-                },
-              ],
-            },
-            {
-              tag: "div",
-              classList: ["commands-containers"],
-            },
-            {
-              tag: "div",
-              classList: ["instructions"],
-              children: [
-                {
-                  tag: "div",
-                  classList: ["instruction"],
-                  children: [
-                    {
-                      tag: "span",
-                      classList: ["key"],
-                      properties: {
-                        innerText: "\u2191\u2193",
-                      },
-                    },
-                    {
-                      tag: "span",
-                      properties: {
-                        innerText: "to navigate",
-                      },
-                    },
-                  ],
-                },
-                {
-                  tag: "div",
-                  classList: ["instruction"],
-                  children: [
-                    {
-                      tag: "span",
-                      classList: ["key"],
-                      properties: {
-                        innerText: "enter",
-                      },
-                    },
-                    {
-                      tag: "span",
-                      properties: {
-                        innerText: "to trigger",
-                      },
-                    },
-                  ],
-                },
-                {
-                  tag: "div",
-                  classList: ["instruction"],
-                  children: [
-                    {
-                      tag: "span",
-                      classList: ["key"],
-                      properties: {
-                        innerText: "esc",
-                      },
-                    },
-                    {
-                      tag: "span",
-                      properties: {
-                        innerText: "to exit",
-                      },
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        }),
-      );
+                  {
+                    tag: "span",
+                    properties: {
+                      innerText: "to navigate"
+                    }
+                  }
+                ]
+              },
+              {
+                tag: "div",
+                classList: ["instruction"],
+                children: [
+                  {
+                    tag: "span",
+                    classList: ["key"],
+                    properties: {
+                      innerText: "enter"
+                    }
+                  },
+                  {
+                    tag: "span",
+                    properties: {
+                      innerText: "to trigger"
+                    }
+                  }
+                ]
+              },
+              {
+                tag: "div",
+                classList: ["instruction"],
+                children: [
+                  {
+                    tag: "span",
+                    classList: ["key"],
+                    properties: {
+                      innerText: "esc"
+                    }
+                  },
+                  {
+                    tag: "span",
+                    properties: {
+                      innerText: "to exit"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }));
       this.inputNode = this.promptNode.querySelector("input");
       this.document.documentElement.appendChild(this.promptNode);
     }
@@ -3561,15 +3262,13 @@ html {
      */
     showCommands(commands, clear = false) {
       if (clear) {
-        this.promptNode
-          .querySelectorAll(".commands-container")
-          .forEach((e) => e.remove());
+        this.promptNode.querySelectorAll(".commands-container").forEach((e) => e.remove());
       }
       this.inputNode.placeholder = this.defaultText.placeholder;
       const commandsContainer = this.createCommandsContainer();
       for (const command of commands) {
         try {
-          if (!command.name || (command.when && !command.when())) {
+          if (!command.name || command.when && !command.when()) {
             continue;
           }
         } catch {
@@ -3584,14 +3283,12 @@ html {
      */
     createCommandsContainer() {
       const commandsContainer = this.ui.createElement(this.document, "div", {
-        classList: ["commands-container"],
+        classList: ["commands-container"]
       });
       this.promptNode.querySelectorAll(".commands-container").forEach((e) => {
         e.style.display = "none";
       });
-      this.promptNode
-        .querySelector(".commands-containers")
-        .appendChild(commandsContainer);
+      this.promptNode.querySelector(".commands-containers").appendChild(commandsContainer);
       return commandsContainer;
     }
     /**
@@ -3600,7 +3297,7 @@ html {
      */
     getCommandsContainer() {
       return [
-        ...Array.from(this.promptNode.querySelectorAll(".commands-container")),
+        ...Array.from(this.promptNode.querySelectorAll(".commands-container"))
       ].find((e) => {
         return e.style.display !== "none";
       });
@@ -3625,43 +3322,41 @@ html {
                   {
                     tag: "span",
                     properties: {
-                      innerText: command.name,
-                    },
-                  },
-                ],
+                      innerText: command.name
+                    }
+                  }
+                ]
               },
               {
                 tag: "div",
                 classList: ["aux"],
-                children: command.label
-                  ? [
-                      {
-                        tag: "span",
-                        classList: ["label"],
-                        properties: {
-                          innerText: command.label,
-                        },
-                      },
-                    ]
-                  : [],
-              },
-            ],
-          },
+                children: command.label ? [
+                  {
+                    tag: "span",
+                    classList: ["label"],
+                    properties: {
+                      innerText: command.label
+                    }
+                  }
+                ] : []
+              }
+            ]
+          }
         ],
         listeners: [
           {
             type: "mousemove",
             listener: () => {
               this.selectItem(commandNode);
-            },
+            }
           },
           {
             type: "click",
             listener: async () => {
               await this.execCallback(command.callback);
-            },
-          },
-        ],
+            }
+          }
+        ]
       });
       commandNode.command = command;
       return commandNode;
@@ -3670,31 +3365,20 @@ html {
      * Called when `enter` key is pressed.
      */
     trigger() {
-      [...Array.from(this.promptNode.querySelectorAll(".commands-container"))]
-        .find((e) => e.style.display !== "none")
-        .querySelector(".selected")
-        .click();
+      [
+        ...Array.from(this.promptNode.querySelectorAll(".commands-container"))
+      ].find((e) => e.style.display !== "none").querySelector(".selected").click();
     }
     /**
      * Called when `escape` key is pressed.
      */
     exit() {
       this.inputNode.placeholder = this.defaultText.placeholder;
-      if (
-        this.promptNode.querySelectorAll(
-          ".commands-containers .commands-container",
-        ).length >= 2
-      ) {
-        this.promptNode
-          .querySelector(".commands-container:last-child")
-          .remove();
-        const commandsContainer = this.promptNode.querySelector(
-          ".commands-container:last-child",
-        );
+      if (this.promptNode.querySelectorAll(".commands-containers .commands-container").length >= 2) {
+        this.promptNode.querySelector(".commands-container:last-child").remove();
+        const commandsContainer = this.promptNode.querySelector(".commands-container:last-child");
         commandsContainer.style.display = "";
-        commandsContainer
-          .querySelectorAll(".commands")
-          .forEach((e) => (e.style.display = "flex"));
+        commandsContainer.querySelectorAll(".commands").forEach((e) => e.style.display = "flex");
         this.inputNode.focus();
       } else {
         this.promptNode.style.display = "none";
@@ -3711,87 +3395,66 @@ html {
      * Match suggestions for user's entered text.
      */
     async showSuggestions(inputText) {
-      const _w =
-        /[\u2000-\u206F\u2E00-\u2E7F\\'!"#$%&()*+,\-./:;<=>?@[\]^_`{|}~]/;
+      const _w = /[\u2000-\u206F\u2E00-\u2E7F\\'!"#$%&()*+,\-./:;<=>?@[\]^_`{|}~]/;
       const jw = /\s/;
-      const Ww =
-        /[\u0F00-\u0FFF\u3040-\u30FF\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF\uFF66-\uFF9F]/;
+      const Ww = /[\u0F00-\u0FFF\u3040-\u30FF\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF\uFF66-\uFF9F]/;
       function Yw(e2, t, n, i) {
-        if (e2.length === 0) return 0;
+        if (e2.length === 0)
+          return 0;
         let r = 0;
-        ((r -= Math.max(0, e2.length - 1)), (r -= i / 10));
+        r -= Math.max(0, e2.length - 1), r -= i / 10;
         const o = e2[0][0];
-        return (
-          (r -= (e2[e2.length - 1][1] - o + 1 - t) / 100),
-          (r -= o / 1e3),
-          (r -= n / 1e4)
-        );
+        return r -= (e2[e2.length - 1][1] - o + 1 - t) / 100, r -= o / 1e3, r -= n / 1e4;
       }
       function $w(e2, t, n, i) {
-        if (e2.length === 0) return null;
-        for (
-          var r = n.toLowerCase(), o = 0, a = 0, s = [], l = 0;
-          l < e2.length;
-          l++
-        ) {
+        if (e2.length === 0)
+          return null;
+        for (var r = n.toLowerCase(), o = 0, a = 0, s = [], l = 0; l < e2.length; l++) {
           const c = e2[l];
           const u = r.indexOf(c, a);
-          if (u === -1) return null;
+          if (u === -1)
+            return null;
           const h = n.charAt(u);
           if (u > 0 && !_w.test(h) && !Ww.test(h)) {
             const p = n.charAt(u - 1);
-            if (
-              (h.toLowerCase() !== h && p.toLowerCase() !== p) ||
-              (h.toUpperCase() !== h &&
-                !_w.test(p) &&
-                !jw.test(p) &&
-                !Ww.test(p))
-            )
+            if (h.toLowerCase() !== h && p.toLowerCase() !== p || h.toUpperCase() !== h && !_w.test(p) && !jw.test(p) && !Ww.test(p))
               if (i) {
                 if (u !== a) {
-                  ((a += c.length), l--);
+                  a += c.length, l--;
                   continue;
                 }
-              } else o += 1;
+              } else
+                o += 1;
           }
-          if (s.length === 0) s.push([u, u + c.length]);
+          if (s.length === 0)
+            s.push([u, u + c.length]);
           else {
             const d = s[s.length - 1];
-            d[1] < u ? s.push([u, u + c.length]) : (d[1] = u + c.length);
+            d[1] < u ? s.push([u, u + c.length]) : d[1] = u + c.length;
           }
           a = u + c.length;
         }
         return {
           matches: s,
-          score: Yw(s, t.length, r.length, o),
+          score: Yw(s, t.length, r.length, o)
         };
       }
       function Gw(e2) {
-        for (
-          var t = e2.toLowerCase(), n = [], i = 0, r = 0;
-          r < t.length;
-          r++
-        ) {
+        for (var t = e2.toLowerCase(), n = [], i = 0, r = 0; r < t.length; r++) {
           const o = t.charAt(r);
-          jw.test(o)
-            ? (i !== r && n.push(t.substring(i, r)), (i = r + 1))
-            : (_w.test(o) || Ww.test(o)) &&
-              (i !== r && n.push(t.substring(i, r)), n.push(o), (i = r + 1));
+          jw.test(o) ? (i !== r && n.push(t.substring(i, r)), i = r + 1) : (_w.test(o) || Ww.test(o)) && (i !== r && n.push(t.substring(i, r)), n.push(o), i = r + 1);
         }
-        return (
-          i !== t.length && n.push(t.substring(i, t.length)),
-          {
-            query: e2,
-            tokens: n,
-            fuzzy: t.split(""),
-          }
-        );
+        return i !== t.length && n.push(t.substring(i, t.length)), {
+          query: e2,
+          tokens: n,
+          fuzzy: t.split("")
+        };
       }
       function Xw(e2, t) {
         if (e2.query === "")
           return {
             score: 0,
-            matches: [],
+            matches: []
           };
         const n = $w(e2.tokens, e2.query, t, false);
         return n || $w(e2.fuzzy, e2.query, t, true);
@@ -3805,35 +3468,31 @@ html {
         return true;
       }
       const suggestions = [];
-      this.getCommandsContainer()
-        .querySelectorAll(".command")
-        .forEach((commandNode) => {
-          const spanNode = commandNode.querySelector(".name span");
-          const spanText = spanNode.innerText;
-          const res = Xw(e, spanText);
-          if (res) {
-            commandNode = this.createCommandNode(commandNode.command);
-            let spanHTML = "";
-            let i = 0;
-            for (let j = 0; j < res.matches.length; j++) {
-              const [start, end] = res.matches[j];
-              if (start > i) {
-                spanHTML += spanText.slice(i, start);
-              }
-              spanHTML += `<span class="highlight">${spanText.slice(start, end)}</span>`;
-              i = end;
+      this.getCommandsContainer().querySelectorAll(".command").forEach((commandNode) => {
+        const spanNode = commandNode.querySelector(".name span");
+        const spanText = spanNode.innerText;
+        const res = Xw(e, spanText);
+        if (res) {
+          commandNode = this.createCommandNode(commandNode.command);
+          let spanHTML = "";
+          let i = 0;
+          for (let j = 0; j < res.matches.length; j++) {
+            const [start, end] = res.matches[j];
+            if (start > i) {
+              spanHTML += spanText.slice(i, start);
             }
-            if (i < spanText.length) {
-              spanHTML += spanText.slice(i, spanText.length);
-            }
-            commandNode.querySelector(".name span").innerHTML = spanHTML;
-            suggestions.push({ score: res.score, commandNode });
+            spanHTML += `<span class="highlight">${spanText.slice(start, end)}</span>`;
+            i = end;
           }
-        });
+          if (i < spanText.length) {
+            spanHTML += spanText.slice(i, spanText.length);
+          }
+          commandNode.querySelector(".name span").innerHTML = spanHTML;
+          suggestions.push({ score: res.score, commandNode });
+        }
+      });
       if (suggestions.length > 0) {
-        suggestions
-          .sort((a, b) => b.score - a.score)
-          .slice(this.maxSuggestionNum);
+        suggestions.sort((a, b) => b.score - a.score).slice(this.maxSuggestionNum);
         container = this.createCommandsContainer();
         container.classList.add("suggestions");
         suggestions.forEach((suggestion) => {
@@ -3841,9 +3500,7 @@ html {
         });
         return true;
       } else {
-        const anonymousCommand = this.commands.find(
-          (c) => !c.name && (!c.when || c.when()),
-        );
+        const anonymousCommand = this.commands.find((c) => !c.name && (!c.when || c.when()));
         if (anonymousCommand) {
           await this.execCallback(anonymousCommand.callback);
         } else {
@@ -3861,13 +3518,9 @@ html {
           event.preventDefault();
           let selectedIndex;
           const allItems = [
-            ...Array.from(
-              this.getCommandsContainer().querySelectorAll(".command"),
-            ),
+            ...Array.from(this.getCommandsContainer().querySelectorAll(".command"))
           ].filter((e) => e.style.display != "none");
-          selectedIndex = allItems.findIndex((e) =>
-            e.classList.contains("selected"),
-          );
+          selectedIndex = allItems.findIndex((e) => e.classList.contains("selected"));
           if (selectedIndex != -1) {
             allItems[selectedIndex].classList.remove("selected");
             selectedIndex += event.key == "ArrowUp" ? -1 : 1;
@@ -3885,12 +3538,7 @@ html {
           }
           allItems[selectedIndex].classList.add("selected");
           const commandsContainer = this.getCommandsContainer();
-          commandsContainer.scrollTo(
-            0,
-            commandsContainer.querySelector(".selected").offsetTop -
-              commandsContainer.offsetHeight +
-              7.5,
-          );
+          commandsContainer.scrollTo(0, commandsContainer.querySelector(".selected").offsetTop - commandsContainer.offsetHeight + 7.5);
           allItems[selectedIndex].classList.add("selected");
         }
       });
@@ -3923,8 +3571,8 @@ html {
       const tipNode = this.ui.createElement(this.document, "div", {
         classList: ["tip"],
         properties: {
-          innerText: text,
-        },
+          innerText: text
+        }
       });
       const container = this.createCommandsContainer();
       container.classList.add("suggestions");
@@ -3936,15 +3584,13 @@ html {
      * @param item HTMLDivElement
      */
     selectItem(item) {
-      this.getCommandsContainer()
-        .querySelectorAll(".command")
-        .forEach((e) => e.classList.remove("selected"));
+      this.getCommandsContainer().querySelectorAll(".command").forEach((e) => e.classList.remove("selected"));
       item.classList.add("selected");
     }
     addStyle() {
       const style2 = this.ui.createElement(this.document, "style", {
         namespace: "html",
-        id: "prompt-style",
+        id: "prompt-style"
       });
       style2.innerText = `
       .prompt-container * {
@@ -4083,36 +3729,25 @@ html {
       this.document.documentElement.appendChild(style2);
     }
     registerShortcut() {
-      this.document.addEventListener(
-        "keydown",
-        (event) => {
-          if (event.shiftKey && event.key.toLowerCase() == "p") {
-            if (
-              event.originalTarget.isContentEditable ||
-              "value" in event.originalTarget ||
-              this.commands.length == 0
-            ) {
-              return;
-            }
-            event.preventDefault();
-            event.stopPropagation();
-            if (this.promptNode.style.display == "none") {
-              this.promptNode.style.display = "flex";
-              if (
-                this.promptNode.querySelectorAll(".commands-container")
-                  .length == 1
-              ) {
-                this.showCommands(this.commands, true);
-              }
-              this.promptNode.focus();
-              this.inputNode.focus();
-            } else {
-              this.promptNode.style.display = "none";
-            }
+      this.document.addEventListener("keydown", (event) => {
+        if (event.shiftKey && event.key.toLowerCase() == "p") {
+          if (event.originalTarget.isContentEditable || "value" in event.originalTarget || this.commands.length == 0) {
+            return;
           }
-        },
-        true,
-      );
+          event.preventDefault();
+          event.stopPropagation();
+          if (this.promptNode.style.display == "none") {
+            this.promptNode.style.display = "flex";
+            if (this.promptNode.querySelectorAll(".commands-container").length == 1) {
+              this.showCommands(this.commands, true);
+            }
+            this.promptNode.focus();
+            this.inputNode.focus();
+          } else {
+            this.promptNode.style.display = "none";
+          }
+        }
+      }, true);
     }
   };
   var PromptManager = class extends ManagerTool {
@@ -4161,7 +3796,7 @@ html {
      * ```
      */
     register(commands) {
-      commands.forEach((c) => (c.id ??= c.name));
+      commands.forEach((c) => c.id ??= c.name);
       this.prompt.commands = [...this.prompt.commands, ...commands];
       this.commands = [...this.commands, ...commands];
       this.prompt.showCommands(this.commands, true);
@@ -4196,9 +3831,7 @@ html {
     getExtraFields(item, backend = "custom") {
       const extraFiledRaw = item.getField("extra");
       if (backend === "default") {
-        return this.getGlobal("Zotero").Utilities.Internal.extractExtraFields(
-          extraFiledRaw,
-        ).fields;
+        return this.getGlobal("Zotero").Utilities.Internal.extractExtraFields(extraFiledRaw).fields;
       } else {
         const map = /* @__PURE__ */ new Map();
         const nonStandardFields = [];
@@ -4306,10 +3939,7 @@ html {
      * @alpha
      */
     getReaderTabPanelDeck() {
-      const deck =
-        this.getGlobal("window").document.querySelector(
-          ".notes-pane-deck",
-        )?.previousElementSibling;
+      const deck = this.getGlobal("window").document.querySelector(".notes-pane-deck")?.previousElementSibling;
       return deck;
     }
     /**
@@ -4321,23 +3951,18 @@ html {
     async addReaderTabPanelDeckObserver(callback) {
       await waitUtilAsync(() => !!this.getReaderTabPanelDeck());
       const deck = this.getReaderTabPanelDeck();
-      const observer = new (this.getGlobal("MutationObserver"))(
-        async (mutations) => {
-          mutations.forEach(async (mutation) => {
-            const target = mutation.target;
-            if (
-              target.classList.contains("zotero-view-tabbox") ||
-              target.tagName === "deck"
-            ) {
-              callback();
-            }
-          });
-        },
-      );
+      const observer = new (this.getGlobal("MutationObserver"))(async (mutations) => {
+        mutations.forEach(async (mutation) => {
+          const target = mutation.target;
+          if (target.classList.contains("zotero-view-tabbox") || target.tagName === "deck") {
+            callback();
+          }
+        });
+      });
       observer.observe(deck, {
         attributes: true,
         attributeFilter: ["selectedIndex"],
-        subtree: true,
+        subtree: true
       });
       return observer;
     }
@@ -4347,9 +3972,10 @@ html {
      * @returns The selected annotation data.
      */
     getSelectedAnnotationData(reader) {
-      const annotation =
+      const annotation = (
         // @ts-expect-error _selectionPopup
-        reader?._internalReader._lastView._selectionPopup?.annotation;
+        reader?._internalReader._lastView._selectionPopup?.annotation
+      );
       return annotation;
     }
     /**
@@ -4402,7 +4028,7 @@ html {
       Zotero.Promise.delay(timeout).then(() => {
         if (resolved) return;
         throw new Error(message);
-      }),
+      })
     ]);
   }
   async function waitForNotifierEvent(event, type, options = {}) {
@@ -4413,28 +4039,23 @@ html {
       new Promise((resolve, reject) => {
         const notifierID = Zotero.Notifier.registerObserver(
           {
-            notify: function (ev, type2, ids, extraData) {
-              if (
-                ev == event &&
-                (customCallback
-                  ? customCallback(ev, type2, ids, extraData)
-                  : true)
-              ) {
+            notify: function(ev, type2, ids, extraData) {
+              if (ev == event && (customCallback ? customCallback(ev, type2, ids, extraData) : true)) {
                 Zotero.Notifier.unregisterObserver(notifierID);
                 resolved = true;
                 resolve({
                   ids,
-                  extraData,
+                  extraData
                 });
               }
-            },
+            }
           },
           [type],
           "test",
-          101,
+          101
         );
       }),
-      timeout,
+      timeout
     );
   }
   function waitForTabSelectEvent(timeout = 3e3) {
@@ -4443,7 +4064,7 @@ html {
   async function waitForWindow(uri, timeout = 3e3) {
     return waitNoMoreThan(
       new Promise((resolve, reject) => {
-        const loadObserver = function (ev) {
+        const loadObserver = function(ev) {
           ev.originalTarget?.removeEventListener("load", loadObserver, false);
           const href = ev.target?.location.href;
           Zotero.debug("Window opened: " + href);
@@ -4453,19 +4074,19 @@ html {
           }
           Services.ww.unregisterNotification(winObserver);
           const win = ev.target?.ownerGlobal;
-          win?.setTimeout(function () {
+          win?.setTimeout(function() {
             resolve(win);
           });
         };
         const winObserver = {
-          observe: function (subject, topic, data) {
+          observe: function(subject, topic, data) {
             if (topic != "domwindowopened") return;
             subject.addEventListener("load", loadObserver, false);
-          },
+          }
         };
         Services.ww.registerNotification(winObserver);
       }),
-      timeout,
+      timeout
     );
   }
   async function waitForNoteWindow() {
@@ -4475,7 +4096,7 @@ html {
   // test/utils/status.ts
   async function resetData() {
     const collections = await Zotero.Collections.getAllIDs(
-      Zotero.Libraries.userLibraryID,
+      Zotero.Libraries.userLibraryID
     );
     await Zotero.Collections.erase(collections);
     const items = await Zotero.Items.getAllIDs(Zotero.Libraries.userLibraryID);
@@ -4492,15 +4113,15 @@ html {
   }
 
   // test/tests/workspace.spec.ts
-  describe("Workspace", function () {
+  describe("Workspace", function() {
     const tool = new BasicTool();
-    this.beforeAll(async function () {
+    this.beforeAll(async function() {
       await resetAll();
     });
-    this.afterEach(async function () {
+    this.afterEach(async function() {
       await resetAll();
     });
-    it("should open note in tab", async function () {
+    it("should open note in tab", async function() {
       const note = new Zotero.Item("note");
       await note.saveTx();
       const promise = waitForTabSelectEvent();
@@ -4511,14 +4132,16 @@ html {
       const selectedTab = tool.getGlobal("Zotero_Tabs")._getTab(selectedID);
       expect(selectedTab.tab.data.itemID).to.be.equal(note.id);
     });
-    it("should open note in window if shift key is pressed", async function () {
+    it("should open note in window if shift key is pressed", async function() {
       const note = new Zotero.Item("note");
       await note.saveTx();
       const promise = waitForNoteWindow();
       tool.getGlobal("ZoteroPane").viewItems([note], { shiftKey: true });
       const win = await promise;
       expect(win).to.be.not.null;
-      const editor = win.document.querySelector("#zotero-note-editor");
+      const editor = win.document.querySelector(
+        "#zotero-note-editor"
+      );
       expect(editor).to.be.not.null;
       expect(editor.item?.id).to.be.equal(note.id);
     });

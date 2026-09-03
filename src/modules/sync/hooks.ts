@@ -3,6 +3,7 @@ import { getString } from "../../utils/locale";
 import { getPref } from "../../utils/prefs";
 import { jointPath } from "../../utils/str";
 import { isElementVisible } from "../../utils/window";
+import { getMetaField } from "../../utils/meta";
 import { getEditorInstances, getEditorItem } from "../editor/adapter";
 import { isEditorIdle } from "../editor/inputActivity";
 import { threeWayMerge } from "./merge";
@@ -448,8 +449,9 @@ async function doCompare(
     // lastsync > 0 means the file existed before but was deleted — do not recreate.
     return syncStatus.lastsync === 0 ? SyncCode.NoteAhead : SyncCode.UpToDate;
   }
-  // File meta is unavailable
-  if (mdStatus.meta.$version < 0) {
+  // File meta is unavailable (no front matter, or no version field)
+  const mdVersion = getMetaField(mdStatus.meta, "version");
+  if (mdVersion === undefined || Number(mdVersion) < 0) {
     return SyncCode.NeedDiff;
   }
   let MDAhead = false;
@@ -466,7 +468,7 @@ async function doCompare(
   }
   // Note version doesn't match (note side change)
   // This might be unreliable when Zotero account is not login
-  if (Number(mdStatus.meta.$version) !== noteItem.version) {
+  if (Number(mdVersion) !== noteItem.version) {
     noteAhead = true;
   }
   if (noteAhead && MDAhead) {

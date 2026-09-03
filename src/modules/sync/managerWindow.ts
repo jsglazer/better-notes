@@ -171,6 +171,10 @@ export async function showSyncManager() {
     detectButton.addEventListener("click", () => {
       detectSyncedNotes();
     });
+    const linkButton = win.document.querySelector("#link") as HTMLButtonElement;
+    linkButton.addEventListener("click", () => {
+      linkExistingFile();
+    });
     const cleanupButton = win.document.querySelector(
       "#cleanup",
     ) as HTMLButtonElement;
@@ -358,6 +362,98 @@ async function handleOrphanedNoteClick(noteId: number) {
       if (noteItem3) await noteItem3.eraseTx();
       break;
     }
+  }
+
+  await refresh();
+}
+
+/**
+ * Bind the note currently selected in Zotero to an existing markdown file.
+ *
+ * "Detect..." can only adopt files that already carry the exporter's front
+ * matter, so a file produced by a plain Markdown export (YAML header off) — or
+ * written by hand — can never be picked up, even though it plainly belongs to a
+ * note. This is the manual escape hatch: choose the file, choose which side
+ * wins, and the pair becomes a normal sync entry (the file is rewritten with
+ * proper front matter either way, so subsequent syncs behave like any other).
+ */
+async function linkExistingFile() {
+  const win = addon.data.sync.manager.window;
+  const selectedNotes = (
+    Zotero.getMainWindow().ZoteroPane.getSelectedItems() || []
+  ).filter((item: Zotero.Item) => item.isNote() && !item.deleted);
+  if (selectedNotes.length !== 1) {
+    win?.alert(
+      "Select exactly one note in the Zotero item pane, then click Link... again.",
+    );
+    return;
+  }
+  const noteItem = selectedNotes[0];
+  if (
+    addon.api.sync.isSyncNote(noteItem.id) &&
+    !win?.confirm(
+      "This note is already synced to a file. Re-link it to a different file?",
+    )
+  ) {
+    return;
+  }
+
+  const raw = await new addon.data.ztoolkit.FilePicker(
+    "Select the markdown file to link this note to",
+    "open",
+    [
+      ["Markdown Files", "*.md"],
+      ["All Files", "*"],
+    ],
+  ).open();
+  if (!raw) return;
+
+  const splitPath = PathUtils.split(formatPath(raw as string));
+  const filename = splitPath.pop()!;
+  const dir = formatPath(splitPath.join("/"));
+
+  const choices = [
+    "Zotero note wins (overwrite the file)",
+    "File wins (import it into the note)",
+    "Cancel",
+  ];
+  const selected = { value: 0 };
+  const ok = Services.prompt.select(
+    win as any,
+    "Link Note to File",
+    `Link "${noteItem.getNoteTitle()}" to:\n${jointPath(dir, filename)}\n\n` +
+      `The two sides differ until the first sync — which one should win?`,
+    choices,
+    selected,
+  );
+  if (!ok || selected.value === 2) return;
+
+  // Register the pairing first so syncMDBatch reuses this exact filename
+  // instead of deriving (and possibly colliding on) a fresh one.
+  addon.api.sync.updateSyncStatus(noteItem.id, {
+    path: dir,
+    filename,
+    md5: "",
+    noteMd5: "",
+    lastsync: 0,
+    itemID: noteItem.id,
+  });
+
+  try {
+    if (selected.value === 1) {
+      // File wins: import it, then re-export so the file gains the front matter
+      // it was missing (mirrors the toImport branch of the sync loop).
+      await addon.api.$import.fromMD(jointPath(dir, filename), {
+        noteId: noteItem.id,
+        ignoreVersion: true,
+      });
+    }
+    await addon.api.$export.syncMDBatch(dir, [noteItem.id]);
+  } catch (e) {
+    ztoolkit.log("linkExistingFile failed", e);
+    addon.api.sync.removeSyncNote(noteItem.id);
+    win?.alert(`Could not link the note to that file:\n${String(e)}`);
+    return;
   }
 
   await refresh();

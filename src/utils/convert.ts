@@ -1,4 +1,5 @@
 import { config } from "../../package.json";
+import { GENERATED_HEADER_KEYS } from "./meta";
 import { unified } from "unified";
 import rehypeParse from "rehype-parse";
 import { toHtml } from "hast-util-to-html";
@@ -220,20 +221,24 @@ async function note2md(
       header = await buildExportHeader(noteItem);
       const cachedHeader = options.cachedYAMLHeader || {};
       for (const key in cachedHeader) {
-        const isGenerated =
-          key === "tags" ||
-          key === "itemKey" ||
-          key === "CitationKey" ||
-          key === "libraryID" ||
-          key === "version" ||
-          key.startsWith("$");
-        if (isGenerated && key in header) {
-          // generated header overwrites cached header
+        // Generated fields always come from the live note. Previously a cached
+        // `itemKey`/`libraryID`/`version` was copied into `header` and then, via
+        // the ordered-header loop below, overwrote the freshly computed value —
+        // so the file kept an ever-stale `version` and every compare reported
+        // "note ahead". `$`-prefixed keys are the pre-1.0.5 spelling of the same
+        // generated fields and are dropped for the same reason.
+        const bare = key.startsWith("$") ? key.slice(1) : key;
+        if (GENERATED_HEADER_KEYS.includes(bare)) {
+          // The one carry-over: keep a cached CitationKey when Better BibTeX
+          // can't supply a fresh one, so the field doesn't vanish.
+          if (bare === "CitationKey" && !header.CitationKey) {
+            header.CitationKey = cachedHeader[key];
+          }
           continue;
-        } else {
-          // otherwise do not overwrite
-          header[key] = cachedHeader[key];
         }
+        // Everything else is user-owned (e.g. hand-edited front matter) — the
+        // cached value wins so re-export never drops it.
+        header[key] = cachedHeader[key];
       }
     } catch (e) {
       ztoolkit.log(e);

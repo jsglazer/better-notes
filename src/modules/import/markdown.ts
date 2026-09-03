@@ -1,5 +1,6 @@
 import { addLineToNote } from "../../utils/note";
 import { config } from "../../../package.json";
+import { getMetaField } from "../../utils/meta";
 
 export async function fromMD(
   filepath: string,
@@ -18,11 +19,12 @@ export async function fromMD(
     return;
   }
   let noteItem = options.noteId ? Zotero.Items.get(options.noteId) : undefined;
+  const mdVersion = getMetaField(mdStatus.meta, "version");
   if (
     !options.ignoreVersion &&
-    typeof mdStatus.meta?.$version === "number" &&
+    typeof mdVersion === "number" &&
     typeof noteItem?.version === "number" &&
-    mdStatus.meta?.$version < noteItem?.version
+    mdVersion < noteItem?.version
   ) {
     if (
       !Zotero.getMainWindow().confirm(

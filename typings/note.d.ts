@@ -37,11 +37,22 @@ declare interface SyncStatus {
 }
 
 declare interface MDStatus {
-  meta: {
-    $version: number;
-    $libraryID?: number;
-    $itemKey?: string;
-  } | null;
+  /**
+   * Parsed YAML front matter. Files exported since v1.0.5 use un-prefixed keys
+   * (`version`, `libraryID`, `itemKey`); older files use the `$`-prefixed
+   * spelling, and hand-edited files may carry arbitrary extra keys. Read the
+   * known fields with `getMetaField()` rather than indexing directly.
+   */
+  meta:
+    | ({
+        $version?: number;
+        version?: number;
+        $libraryID?: number;
+        libraryID?: number;
+        $itemKey?: string;
+        itemKey?: string;
+      } & Record<string, any>)
+    | null;
   content: string;
   filedir: string;
   filename: string;

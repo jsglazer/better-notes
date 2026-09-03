@@ -41,7 +41,7 @@ window.assert = chai.assert;
 async function send(data) {
   const req = await Zotero.HTTP.request(
     "POST",
-    "http://localhost:53100/update",
+    "http://localhost:51601/update",
     {
       body: JSON.stringify(data),
     }

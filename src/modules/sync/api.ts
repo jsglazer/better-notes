@@ -3,6 +3,7 @@ import { createStore } from "../../utils/store";
 import { getPref, setPref } from "../../utils/prefs";
 import { config } from "../../../package.json";
 import { fileExists, formatPath, jointPath } from "../../utils/str";
+import { getMetaField } from "../../utils/meta";
 import { buildNoteModel } from "../template/model";
 
 export {
@@ -256,12 +257,17 @@ async function findAllSyncedFiles(searchDir: string) {
       }
       if (mdRegex.test(entry.name)) {
         const MDStatus = await getMDStatus(entry.path);
-        if (!MDStatus.meta?.$libraryID || !MDStatus.meta?.$itemKey) {
+        // Accept both the current (`libraryID`/`itemKey`) and the pre-1.0.5
+        // `$`-prefixed spelling — the writer dropped the prefix but this reader
+        // was never updated, so detection matched nothing at all.
+        const libraryID = getMetaField(MDStatus.meta, "libraryID");
+        const itemKey = getMetaField(MDStatus.meta, "itemKey");
+        if (!libraryID || !itemKey) {
           return;
         }
         const item = await Zotero.Items.getByLibraryAndKeyAsync(
-          MDStatus.meta.$libraryID,
-          MDStatus.meta.$itemKey,
+          libraryID,
+          itemKey,
         );
         if (!item || !(item as Zotero.Item).isNote()) {
           return;
