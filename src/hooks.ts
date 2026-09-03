@@ -27,6 +27,7 @@ import {
   registerColorLabelsEndpoint,
   unregisterColorLabelsEndpoint,
 } from "./modules/colorLabelsServer";
+import { registerTagEndpoint, unregisterTagEndpoint } from "./modules/tagServer";
 import { setSyncing, unsetSyncing, callSyncing } from "./modules/sync/hooks";
 import { syncLinkedNoteOnEdit } from "./modules/sync/autoLink";
 import { showTemplatePicker } from "./modules/template/picker";
@@ -99,6 +100,8 @@ async function onStartup() {
   registerAnnotationColorLabelPatch();
 
   registerColorLabelsEndpoint();
+
+  registerTagEndpoint();
 
   registerNoteRelation();
 
@@ -198,6 +201,8 @@ function onShutdown(): void {
   );
 
   step("unregisterColorLabelsEndpoint", () => unregisterColorLabelsEndpoint());
+
+  step("unregisterTagEndpoint", () => unregisterTagEndpoint());
 
   // Restore every monkey-patched Zotero/global method to its original, so no
   // plugin code stays reachable from Zotero core after teardown.
