@@ -114,7 +114,15 @@ function getSyncStatus(noteId?: number): SyncStatus {
 
 function getMDStatusFromContent(contentRaw: string): MDStatus {
   contentRaw = contentRaw.replace(/\r\n/g, "\n");
-  const result = contentRaw.match(/^---\n(.*\n)+?---$/gm);
+  // U23: anchored at the very start of the file, and the YAML body is captured
+  // rather than reconstructed by stripping every `---` in the match. The old
+  // pattern was unanchored (`/gm`) yet sliced as if the match began at index 0,
+  // so a `---` rule further down a file WITHOUT front matter was parsed as front
+  // matter and that many characters were cut off the body. Stripping all `---`
+  // also corrupted any value that legitimately contained them. The lookahead
+  // keeps the matched length identical to before for well-formed front matter,
+  // so stored md5/baseMd baselines stay valid.
+  const result = contentRaw.match(/^---\n([\s\S]*?)\n---(?=\n|$)/);
   const ret: MDStatus = {
     meta: { $version: -1 },
     content: contentRaw,
@@ -123,10 +131,9 @@ function getMDStatusFromContent(contentRaw: string): MDStatus {
     lastmodify: new Date(0),
   };
   if (result) {
-    const yaml = result[0].replace(/---/g, "");
     ret.content = contentRaw.slice(result[0].length);
     try {
-      ret.meta = YAML.parse(yaml);
+      ret.meta = YAML.parse(result[1]);
     } catch (e) {
       ztoolkit.log(e);
     }

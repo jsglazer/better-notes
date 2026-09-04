@@ -136,7 +136,10 @@ test("no blank line is forced around a heading", async () => {
   // because the next sync rewrote the file with them put back.
   const md = "### Level 3\n- Bullets\n- More\n";
   assert.equal(await note2md(await md2note(md)), md);
-  assert.equal(await note2md(await md2note("Intro\n## Head\nBody\n")), "Intro\n## Head\nBody\n");
+  assert.equal(
+    await note2md(await md2note("Intro\n## Head\nBody\n")),
+    "Intro\n## Head\nBody\n",
+  );
 });
 
 test("a list directly under a paragraph keeps no blank line", async () => {
@@ -177,4 +180,66 @@ test("an empty <p> inside a list item is layout, not a blank line", async () => 
   // Must not be treated as a paragraph break; the list stays a single list.
   const { md } = await assertStable(note("<ul><li><p></p>Item</li></ul>"));
   assert.match(md, /^- Item/);
+});
+
+/* U23 — formulas typed by hand, and the blank line above them. */
+
+test("a hand-typed $…$ formula is not escaped into backslash soup", async () => {
+  // Zotero only makes a real math node when you *insert* one; typed TeX stays
+  // ordinary text, and markdown then escapes the `$` and the `_`.
+  const { md } = await assertStable(
+    note("<p>Bayes: $P(A|B) = \\frac{P(B|A)P(A)}{P(B)}$ holds.</p>"),
+  );
+  assert.equal(md, "Bayes: $P(A|B) = \\frac{P(B|A)P(A)}{P(B)}$ holds.\n");
+  assert.doesNotMatch(md, /\\\$/);
+});
+
+test("subscripts in a typed formula survive without escaping", async () => {
+  const { md } = await assertStable(note("<p>where $x_1^2 + x_2^2 = r^2$</p>"));
+  assert.equal(md, "where $x_1^2 + x_2^2 = r^2$\n");
+});
+
+test("currency is not mistaken for a formula", async () => {
+  // A lone `$` stays escaped, as remark-math requires — the point is that the
+  // span between two of them is not swallowed as a formula.
+  for (const [inner, expected] of [
+    [
+      "<p>It costs $5 to $10 per {unit}.</p>",
+      "It costs \\$5 to \\$10 per {unit}.\n",
+    ],
+    [
+      "<p>Priced in US$ and shown as $ per item.</p>",
+      "Priced in US\\$ and shown as \\$ per item.\n",
+    ],
+  ]) {
+    const { md } = await assertStable(note(inner));
+    assert.equal(md, expected);
+  }
+});
+
+test("a typed $$ block becomes a real display formula, blank line intact", async () => {
+  // The lines around the fence are one merged paragraph by the time the
+  // promotion runs, so the fence has to be split out of the middle of it.
+  const { md } = await assertStable(
+    note("<p>Then:</p>\n<p>$$</p>\n<p>E = mc^2</p>\n<p>$$</p>\n<p>Done.</p>"),
+  );
+  assert.equal(md, "Then:\n\n$$\nE = mc^2\n$$\n\nDone.\n");
+});
+
+test("an unclosed $$ fence is left alone", async () => {
+  const { md } = await assertStable(note("<p>$$</p>\n<p>never closed</p>"));
+  assert.match(md, /never closed/);
+});
+
+test("a heading keeps its blank line before a formula", async () => {
+  // U22c collapses the blank line after a heading so markdown mirrors Zotero's
+  // compact layout — but a display formula is its own block, and the user kept
+  // re-adding the line sync kept removing.
+  const md = "## Derivation\n\n$$\nE = mc^2\n$$\n";
+  assert.equal(await note2md(await md2note(md)), md);
+});
+
+test("a heading still hugs the paragraph under it", async () => {
+  const { md } = await assertStable(note("<h2>Head</h2>\n<p>Body</p>"));
+  assert.equal(md, "## Head\nBody\n");
 });

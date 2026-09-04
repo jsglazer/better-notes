@@ -457,6 +457,9 @@ function remark2md(remark: MRoot) {
   // the note survives as a paragraph boundary because the empty <p> is dropped
   // upstream and breaks adjacency here.
   mergeAdjacentParagraphs(remark as any);
+  // U23: must run after the merge, so a display formula typed across three
+  // visual lines in Zotero is one paragraph by the time we look at it.
+  promoteTypedMath(remark as any);
   const md = String(
     unified()
       .use(remarkGfm)
@@ -474,6 +477,154 @@ function remark2md(remark: MRoot) {
       .stringify(remark as any),
   );
   return useTabsForListIndent(restoreCalloutMarkers(md));
+}
+
+/**
+ * U23: treat a formula the user *typed* as `$…$` / `$$…$$` as a formula.
+ *
+ * Zotero only creates a real math node when you insert one; type the TeX by
+ * hand and it stays ordinary text. Markdown then has to escape it on export —
+ * `$\frac{a}{b}$` comes back as `\$\frac{a}{b}\$`, `x_1` as `x\_1` — so the
+ * equation acquires a spray of backslashes it never had, and acquires more on
+ * every round trip. Recognising the delimiters here emits the formula verbatim
+ * instead, and as a bonus it imports back into Zotero as a real (rendered)
+ * math node.
+ *
+ * Deliberately conservative, because `$` is also a currency sign: the content
+ * must actually look like TeX (a backslash, a script, or braces) and must not
+ * be padded with whitespace against its delimiters, and a closing `$` may not
+ * be followed by a digit. `$5 to $10 in {cash}` is left alone.
+ */
+function promoteTypedMath(remark: any) {
+  const texish = /[\\^_{}]/;
+
+  // Display: a `$$` fence among the lines of a plain-text paragraph. It is
+  // rarely the *whole* paragraph — by this point `mergeAdjacentParagraphs` has
+  // folded the lines around it into the same paragraph — so the paragraph is
+  // split into the text before it, the formula, and the text after. That split
+  // is also what restores the blank line above the formula, since remark puts
+  // one between two blocks.
+  remark.children = (remark.children ?? []).flatMap((child: any) => {
+    if (child?.type !== "paragraph" || !Array.isArray(child.children)) {
+      return [child];
+    }
+    if (
+      !child.children.length ||
+      !child.children.every((_n: any) => _n?.type === "text")
+    ) {
+      return [child];
+    }
+    const parts = splitDisplayMath(
+      child.children.map((_n: any) => _n.value ?? "").join(""),
+    );
+    if (parts.length === 1 && parts[0].type !== "math") {
+      return [child];
+    }
+    return parts.map((part) =>
+      part.type === "math"
+        ? { type: "math", value: part.value }
+        : { ...child, children: [{ type: "text", value: part.value }] },
+    );
+  });
+
+  // Inline: `$…$` anywhere in a text node that isn't already markup.
+  const opaque = ["code", "inlineCode", "math", "inlineMath", "html"];
+  const walk = (node: any) => {
+    if (!node || opaque.includes(node.type) || !Array.isArray(node.children)) {
+      return;
+    }
+    const next: any[] = [];
+    for (const child of node.children) {
+      if (child?.type !== "text" || typeof child.value !== "string") {
+        walk(child);
+        next.push(child);
+        continue;
+      }
+      next.push(...splitInlineMath(child.value, texish));
+    }
+    node.children = next;
+  };
+  walk(remark);
+}
+
+/**
+ * Split the text of one paragraph into alternating text / display-math parts.
+ *
+ * A formula is a line that is exactly `$$` followed by a later line that is
+ * exactly `$$`, or a single line of the form `$$ … $$`. Anything else — an
+ * unclosed fence included — is left as text, so a stray `$$` can never eat the
+ * rest of the note.
+ */
+function splitDisplayMath(text: string) {
+  const lines = text.split("\n");
+  const parts: { type: "text" | "math"; value: string }[] = [];
+  let buffer: string[] = [];
+
+  const flushText = () => {
+    if (buffer.length) {
+      parts.push({ type: "text", value: buffer.join("\n") });
+      buffer = [];
+    }
+  };
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    const oneLiner = line.match(/^\$\$(.+)\$\$$/);
+    if (oneLiner) {
+      flushText();
+      parts.push({ type: "math", value: oneLiner[1].trim() });
+      continue;
+    }
+    if (line !== "$$") {
+      buffer.push(lines[i]);
+      continue;
+    }
+    const close = lines.findIndex((l, j) => j > i && l.trim() === "$$");
+    if (close === -1) {
+      buffer.push(lines[i]);
+      continue;
+    }
+    flushText();
+    parts.push({
+      type: "math",
+      value: lines
+        .slice(i + 1, close)
+        .join("\n")
+        .trim(),
+    });
+    i = close;
+  }
+  flushText();
+  return parts.length ? parts : [{ type: "text" as const, value: text }];
+}
+
+/** Split one text value into alternating text / `inlineMath` nodes. */
+function splitInlineMath(value: string, texish: RegExp) {
+  // Opening `$` not glued to a preceding word character (so `US$` is safe) and
+  // not followed by space; closing `$` not preceded by space, not followed by a
+  // digit. `\$` inside stays part of the formula.
+  const re =
+    /(?<![\w\\$])\$(?![\s$])((?:[^$\n\\]|\\[\s\S])+?)(?<![\s\\])\$(?![\d$])/g;
+  const out: any[] = [];
+  let last = 0;
+  let match: RegExpExecArray | null;
+  while ((match = re.exec(value))) {
+    if (!texish.test(match[1])) {
+      continue;
+    }
+    if (match.index > last) {
+      out.push({ type: "text", value: value.slice(last, match.index) });
+    }
+    out.push({ type: "inlineMath", value: match[1] });
+    last = match.index + match[0].length;
+  }
+  if (!out.length) {
+    return [{ type: "text", value }];
+  }
+  if (last < value.length) {
+    out.push({ type: "text", value: value.slice(last) });
+  }
+  return out;
 }
 
 /**
@@ -560,6 +711,13 @@ function useTabsForListIndent(md: string) {
  */
 function joinBlocks(left: any, right: any): number | undefined {
   if (left?.type === "heading" || right?.type === "heading") {
+    // U23: except around a display formula. `$$` hard against a heading is a
+    // blank line the user keeps putting back and sync keeps taking away, and
+    // unlike a paragraph a formula is not "the content of the heading" — it
+    // reads as its own block. Keep the default separation there.
+    if (left?.type === "math" || right?.type === "math") {
+      return undefined;
+    }
     return 0;
   }
   // A list directly under a paragraph, the way it looks in the note. CommonMark
@@ -568,7 +726,8 @@ function joinBlocks(left: any, right: any): number | undefined {
   // ("2." after a paragraph is just a sentence). Anything else keeps its blank
   // line.
   if (left?.type === "paragraph" && right?.type === "list") {
-    const startsAtOne = right.start === null || right.start === undefined || right.start === 1;
+    const startsAtOne =
+      right.start === null || right.start === undefined || right.start === 1;
     if (!right.ordered || startsAtOne) {
       return 0;
     }
