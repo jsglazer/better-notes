@@ -179,7 +179,17 @@ async function callSyncing(
       // compare below (which is the pre-U2 behavior), so it can never miss a
       // real change. See brainstorm.md U2.
       let compareResult: SyncCode;
-      if (await isFastUpToDate(item, syncStatus)) {
+      // U23: if the .md changed on disk moments ago, someone is typing in it
+      // right now — leave the note alone this tick, in BOTH directions. An
+      // export landing mid-keystroke makes Obsidian reload the open note (the
+      // cursor jumps to the top) and its automatic merge can misplace the
+      // characters you were typing; an import would read a half-typed line.
+      // Treated as UpToDate so the switch below does nothing; the next tick
+      // picks it up once the file has been quiet.
+      if (await isExternallyBusy(syncStatus)) {
+        compareResult = SyncCode.UpToDate;
+        skippedCount += 1;
+      } else if (await isFastUpToDate(item, syncStatus)) {
         compareResult = SyncCode.UpToDate;
       } else {
         const mdStatus = await addon.api.sync.getMDStatus(item.id);
@@ -331,6 +341,39 @@ async function callSyncing(
     progress?.startCloseTimer(5000);
   }
   addon.data.sync.lock = false;
+}
+
+/**
+ * U23: is this note's .md file being edited right now by something else?
+ *
+ * True when the file's mtime is within the last `sync.externalEditQuietSeconds`
+ * (default 15). Obsidian autosaves every couple of seconds while you type, so a
+ * very recent mtime means an editor is mid-edit — and a sync that writes into
+ * that window is what produced the file-swapping fight: Obsidian reloads the
+ * note (cursor to the top) and its automatic merge can drop your keystrokes in
+ * the wrong place, including into the YAML front matter.
+ *
+ * Fails open. Any missing/unreadable file, an mtime in the future (clock skew),
+ * or a disabled guard returns false, so a doubt can only ever cost the old
+ * behaviour, never a silently skipped sync. Note this also skips the tick right
+ * after Zotero's OWN export, which is harmless — nothing has changed since.
+ */
+async function isExternallyBusy(syncStatus: SyncStatus): Promise<boolean> {
+  const quietSeconds = Number(getPref("sync.externalEditQuietSeconds") ?? 15);
+  if (!(quietSeconds > 0)) {
+    return false;
+  }
+  const filepath = jointPath(syncStatus.path, syncStatus.filename);
+  try {
+    const mtime = (await IOUtils.stat(filepath)).lastModified || 0;
+    if (!mtime) {
+      return false;
+    }
+    const age = Date.now() - mtime;
+    return age >= 0 && age < quietSeconds * 1000;
+  } catch (e) {
+    return false;
+  }
 }
 
 /**

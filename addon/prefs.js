@@ -6,6 +6,13 @@ pref("__prefsPrefix__.sync.autoSyncLinkedNotes", false);
 // Obsidian) edits to synced .md files propagate live. Conflicts are deferred
 // (no modal) while unfocused. Off = old focus-only behavior.
 pref("__prefsPrefix__.sync.background", true);
+// U23: leave a note alone entirely — no import AND no export — while its .md is
+// being actively edited somewhere else. Obsidian autosaves every couple of
+// seconds as you type; an export landing in that window makes Obsidian reload
+// the open note (cursor jumps to the top) and, worse, its automatic merge can
+// misplace the keystrokes you were in the middle of typing. Measured from the
+// file's mtime. 0 disables the guard.
+pref("__prefsPrefix__.sync.externalEditQuietSeconds", 15);
 
 pref("__prefsPrefix__.autoAnnotation", false);
 

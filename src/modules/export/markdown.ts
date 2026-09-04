@@ -102,9 +102,24 @@ export async function syncMDBatch(
     // reloads the open note on that alone — throwing the cursor back to the top
     // of the document mid-sentence. Only touch the file when it actually
     // changes; the sync status below is refreshed either way.
-    if (existingContent !== content) {
+    //
+    // Trailing blank lines count as "no change". A note carries no trailing
+    // empty paragraphs, so every export ends at exactly one newline — while a
+    // blank line you leave at the end of the file in Obsidian (very common:
+    // it's where the cursor sits as you write) is real. Zotero stripped it,
+    // you typed it back, and the two never settled. Whitespace at the end of a
+    // file is not meaningful markdown, so the file's version wins.
+    const trailingOnly =
+      existingContent !== undefined &&
+      existingContent !== content &&
+      existingContent.trimEnd() === content.trimEnd();
+    if (existingContent !== content && !trailingOnly) {
       await writeFileAtomic(filePath, content);
     }
+    // Baseline the compare against what is actually ON DISK, so a skipped write
+    // doesn't leave the next tick reporting a difference forever.
+    const onDisk =
+      trailingOnly && existingContent !== undefined ? existingContent : content;
     // Record the freshly-written file's mtime so the sync stat-gate can skip
     // re-reading this file next cycle while it stays unchanged.
     let mdModified = 0;
@@ -115,7 +130,7 @@ export async function syncMDBatch(
     }
     // Front-matter-stripped body = the agreed state at this sync. Stored as the
     // diff3 common ancestor (U2b) and hashed for the stat-gate.
-    const baseMd = addon.api.sync.getMDStatusFromContent(content).content;
+    const baseMd = addon.api.sync.getMDStatusFromContent(onDisk).content;
     addon.api.sync.updateSyncStatus(noteItem.id, {
       path: saveDir,
       filename,
