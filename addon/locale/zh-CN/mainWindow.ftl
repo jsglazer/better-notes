@@ -13,6 +13,8 @@ menuHelp-openUserGuide =
 
 menuAddNote-importMD =
     .label = 从 Markdown 文件导入
+menuAddNote-importMDItemNote =
+    .label = 从 Markdown 文件导入条目笔记
 menuAddNote-newTemplateStandaloneNote =
     .label = 从模板新建独立笔记
 menuAddNote-newTemplateItemNote =

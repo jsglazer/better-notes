@@ -13,6 +13,8 @@ menuHelp-openUserGuide =
 
 menuAddNote-importMD =
     .label = Markdown Dosyasından İçe Aktar
+menuAddNote-importMDItemNote =
+    .label = Markdown Dosyasından Öğe Notu İçe Aktar
 menuAddNote-newTemplateStandaloneNote =
     .label = Şablondan Yeni Bağımsız Not
 menuAddNote-newTemplateItemNote =

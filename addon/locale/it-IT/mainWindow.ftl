@@ -13,6 +13,8 @@ menuHelp-openUserGuide =
 
 menuAddNote-importMD =
     .label = Importa da File Markdown
+menuAddNote-importMDItemNote =
+    .label = Importa Nota dell'Elemento da File Markdown
 menuAddNote-newTemplateStandaloneNote =
     .label = Nuova Nota Indipendente da Template
 menuAddNote-newTemplateItemNote =

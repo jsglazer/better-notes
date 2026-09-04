@@ -171,6 +171,14 @@ export function registerMenus() {
         icon: `chrome://${config.addonRef}/content/icons/favicon.png`,
         onCommand: () => addon.hooks.onCreateNoteFromTemplate("standalone"),
       },
+      {
+        // U24: import belongs anywhere a note can be created. No parentType —
+        // this menu makes standalone notes, so the import does too.
+        menuType: "menuitem",
+        l10nID: `${config.addonRef}-menuAddNote-importMD`,
+        icon: `chrome://${config.addonRef}/content/icons/favicon.png`,
+        onCommand: () => addon.hooks.onCreateNoteFromMD(),
+      },
     ],
   });
 
@@ -241,6 +249,19 @@ export function registerMenus() {
             onCommand: (_, context) => {
               addon.hooks.onCreateNoteFromTemplate("item", "library");
             },
+          },
+          {
+            // U24: the import counterpart, shown under the same condition as
+            // the template item above — a regular item is selected, so there is
+            // something for the imported note to hang off.
+            menuType: "menuitem",
+            l10nID: `${config.addonRef}-menuAddNote-importMDItemNote`,
+            onShowing: (_, context) => {
+              context.setVisible(
+                !!context.items?.some((item) => !item.isNote()),
+              );
+            },
+            onCommand: () => addon.hooks.onCreateNoteFromMD("library"),
           },
           {
             menuType: "menuitem",
