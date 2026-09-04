@@ -63,7 +63,12 @@ test("a heading ends a paragraph run", async () => {
   const { md } = await assertStable(
     note("<p>Intro</p>\n<h2>Section</h2>\n<p>Body one</p>\n<p>Body two</p>"),
   );
-  assert.equal(md, "Intro\n\n## Section\n\nBody one\nBody two\n");
+  // The point of this test is the *run boundary*: "Intro" must not be merged
+  // into the same paragraph as "Body one". The blank lines that used to sit
+  // around the heading were removed in U22c — they were not in the note, and
+  // re-adding them on every sync is what made deleting them in Obsidian
+  // appear to do nothing.
+  assert.equal(md, "Intro\n## Section\nBody one\nBody two\n");
 });
 
 test("inline highlight inside a list item survives the round trip", async () => {
@@ -122,6 +127,29 @@ test("an Obsidian callout survives the round trip unescaped", async () => {
 test("a multi-line block quote keeps its lines separate", async () => {
   const md = "> A plain quote\n> second line\n";
   assert.equal(await note2md(await md2note(md)), md);
+});
+
+test("no blank line is forced around a heading", async () => {
+  // Reported in U22c: deleting these blank lines in Obsidian did nothing,
+  // because the next sync rewrote the file with them put back.
+  const md = "### Level 3\n- Bullets\n- More\n";
+  assert.equal(await note2md(await md2note(md)), md);
+  assert.equal(await note2md(await md2note("Intro\n## Head\nBody\n")), "Intro\n## Head\nBody\n");
+});
+
+test("a list directly under a paragraph keeps no blank line", async () => {
+  for (const md of ["Some text\n- a\n- b\n", "Some text\n1. a\n2. b\n"]) {
+    assert.equal(await note2md(await md2note(md)), md);
+  }
+});
+
+test("a paragraph AFTER a list keeps its blank line", async () => {
+  // Without the blank line the paragraph becomes a lazy continuation of the
+  // last list item, silently swallowing it into the bullet.
+  const md = "- a\n- b\n\nAfter the list\n";
+  const out = await note2md(await md2note(md));
+  assert.equal(out, md);
+  assert.match(out, /- b\n\nAfter/);
 });
 
 test("an empty <p> inside a list item is layout, not a blank line", async () => {

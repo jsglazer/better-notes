@@ -465,6 +465,7 @@ function remark2md(remark: MRoot) {
         bullet: "-",
         // One space after the marker ("- text"), not tab-aligned ("-   text").
         listItemIndent: "one",
+        join: [joinBlocks],
         // Prevent recursive call
         handlers: Object.assign({}, handlers, {
           table: tableHandler,
@@ -473,6 +474,45 @@ function remark2md(remark: MRoot) {
       .stringify(remark as any),
   );
   return restoreCalloutMarkers(md);
+}
+
+/**
+ * U22c: decide how many blank lines go between two blocks.
+ *
+ * remark-stringify separates every pair of blocks with a blank line. Zotero
+ * shows a heading hard against the content under it, so that blank line is not
+ * in the note and not something the user typed — but it reappears in the vault
+ * file on every sync, which looks like the file "forcing" blank lines back in
+ * after you delete them.
+ *
+ * Returning 0 removes it. This is applied only around ATX headings, where it is
+ * unambiguous: a `#` heading is self-contained, cannot absorb the line after it
+ * and cannot be absorbed into the block before it, so removing the blank line
+ * cannot change how the markdown parses. Everywhere else keeps the default
+ * spacing, because dropping it there genuinely can change meaning — a table or
+ * an ordered list not starting at 1 gets swallowed by a preceding paragraph.
+ *
+ * `undefined` means "no opinion", which leaves the default in place.
+ */
+function joinBlocks(left: any, right: any): number | undefined {
+  if (left?.type === "heading" || right?.type === "heading") {
+    return 0;
+  }
+  // A list directly under a paragraph, the way it looks in the note. CommonMark
+  // lets a list interrupt a paragraph, but only when it cannot be mistaken for
+  // ordinary text: bullets always may, ordered lists only when they start at 1
+  // ("2." after a paragraph is just a sentence). Anything else keeps its blank
+  // line.
+  if (left?.type === "paragraph" && right?.type === "list") {
+    const startsAtOne = right.start === null || right.start === undefined || right.start === 1;
+    if (!right.ordered || startsAtOne) {
+      return 0;
+    }
+  }
+  // Deliberately NOT the reverse: text after a list with no blank line is a
+  // lazy continuation of the last list item, which would silently swallow the
+  // paragraph into the bullet.
+  return undefined;
 }
 
 /**
