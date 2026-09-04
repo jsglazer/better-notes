@@ -48,6 +48,72 @@ A Zotero plugin to expand the capability of notes and to sync notes to other loc
 - **Editor options** — every editor enhancement above (callouts, code highlighting, collapsible sections, markdown shortcuts, KaTeX rendering, reading width) is individually switchable in Settings → Enhanced Notes → Note Editor
 - **Custom CSS** — restyle the note editor from Settings → Enhanced Notes. Your rules are applied after the plugin's own, so they win, and they take effect immediately in notes you already have open. Presentation only: the note content and the synced Markdown are untouched
 
+## Creating a Template
+
+Templates generate note content from a Zotero item. They are written in **Liquid** — a small, sandboxed template language: it can read the data the plugin gives it and nothing else (no file system, no network, no arbitrary JavaScript).
+
+Open the editor with `⌃⌥T`, or **Tools → Template Editor**.
+
+### Walkthrough: a "Textbook Section" template
+
+**1. Start the template.** Click **New** for a blank one, or select a template that is close to what you want and click **Duplicate** — the system templates make good starting points, and duplicating leaves the original untouched.
+
+**2. Name it and set its type.** Set the type to `item` and the name to `Textbook Section`; it is stored as `[item]Textbook Section`. The type decides how the template runs:
+
+| Type     | Purpose                                                                       |
+| -------- | ----------------------------------------------------------------------------- |
+| `item`   | Runs against one or more selected Zotero items — the usual choice             |
+| `text`   | A reusable snippet inserted into an existing note                             |
+| `system` | Built-in templates the plugin itself calls (export filename, quick insert, …) |
+
+**3. Write it.** Click the palette chips to insert tokens at the cursor rather than typing them from memory:
+
+```liquid
+<!--liquid-->
+<!--markdown-->
+# {{ item.citekey | default: item.title }}
+
+Sections:
+Pages:
+
+## Summary
+
+- **Citekey:** {{ item.citekey }}
+- **Author:** {% for a in item.authors %}{{ a.lastName }}{% unless forloop.last %}, {% endunless %}{% endfor %}
+- **Year:** {{ item.date | year }}
+
+## Take-aways
+
+## Topics
+```
+
+What each part is doing:
+
+- `<!--liquid-->` **must be the first line.** Without it the template is not treated as Liquid and will not run.
+- `<!--markdown-->` lets you write Markdown (`#`, `-`, `**bold**`) instead of raw HTML; the output is converted for you.
+- `{{ … }}` inserts a value. `{% … %}` is logic — loops, conditions — and prints nothing itself.
+- `| default:` and `| year` are **filters**: they transform the value to their left. Here, fall back to the title when there is no citekey, and reduce a full date to just the year.
+- The `{% for %}` loop prints each author's surname, and `{% unless forloop.last %}` adds `, ` between them but not after the final one.
+
+**4. Save**, then use it: select the item in your library and choose **New Item Note from Template**, or type `/it` in an open note.
+
+Use the **Preview** pane while editing to see the result against a real item before saving.
+
+### What the palette buttons mean
+
+| Group           | What it is                                                                                                                                                                                                                                                                                                                             |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Syntax**      | The `<!-- … -->` header lines. `liquid header` is required; `markdown` renders your output as Markdown; `add tags` applies tags to the note after rendering                                                                                                                                                                            |
+| **Variables**   | The objects you can read: `item` (the item), `items` (all selected), `note` (the target note), `now` (current date/time)                                                                                                                                                                                                               |
+| **Item fields** | Properties of `item` — `title`, `authors`, `creators`, `date`, `year`, `tags`, `abstract`, `citekey`, `collections`, `doi`, `url`, `itemType`, `key`                                                                                                                                                                                   |
+| **Note fields** | Properties of `note` — `title`, `tags`, `key`, `parentTitle`, `collections`, `citekey`                                                                                                                                                                                                                                                 |
+| **Filters**     | Transformations applied with `\|`. Plugin-specific: `year`, `oneline` (flatten newlines, handy for abstracts), `sanitize_filename`, `md`. The rest are standard Liquid: `date`, `default`, `join`, `split`, `upcase`, `downcase`, `capitalize`, `strip`, `truncate`, `replace`, `size`, `first`, `last`, `append`, `prepend`, `escape` |
+| **Tags**        | Logic blocks: `if` / `unless` for conditions, `for` to loop, `assign` and `capture` for variables, `comment` for notes to yourself. `annotations` emits the item's annotations, and `annotations (grouped)` buckets them by colour label                                                                                               |
+
+Hover any chip for a one-line description — the palette and the editor's autocomplete are generated from the same catalog, so they never disagree.
+
+Full reference: [docs/liquid-templates.md](docs/liquid-templates.md).
+
 ## Command Palette
 
 Type `/` in the note editor (or press `⌃/`) to open the command palette. Quick abbreviations:

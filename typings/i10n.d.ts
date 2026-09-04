@@ -31,6 +31,7 @@ export type FluentMessageId =
   | 'diff-header'
   | 'diff-md'
   | 'diff-note'
+  | 'duplicate'
   | 'editor-callouts'
   | 'editor-codeHighlight'
   | 'editor-customCSS-description'

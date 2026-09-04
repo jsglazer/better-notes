@@ -17,6 +17,7 @@ import {
   convertSelectedTemplate,
   saveSelectedTemplate,
   deleteSelectedTemplate,
+  duplicateSelectedTemplate,
   resetSelectedTemplate,
   shareSelectedTemplate,
   backupTemplates,
@@ -179,6 +180,11 @@ export async function showTemplateEditor() {
     _window.document.querySelector("#save")?.addEventListener("click", (ev) => {
       saveSelectedTemplate();
     });
+    _window.document
+      .querySelector("#duplicate")
+      ?.addEventListener("click", (ev) => {
+        duplicateSelectedTemplate();
+      });
     _window.document
       .querySelector("#delete")
       ?.addEventListener("click", (ev) => {

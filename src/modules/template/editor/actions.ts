@@ -17,6 +17,7 @@ export {
   convertSelectedTemplate,
   saveSelectedTemplate,
   deleteSelectedTemplate,
+  duplicateSelectedTemplate,
   resetSelectedTemplate,
   shareSelectedTemplate,
   backupTemplates,
@@ -179,6 +180,45 @@ function deleteSelectedTemplate() {
   }
   addon.api.template.removeTemplate(name);
   refresh(true);
+}
+
+/**
+ * U22g: copy the selected template to a new one.
+ *
+ * Starting a template from an existing one was previously a manual
+ * select-all/copy into a blank template. This matters most for the system
+ * templates, which are the worked examples people learn the syntax from and
+ * must not be edited in place.
+ *
+ * The copy takes the *saved* text rather than the live buffer, so an
+ * accidental half-finished edit is not what gets duplicated.
+ *
+ * Naming: a `[type]Name` template keeps its type prefix, since that prefix is
+ * what decides how the template is run — a copy of `[item]Foo` must stay an
+ * item template, not become an untyped one called "[item]Foo copy".
+ */
+function duplicateSelectedTemplate() {
+  const name = getSelectedTemplateName();
+  if (!name) {
+    showHint("Select a template to duplicate first.");
+    return;
+  }
+  const text = addon.api.template.getTemplateText(name);
+  const existing = new Set(addon.api.template.getTemplateKeys());
+
+  const typeMatch = /^(\[[^\]]+\])(.*)$/.exec(name);
+  const prefix = typeMatch ? typeMatch[1] : "";
+  const stem = typeMatch ? typeMatch[2] : name;
+
+  let candidate = `${prefix}${stem} copy`;
+  let n = 2;
+  while (existing.has(candidate)) {
+    candidate = `${prefix}${stem} copy ${n++}`;
+  }
+
+  addon.api.template.setTemplate({ name: candidate, text });
+  refresh(true);
+  showHint(`Duplicated as "${candidate}"`);
 }
 
 function resetSelectedTemplate() {
