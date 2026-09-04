@@ -476,7 +476,7 @@ function remark2md(remark: MRoot) {
       } as any)
       .stringify(remark as any),
   );
-  return useTabsForListIndent(restoreCalloutMarkers(md));
+  return useTabsForListIndent(restoreWikilinks(restoreCalloutMarkers(md)));
 }
 
 /**
@@ -750,6 +750,23 @@ function joinBlocks(left: any, right: any): number | undefined {
  */
 function restoreCalloutMarkers(md: string) {
   return md.replace(/^((?:[ \t]*>)+[ \t]*)\\\[!/gm, "$1[!");
+}
+
+/**
+ * U23: un-escape an Obsidian `[[wikilink]]`.
+ *
+ * `[[` is ordinary text to remark, and remark-stringify escapes the brackets
+ * (`\[\[Note]]`) so they can't be read as a link reference. Obsidian then stops
+ * recognising the link entirely — it renders as literal text — so every
+ * internal link in a synced note broke on its first export, and re-fixing it in
+ * the vault only lasted until the next sync re-escaped it.
+ *
+ * Only this exact shape is unescaped: both brackets escaped, a target with no
+ * `]` or line break, closed by `]]`. Real escaped brackets elsewhere, and link
+ * references like `\[1]`, keep their escaping.
+ */
+function restoreWikilinks(md: string) {
+  return md.replace(/\\\[\\\[([^\]\n]+)\]\]/g, "[[$1]]");
 }
 
 function remark2latex(remark: MRoot) {

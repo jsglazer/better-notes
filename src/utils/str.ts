@@ -50,9 +50,21 @@ export async function getFileContent(path: string) {
  * never leave a truncated/half-written note on disk (a concern when an external
  * tool such as Obsidian is watching the folder). Same write semantics as
  * `Zotero.File.putContentsAsync`; only the durability is improved.
+ *
+ * U23: the temp file is named as a DOTFILE. It is written into the sync folder,
+ * which is the user's vault — and `note.md.bn-Xy7k2Ppq.tmp` does not begin with
+ * a dot, so Obsidian did not ignore it: every single export made a file appear
+ * and vanish in the vault, which the file explorer and the indexer both react
+ * to. Obsidian skips dot-prefixed entries, so `.note.md.bn-Xy7k2Ppq.tmp` is
+ * invisible to it (as it is to most watchers).
  */
 export async function writeFileAtomic(filePath: string, content: string) {
-  const tmpPath = `${filePath}.bn-${randomString(8)}.tmp`;
+  // Separator-agnostic (the path is already platform-formatted, and Windows
+  // uses `\`): dot-prefix the last segment, whatever the separator.
+  const tmpPath = filePath.replace(
+    /([^/\\]+)$/,
+    `.$1.bn-${randomString(8)}.tmp`,
+  );
   try {
     await Zotero.File.putContentsAsync(tmpPath, content);
     // IOUtils.move overwrites the destination by default (noOverwrite=false).

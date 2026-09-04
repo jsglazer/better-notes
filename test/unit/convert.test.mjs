@@ -243,3 +243,21 @@ test("a heading still hugs the paragraph under it", async () => {
   const { md } = await assertStable(note("<h2>Head</h2>\n<p>Body</p>"));
   assert.equal(md, "## Head\nBody\n");
 });
+
+test("an Obsidian [[wikilink]] is not escaped on export", async () => {
+  // remark escapes `[` to stop it being read as a link reference; Obsidian then
+  // renders the link as literal text, and re-fixing it in the vault only lasts
+  // until the next sync.
+  for (const md of [
+    "See [[17 Simple Linear Regression]] here\n",
+    "- cov [[MR-B Fundamentals#MR-B4b — Covariance|MR-B Fundamentals]] #learn\n",
+    "[[eq-Econ-LinRegress]]\n",
+  ]) {
+    assert.equal(await note2md(await md2note(md)), md);
+  }
+});
+
+test("a real escaped bracket is still escaped", async () => {
+  const { md } = await assertStable(note("<p>A literal [[ stays put.</p>"));
+  assert.match(md, /\\\[\\\[/);
+});

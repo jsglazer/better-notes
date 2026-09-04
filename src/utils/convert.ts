@@ -258,7 +258,15 @@ async function note2md(
         orderedHeader[key] = header[key];
       }
     }
-    const yamlFrontMatter = `---\n${YAML.stringify(orderedHeader)}\n---`;
+    // U23: `YAML.stringify` already ends with a newline, so the old template
+    // emitted a BLANK LINE before the closing `---`. That is not how Obsidian
+    // writes front matter, and its Properties editor silently rewrites the file
+    // to canonical form when it touches one — which Zotero then sees as an
+    // external edit and answers with another export, so the two kept handing
+    // the file back and forth ("modified externally, merging changes
+    // automatically"). Emit canonical front matter and there is nothing left to
+    // normalise. The body is unaffected, so stored md5/baseMd stay valid.
+    const yamlFrontMatter = `---\n${YAML.stringify(orderedHeader).trimEnd()}\n---`;
     md = `${yamlFrontMatter}\n${md}`;
   }
   return md;
