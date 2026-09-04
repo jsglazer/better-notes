@@ -187,6 +187,8 @@ export type FluentMessageId =
   | 'sync-autoLink-selectFolder-title'
   | 'sync-autoSyncLinkedNotes'
   | 'sync-background'
+  | 'sync-externalEditQuiet-description'
+  | 'sync-externalEditQuiet-label'
   | 'sync-manager'
   | 'sync-period-label'
   | 'sync-running-hint-check'
