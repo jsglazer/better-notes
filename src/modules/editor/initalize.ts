@@ -15,7 +15,6 @@ import {
 import { clearInputActivity, trackEditorInput } from "./inputActivity";
 import {
   injectEditorCSS,
-  injectEditorKatexCSS,
   injectEditorScripts,
 } from "./inject";
 import { initEditorPlugins } from "./plugins";
@@ -107,7 +106,6 @@ async function onEditorInstanceCreated(editor: Zotero.EditorInstance) {
   // The editor instance may be destroyed before the promise resolves
   try {
     await injectEditorScripts(getEditorWindow(editor));
-    injectEditorKatexCSS(getEditorWindow(editor));
     injectEditorCSS(getEditorWindow(editor));
     trackEditorInput(editor);
     initEditorImagePreviewer(editor);

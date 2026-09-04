@@ -1,4 +1,3 @@
-import { config } from "../../../package.json";
 import { getPref } from "../../utils/prefs";
 import { getFileContent } from "../../utils/str";
 
@@ -18,30 +17,17 @@ export async function injectEditorScripts(win: Window) {
   );
 }
 
-/**
- * U21: KaTeX's own stylesheet, needed by the math preview plugin.
- *
- * Linked rather than inlined on purpose: katex.min.css refers to its fonts with
- * relative URLs (`fonts/KaTeX_Main-Regular.woff2`), which only resolve if the
- * browser knows the stylesheet's own location. Inlining the text into a <style>
- * would resolve them against the editor document instead and every glyph would
- * fall back to a serif face.
- */
-export function injectEditorKatexCSS(win: Window) {
-  ztoolkit.UI.appendElement(
-    {
-      tag: "link",
-      id: "enhanced-notes-katex-style",
-      properties: {
-        rel: "stylesheet",
-        type: "text/css",
-        href: `chrome://${config.addonRef}/content/lib/css/katex.min.css`,
-      },
-      ignoreIfExists: true,
-    },
-    win.document.head,
-  );
-}
+// U21 injected KaTeX's stylesheet here for the math preview plugin. Removed in
+// U24: the note editor is `resource://zotero/note-editor/editor.html`, and
+// resource: content may not link to chrome:, so the <link> was refused every
+// time —
+//   "Security Error: Content at resource://zotero/note-editor/editor.html may
+//    not load or link to chrome://enhancednotes/content/lib/css/katex.min.css."
+// It was redundant anyway: Zotero's own `note-editor/editor.css` already
+// bundles the whole KaTeX stylesheet, fonts included, so the rendered formulas
+// were picking up their styling from there regardless. The plugin's copy of
+// katex.min.css stays for the chrome pages that legitimately load it (template
+// editor, print template, link-creator preview).
 
 export async function injectEditorCSS(win: Window) {
   const baseCSS = await getFileContent(
