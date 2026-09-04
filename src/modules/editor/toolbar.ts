@@ -7,6 +7,8 @@ import {
 } from "../../utils/editor";
 import { getString } from "../../utils/locale";
 import { showHint } from "../../utils/hint";
+import { sanitizeFilename } from "../template/filters";
+import { fileExists, jointPath } from "../../utils/str";
 import { slice } from "../../utils/str";
 import { waitUtilAsync } from "../../utils/wait";
 import {
@@ -72,6 +74,7 @@ export async function initEditorToolbar(editor: Zotero.EditorInstance) {
             try {
               await addon.api.note.renameNote(noteItem, input);
               showHint(`Renamed to "${input.trim()}"`);
+              await offerToRenameSyncedFile(noteItem, input.trim(), win);
             } catch (err) {
               ztoolkit.log(err);
               showHint("Rename failed — see the error console.");
@@ -364,4 +367,68 @@ async function registerEditorToolbarElement(
 
 function makeId(key: string) {
   return `${config.addonRef}-${key}`;
+}
+
+/**
+ * U22f: after renaming a note, offer to rename its synced Markdown file too.
+ *
+ * The export filename normally comes from `[ExportMDFileNameV2]`, which is
+ * cite-key based — the note's title is not part of it — and it is frozen into
+ * the sync record when the note is first linked. So a rename in Zotero would
+ * otherwise never reach the vault.
+ *
+ * This is deliberately an explicit, per-note prompt rather than automatic
+ * behaviour: moving a file out from under Obsidian breaks any `[[wikilinks]]`
+ * pointing at it, because Obsidian only rewrites links when it performs the
+ * rename itself. Asking keeps the user aware of exactly when that happens.
+ */
+async function offerToRenameSyncedFile(
+  noteItem: Zotero.Item,
+  newTitle: string,
+  win: Window,
+) {
+  if (!addon.api.sync.isSyncNote(noteItem.id)) {
+    return;
+  }
+  const status = addon.api.sync.getSyncStatus(noteItem.id);
+  if (!status?.path || !status.filename) {
+    return;
+  }
+  const dot = status.filename.lastIndexOf(".");
+  const ext = dot > 0 ? status.filename.slice(dot) : ".md";
+  const target = `${sanitizeFilename(newTitle)}${ext}`;
+  if (target === status.filename) {
+    return;
+  }
+
+  const oldPath = jointPath(status.path, status.filename);
+  const newPath = jointPath(status.path, target);
+  if (await fileExists(newPath)) {
+    showHint(`"${target}" already exists — the file was not renamed.`);
+    return;
+  }
+  if (
+    typeof win?.confirm !== "function" ||
+    !win.confirm(
+      `Also rename the synced file?\n\n` +
+        `${status.filename}  →  ${target}\n\n` +
+        `Links to the old name elsewhere in your vault will not be updated.`,
+    )
+  ) {
+    return;
+  }
+
+  try {
+    await IOUtils.move(oldPath, newPath, { noOverwrite: true });
+    // Point the sync record at the new file, or the next sync would recreate
+    // the old name and leave two copies of the note in the vault.
+    addon.api.sync.updateSyncStatus(noteItem.id, {
+      ...status,
+      filename: target,
+    });
+    showHint(`File renamed to "${target}"`);
+  } catch (err) {
+    ztoolkit.log(err);
+    showHint("The note was renamed, but the file could not be.");
+  }
 }
