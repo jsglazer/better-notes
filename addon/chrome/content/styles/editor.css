@@ -460,3 +460,31 @@ body.readable-width .primary-editor > blockquote {
     color: #e06c75;
   }
 }
+
+/* ------------------------------------------------------------------------ */
+/* U22e: tighten paragraph spacing                                           */
+/*                                                                           */
+/* Zotero models every visual line as its own <p>, and the editor's default   */
+/* paragraph margins then put a gap between each one — so a run of lines that */
+/* is single-spaced in the vault file looks double-spaced in the note.        */
+/*                                                                           */
+/* Dropping the margin to zero makes consecutive lines read as consecutive    */
+/* lines, matching both the .md and how the same note looks in Obsidian. It   */
+/* does NOT hide deliberate blank lines: those are empty <p> elements, which  */
+/* still occupy a full line box (ProseMirror keeps a trailing <br> in them),  */
+/* so a blank line the user typed still shows as a blank line.                */
+/*                                                                           */
+/* Headings, lists, quotes and code blocks keep their own spacing — only the  */
+/* line-to-line gap changes.                                                  */
+/* ------------------------------------------------------------------------ */
+
+.primary-editor p {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+/* Outside the editor (previews, exports) an empty <p> has no trailing <br>
+   and would collapse to nothing; keep it holding a line. */
+.primary-editor p:empty::after {
+  content: "\00a0";
+}
