@@ -511,7 +511,16 @@ async function doCompare(
   }
   // Note version doesn't match (note side change)
   // This might be unreliable when Zotero account is not login
-  if (Number(mdVersion) !== noteItem.version) {
+  //
+  // U23: only a FALLBACK now, used when there is no note hash to compare
+  // against (a first sync, or a sync record from before hashes were stored).
+  // When a baseline exists the two md5s already answer "did either side
+  // change?" precisely, and `version` answered it wrongly: the export that
+  // follows an import bumps the note's version but writes back the body it just
+  // read, so the file's `version` legitimately trails the note's. Treating that
+  // as "note ahead" re-exported the whole file on every tick — the rewrite that
+  // was reloading the note in Obsidian and moving the cursor.
+  if (!syncStatus.noteMd5 && Number(mdVersion) !== noteItem.version) {
     noteAhead = true;
   }
   if (noteAhead && MDAhead) {

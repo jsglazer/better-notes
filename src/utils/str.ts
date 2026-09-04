@@ -45,38 +45,28 @@ export async function getFileContent(path: string) {
 }
 
 /**
- * Write a file atomically: write to a sibling temp file, then rename over the
- * target. A rename on the same filesystem is atomic, so a crash mid-write can
- * never leave a truncated/half-written note on disk (a concern when an external
- * tool such as Obsidian is watching the folder). Same write semantics as
- * `Zotero.File.putContentsAsync`; only the durability is improved.
+ * Write a note's Markdown file, IN PLACE.
  *
- * U23: the temp file is named as a DOTFILE. It is written into the sync folder,
- * which is the user's vault — and `note.md.bn-Xy7k2Ppq.tmp` does not begin with
- * a dot, so Obsidian did not ignore it: every single export made a file appear
- * and vanish in the vault, which the file explorer and the indexer both react
- * to. Obsidian skips dot-prefixed entries, so `.note.md.bn-Xy7k2Ppq.tmp` is
- * invisible to it (as it is to most watchers).
+ * U23: this used to write a sibling temp file and rename it over the target, so
+ * a crash mid-write could never leave a truncated note on disk. That
+ * durability came at a cost we measured: a rename replaces the file's inode, so
+ * a watcher sees the file *replaced* rather than *modified*, and an editor with
+ * the note open answers that by closing and re-opening the document — the
+ * cursor jumps to the top, and a multi-column layout can scramble. In a
+ * three-minute trace, 38 in-place writes disturbed Obsidian not at all, while
+ * every rename-write coincided with a jump.
+ *
+ * The trade is deliberate and it is a real downgrade: a crash or power loss
+ * during the write now leaves a truncated `.md` rather than the intact previous
+ * file. It is survivable here because the note itself lives in Zotero and the
+ * sync keeps a `baseMd` baseline, so the file can be regenerated — but it is
+ * genuinely weaker than what it replaced.
+ *
+ * Writing in place also means no temp file is created in the vault at all,
+ * which retires the earlier dot-prefix workaround for the same problem.
  */
-export async function writeFileAtomic(filePath: string, content: string) {
-  // Separator-agnostic (the path is already platform-formatted, and Windows
-  // uses `\`): dot-prefix the last segment, whatever the separator.
-  const tmpPath = filePath.replace(
-    /([^/\\]+)$/,
-    `.$1.bn-${randomString(8)}.tmp`,
-  );
-  try {
-    await Zotero.File.putContentsAsync(tmpPath, content);
-    // IOUtils.move overwrites the destination by default (noOverwrite=false).
-    await IOUtils.move(tmpPath, filePath);
-  } catch (e) {
-    try {
-      await IOUtils.remove(tmpPath, { ignoreAbsent: true });
-    } catch (cleanupErr) {
-      ztoolkit.log("writeFileAtomic cleanup failed", cleanupErr);
-    }
-    throw e;
-  }
+export async function writeNoteFile(filePath: string, content: string) {
+  await Zotero.File.putContentsAsync(filePath, content);
 }
 
 export function randomString(len: number, seed?: string, chars?: string) {

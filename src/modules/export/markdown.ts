@@ -4,7 +4,7 @@ import {
   fileExists,
   formatPath,
   jointPath,
-  writeFileAtomic,
+  writeNoteFile,
 } from "../../utils/str";
 
 export async function saveMD(
@@ -26,7 +26,7 @@ export async function saveMD(
     );
     await IOUtils.makeDirectory(attachmentsDir);
   }
-  await writeFileAtomic(
+  await writeNoteFile(
     filename,
     await addon.api.convert.note2md(noteItem, dir, options),
   );
@@ -34,6 +34,21 @@ export async function saveMD(
   showHintWithLink(`Note Saved to ${filename}`, "Show in Folder", (ev) => {
     Zotero.File.reveal(filename);
   });
+}
+
+/**
+ * Reduce a file's text to the parts a rewrite would be justified by: the body,
+ * and every front-matter field except the generated `version`. Trailing
+ * whitespace is dropped for the same reason. Used only to decide whether to
+ * touch the file — never to decide what to write.
+ */
+function normalizeForCompare(text: string) {
+  const frontMatter = text.match(/^---\n[\s\S]*?\n---(?=\n|$)/);
+  if (!frontMatter) {
+    return text.trimEnd();
+  }
+  const masked = frontMatter[0].replace(/\nversion:[^\n]*/, "\nversion:*");
+  return (masked + text.slice(frontMatter[0].length)).trimEnd();
 }
 
 export async function syncMDBatch(
@@ -103,23 +118,29 @@ export async function syncMDBatch(
     // of the document mid-sentence. Only touch the file when it actually
     // changes; the sync status below is refreshed either way.
     //
-    // Trailing blank lines count as "no change". A note carries no trailing
-    // empty paragraphs, so every export ends at exactly one newline — while a
-    // blank line you leave at the end of the file in Obsidian (very common:
-    // it's where the cursor sits as you write) is real. Zotero stripped it,
-    // you typed it back, and the two never settled. Whitespace at the end of a
-    // file is not meaningful markdown, so the file's version wins.
-    const trailingOnly =
+    // Two kinds of difference do NOT count as a change:
+    //
+    // - Trailing blank lines. A note carries no trailing empty paragraphs, so
+    //   every export ends at exactly one newline — while a blank line left at
+    //   the end of the file in Obsidian (very common: it's where the cursor
+    //   sits as you write) is real. Zotero stripped it, the user typed it back,
+    //   and the two never settled.
+    // - The generated `version` field alone. The sync loop exports immediately
+    //   after importing an external edit, "to keep the metadata synced" — but
+    //   the body it writes came from that very file, so the ONLY difference is
+    //   the `version` the import just bumped. That made every Obsidian edit
+    //   cost a full-file rewrite for one changed number, which is what reloaded
+    //   the note and moved the cursor. `doCompare` no longer treats a stale
+    //   `version` as a reason to re-export, so leaving it behind is safe.
+    const unchanged =
       existingContent !== undefined &&
-      existingContent !== content &&
-      existingContent.trimEnd() === content.trimEnd();
-    if (existingContent !== content && !trailingOnly) {
-      await writeFileAtomic(filePath, content);
+      normalizeForCompare(existingContent) === normalizeForCompare(content);
+    if (!unchanged) {
+      await writeNoteFile(filePath, content);
     }
     // Baseline the compare against what is actually ON DISK, so a skipped write
     // doesn't leave the next tick reporting a difference forever.
-    const onDisk =
-      trailingOnly && existingContent !== undefined ? existingContent : content;
+    const onDisk = unchanged ? (existingContent as string) : content;
     // Record the freshly-written file's mtime so the sync stat-gate can skip
     // re-reading this file next cycle while it stays unchanged.
     let mdModified = 0;
