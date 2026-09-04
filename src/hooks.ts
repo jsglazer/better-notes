@@ -28,6 +28,10 @@ import {
   unregisterColorLabelsEndpoint,
 } from "./modules/colorLabelsServer";
 import { registerTagEndpoint, unregisterTagEndpoint } from "./modules/tagServer";
+import {
+  registerLinkEndpoint,
+  unregisterLinkEndpoint,
+} from "./modules/linkServer";
 import { setSyncing, unsetSyncing, callSyncing } from "./modules/sync/hooks";
 import { showTemplatePicker } from "./modules/template/picker";
 import { showImageViewer } from "./modules/imageViewer";
@@ -99,6 +103,8 @@ async function onStartup() {
   registerColorLabelsEndpoint();
 
   registerTagEndpoint();
+
+  registerLinkEndpoint();
 
   patchNotes();
 
@@ -194,6 +200,7 @@ function onShutdown(): void {
   step("unregisterColorLabelsEndpoint", () => unregisterColorLabelsEndpoint());
 
   step("unregisterTagEndpoint", () => unregisterTagEndpoint());
+  step("unregisterLinkEndpoint", () => unregisterLinkEndpoint());
 
   // Restore every monkey-patched Zotero/global method to its original, so no
   // plugin code stays reachable from Zotero core after teardown.
