@@ -473,7 +473,71 @@ function remark2md(remark: MRoot) {
       } as any)
       .stringify(remark as any),
   );
-  return restoreCalloutMarkers(md);
+  return useTabsForListIndent(restoreCalloutMarkers(md));
+}
+
+/**
+ * U22d: indent nested list items with tabs, one per level.
+ *
+ * remark-stringify indents a nested list by its parent's content offset — two
+ * spaces under a `-` bullet, three under `1. `. Obsidian writes a tab when you
+ * press Tab, so every sync rewrote the user's tabs as spaces: the list still
+ * nested correctly, but the file churned on every sync and the nesting rendered
+ * shallower than natively-authored lists sitting next to it.
+ *
+ * The level is derived from the *sequence* of indent widths rather than by
+ * dividing by a fixed number, because the width per level depends on the
+ * marker ("- " is 2, "1. " is 3, and a mixed nesting gives an uneven ladder).
+ *
+ * Only lines that begin a list item are touched, and never inside a fenced code
+ * block — where an indented `- foo` is content, not a marker. In practice list
+ * items here are single-line (`rehype2remark`'s `li` handler folds an item's
+ * children into one paragraph), so continuation lines do not arise.
+ */
+function useTabsForListIndent(md: string) {
+  const lines = md.split("\n");
+  const fence = /^\s*(```|~~~)/;
+  // Indent width of each currently open list level.
+  const openLevels: number[] = [];
+  let inFence = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (fence.test(line)) {
+      inFence = !inFence;
+      continue;
+    }
+    if (inFence) {
+      continue;
+    }
+    const match = /^([ \t]*)([-*+]|\d+[.)])(\s)/.exec(line);
+    if (!match) {
+      // A blank line does not close a list (a loose list keeps going), but any
+      // other unindented content does.
+      if (line.trim() && !/^[ \t]/.test(line)) {
+        openLevels.length = 0;
+      }
+      continue;
+    }
+    const indent = match[1];
+    if (indent.includes("\t")) {
+      // Already tab-indented (e.g. untouched by a previous pass).
+      continue;
+    }
+    const width = indent.length;
+    while (openLevels.length && openLevels[openLevels.length - 1] > width) {
+      openLevels.pop();
+    }
+    if (!openLevels.length || openLevels[openLevels.length - 1] < width) {
+      openLevels.push(width);
+    }
+    const level = openLevels.length - 1;
+    if (level > 0) {
+      lines[i] = "\t".repeat(level) + line.slice(indent.length);
+    }
+  }
+
+  return lines.join("\n");
 }
 
 /**

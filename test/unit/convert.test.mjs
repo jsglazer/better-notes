@@ -89,7 +89,9 @@ test("nested sub-bullets keep their indentation", async () => {
       "<ul><li>Parent<ul><li>Child<ul><li>Grand</li></ul></li></ul></li></ul>",
     ),
   );
-  assert.equal(md, "- Parent\n  - Child\n    - Grand\n");
+  // Indented with tabs since U22d, to match what Obsidian writes; the point
+  // of this test is that the three levels of nesting survive at all.
+  assert.equal(md, "- Parent\n\t- Child\n\t\t- Grand\n");
 });
 
 test("inline and display math round-trip unchanged", async () => {
@@ -150,6 +152,25 @@ test("a paragraph AFTER a list keeps its blank line", async () => {
   const out = await note2md(await md2note(md));
   assert.equal(out, md);
   assert.match(out, /- b\n\nAfter/);
+});
+
+test("nested list items are indented with tabs, as Obsidian writes them", async () => {
+  // U22d: remark-stringify indents by the parent's content offset (2 spaces
+  // under "- ", 3 under "1. "), so every sync rewrote the user's tabs as
+  // spaces — the list still nested, but the file churned and rendered
+  // shallower than lists authored in Obsidian beside it.
+  for (const md of [
+    "- Obsidian\n\t- Indent\n\t\t- Deeper\n",
+    "1. one\n\t1. sub\n\t2. sub2\n2. two\n",
+    "- bullet\n\t1. num\n\t\t- deep\n",
+  ]) {
+    assert.equal(await note2md(await md2note(md)), md);
+  }
+});
+
+test("a list-like line inside a code fence is not re-indented", async () => {
+  const md = "```\n- not a bullet\n  - nor this\n```\n";
+  assert.equal(await note2md(await md2note(md)), md);
 });
 
 test("an empty <p> inside a list item is layout, not a blank line", async () => {
