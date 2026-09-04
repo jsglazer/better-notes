@@ -123,6 +123,7 @@ export type FluentMessageId =
   | 'markdown-withYAMLHeader'
   | 'menu-openNoteAsBNWindow'
   | 'menuAddNote-importMD'
+  | 'menuAddNote-importMDItemNote'
   | 'menuAddNote-newTemplateItemNote'
   | 'menuAddNote-newTemplateStandaloneNote'
   | 'menuCollection-exportNotes'

@@ -35,7 +35,7 @@ A Zotero plugin to expand the capability of notes and to sync notes to other loc
 - **Rename** — a toolbar button that renames the note. Zotero has no note-title field (it derives the title from the note's first line), so there is otherwise no direct way to change it
 - **Link Creator** (`⌃⌥L`) — build links between notes in either direction: an **outbound** link from this note to another, or an **inbound** link inserted into another note pointing back here, with a note picker, an outline picker for linking to a specific heading, and a live preview of the target
 - **Export** — export notes to Markdown, PDF, DOCX, LaTeX, or FreeMind
-- **Import** — import Markdown files as Zotero notes
+- **Import** — import Markdown files as Zotero notes, and optionally keep syncing to them. **New Note → Import from Markdown File** creates standalone notes; the item pane's **Notes + → Import Item Note from Markdown File** attaches them to the selected item instead
 - **Math** — KaTeX math rendering, both in exports and **live in the note editor**: a formula displays as rendered math while you read, and reverts to editable TeX the moment you click into it
 - **Command Palette** — type `/` in any note to access formatting and linking commands
 - **Workspace** — dedicated note workspace with a tree outline and context panes

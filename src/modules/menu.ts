@@ -185,6 +185,15 @@ export function registerMenus() {
         icon: `chrome://${config.addonRef}/content/icons/favicon.png`,
         onCommand: () => addon.hooks.onCreateNoteFromTemplate("item", "reader"),
       },
+      {
+        // U23: the item-note counterpart of the library toolbar's import.
+        // "library" (not "reader") because this menu is driven by the item
+        // selected in the pane, which is what getLibraryParentId reads.
+        menuType: "menuitem",
+        l10nID: `${config.addonRef}-menuAddNote-importMDItemNote`,
+        icon: `chrome://${config.addonRef}/content/icons/favicon.png`,
+        onCommand: () => addon.hooks.onCreateNoteFromMD("library"),
+      },
     ],
   });
 

@@ -48,9 +48,30 @@ async function createNoteFromTemplate(
   }
 }
 
-async function createNoteFromMD() {
-  // Check if we can create a note
-  if (!(await createNote({ dryRun: true }))) {
+/**
+ * Import one or more Markdown files as notes.
+ *
+ * U23: `parentType` decides what kind of note is produced. Without it the
+ * import has always created *standalone* notes — `createNote()` only consults
+ * the selected collection and never sets a parent — which is why the command
+ * could not appear under the item pane's Notes + menu, a menu whose whole
+ * purpose is child notes. Passing "library"/"reader" attaches each imported
+ * note to the current item instead.
+ */
+async function createNoteFromMD(parentType?: "reader" | "library") {
+  const parentItemId =
+    parentType === "reader"
+      ? getReaderParentId()
+      : parentType === "library"
+        ? getLibraryParentId()
+        : undefined;
+  if (parentType && !parentItemId) {
+    Zotero.getMainWindow().alert(getString("alert-notValidParentItemError"));
+    return;
+  }
+  // Standalone imports still need a valid collection context; a child note
+  // needs only its parent, so the collection check does not apply there.
+  if (!parentItemId && !(await createNote({ dryRun: true }))) {
     return;
   }
 
@@ -72,7 +93,9 @@ async function createNoteFromMD() {
   }
 
   for (const filepath of filepaths) {
-    const noteItem = await createNote();
+    const noteItem = parentItemId
+      ? await createChildNote(parentItemId)
+      : await createNote();
     if (!noteItem) {
       continue;
     }
@@ -92,6 +115,19 @@ async function createNoteFromMD() {
       });
     }
   }
+}
+
+/** Create an empty child note of `parentItemId`, saved and ready to import into. */
+async function createChildNote(parentItemId: number) {
+  const parent = Zotero.Items.get(parentItemId);
+  if (!parent) {
+    return false;
+  }
+  const noteItem = new Zotero.Item("note");
+  noteItem.libraryID = parent.libraryID;
+  noteItem.parentItemID = parent.id;
+  await noteItem.saveTx();
+  return noteItem;
 }
 
 async function createNote(): Promise<Zotero.Item | false>;
