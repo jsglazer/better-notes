@@ -109,7 +109,58 @@ function initMarkdownInputRulesPlugin(plugins: readonly Plugin[]) {
   if (!rules.length) {
     return plugins;
   }
-  return [...plugins, inputRules({ rules })];
+  return [...plugins, guardTextInput(inputRules({ rules }))];
+}
+
+/**
+ * U24: stop a failing input rule from costing the user their edits.
+ *
+ * `handleTextInput` is called from ProseMirror's `readDOMChange`, which runs
+ * inside the DOM observer's flush. If it throws, the exception unwinds out of
+ * the MutationObserver callback: the browser has already put the typed
+ * character in the DOM, so it *appears* on screen, but ProseMirror never turns
+ * it into a transaction. Zotero saves off `docChanged` alone
+ * (`dispatchTransaction` → `debouncedUpdate` → `getData()`), so the note is
+ * never written and the text is gone on reopen — with no visible error, since
+ * an exception thrown from a MutationObserver callback dies there.
+ *
+ * That is the "I can type but nothing is saved" report in U22. Returning
+ * `false` instead means "not handled", and ProseMirror applies the keystroke
+ * itself. The feature disables itself after the first failure and logs once —
+ * logging per keystroke would flood the console.
+ */
+function guardTextInput(plugin: Plugin): Plugin {
+  const props = plugin.props as {
+    handleTextInput?: (
+      view: unknown,
+      from: number,
+      to: number,
+      text: string,
+    ) => boolean;
+  };
+  const original = props.handleTextInput;
+  if (!original) {
+    return plugin;
+  }
+  let disabled = false;
+  props.handleTextInput = function (view, from, to, text) {
+    if (disabled) {
+      return false;
+    }
+    try {
+      return original.call(this, view, from, to, text);
+    } catch (e) {
+      disabled = true;
+      console.error(
+        "EN: a markdown input rule threw and the rules have been disabled for " +
+          "this session. Typing and saving are unaffected.",
+        { from, to, text },
+        e,
+      );
+      return false;
+    }
+  };
+  return plugin;
 }
 
 /**
