@@ -9,6 +9,7 @@ import { initMarkdownInputRulesPlugin } from "./markdownInputRules";
 // Use custom column resizing plugin, since the original one breaks
 import { columnResizing } from "./columnResizing";
 import { initNodeViews } from "./nodeViews";
+import { installGroupInterop } from "./safeDecorations";
 import type { Plugin } from "prosemirror-state";
 
 export { initPlugins };
@@ -28,6 +29,9 @@ function initPlugins(options: {
   mathPreview?: boolean;
 }) {
   const core = _currentEditorInstance._editorCore;
+  // Before any plugin of ours can contribute a decoration set — columnResizing
+  // included, which is not routed through `safeDecorations`.
+  installGroupInterop();
   let plugins = core.view.state.plugins;
   if (options.linkPreview.previewType !== "disable")
     plugins = initLinkPreviewPlugin(plugins, options.linkPreview);
@@ -58,6 +62,13 @@ function initPlugins(options: {
   // that throws here the editor is left half-configured — which the user sees
   // as edits no longer being saved. Falling back to the untouched state costs
   // the plugin's features but keeps the note editable.
+  // U24: keep the state we came in with. `updateState` assigns `this.state`
+  // *before* it updates the DOM, so a throw during the update leaves the view
+  // carrying our plugins with a document view that never finished — and every
+  // later `dispatchTransaction` then dies in the same place, which the user
+  // sees as edits no longer being saved. Catching was not enough; the fallback
+  // has to put the old state back for the promise in the message below to hold.
+  const previousState = core.view.state;
   try {
     const newState = core.view.state.reconfigure({
       plugins: [
@@ -74,6 +85,11 @@ function initPlugins(options: {
       "EN: Failed to install editor plugins; continuing with Zotero's own editor so notes stay editable.",
       e,
     );
+    try {
+      core.view.updateState(previousState);
+    } catch (restoreError) {
+      console.error("EN: Failed to restore the editor state", restoreError);
+    }
   }
 
   try {
