@@ -1,5 +1,6 @@
 import { Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet, EditorView } from "prosemirror-view";
+import { safeDecorations } from "./safeDecorations";
 import * as katex from "katex";
 
 export { initMathPreviewPlugin };
@@ -29,7 +30,7 @@ function initMathPreviewPlugin(plugins: readonly Plugin[]) {
       key: new PluginKey("enhancedNotesMathPreview"),
       props: {
         decorations(state) {
-          return buildDecorations(state);
+          return safeDecorations("mathPreview", () => buildDecorations(state));
         },
       },
     }),

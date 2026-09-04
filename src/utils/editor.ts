@@ -589,6 +589,7 @@ function initEditorPlugins(editor: Zotero.EditorInstance) {
           codeHighlight: getPref("editor.codeHighlight") as boolean,
           callouts: getPref("editor.callouts") as boolean,
           inputRules: getPref("editor.markdownInputRules") as boolean,
+          mathPreview: getPref("editor.mathPreview") as boolean,
         },
         getEditorWindow(editor),
         { wrapReflectors: true, cloneFunctions: true },

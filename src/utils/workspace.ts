@@ -12,8 +12,10 @@ export {
 enum OutlineType {
   empty = 0,
   treeView,
-  mindMap,
-  bubbleMap,
+  // U22b: mindMap and bubbleMap removed. Values are persisted in prefs, so the
+  // existing numbers are left as-is and `set outlineType` clamps anything
+  // higher back to treeView — an old profile holding 2 or 3 lands on the tree
+  // view instead of a blank pane.
 }
 
 function getWorkspaceUID(element: Element): string | undefined {

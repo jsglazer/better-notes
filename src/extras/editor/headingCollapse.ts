@@ -1,5 +1,6 @@
 import { Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet, EditorView } from "prosemirror-view";
+import { safeDecorations } from "./safeDecorations";
 
 export { initHeadingCollapsePlugin };
 
@@ -53,7 +54,7 @@ function initHeadingCollapsePlugin(plugins: readonly Plugin[]) {
       },
       props: {
         decorations(state) {
-          return buildDecorations(state);
+          return safeDecorations("headingCollapse", () => buildDecorations(state));
         },
       },
     }),

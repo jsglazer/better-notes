@@ -6,7 +6,7 @@ import {
   getSectionAtCursor,
 } from "../../utils/editor";
 import { getString } from "../../utils/locale";
-import { openLinkCreator } from "../../utils/linkCreator";
+import { showHint } from "../../utils/hint";
 import { slice } from "../../utils/str";
 import { waitUtilAsync } from "../../utils/wait";
 import {
@@ -34,7 +34,13 @@ export async function initEditorToolbar(editor: Zotero.EditorInstance) {
     ztoolkit.log("Editor toolbar not found");
     return;
   }
-  // Link creator
+  // U22b: the Link Creator button was removed from the toolbar. It is still
+  // reachable by its shortcut and from the command palette (`ob` / `ib`); the
+  // toolbar space is better spent on Rename, which had no entry point at all.
+  //
+  // Rename. Zotero derives a note's title from its first line and offers no
+  // way to edit it directly, so renaming otherwise means hunting for the first
+  // line and editing it in place.
   registerEditorToolbarElement(
     editor,
     toolbar,
@@ -42,18 +48,34 @@ export async function initEditorToolbar(editor: Zotero.EditorInstance) {
     ztoolkit.UI.createElement(_document, "button", {
       classList: ["toolbar-button"],
       properties: {
-        innerHTML: ICONS.linkCreator,
-        title: "Link creator",
+        innerHTML: ICONS.rename,
+        title: "Rename note",
       },
       listeners: [
         {
           type: "click",
-          listener: (e) => {
+          listener: async (e) => {
+            // Flush pending keystrokes first: renaming rewrites the note from
+            // its stored HTML, so anything still buffered in the editor would
+            // be lost.
             editor.saveSync();
-            const lineIndex = getLineAtCursor(editor);
-            setTimeout(() => {
-              openLinkCreator(noteItem, { lineIndex });
-            }, 0);
+            const win = Zotero.getMainWindow();
+            const current = noteItem.getNoteTitle().trim();
+            const input = win.prompt("Rename note:", current);
+            if (input === null) {
+              return;
+            }
+            if (!input.trim()) {
+              showHint("A note title cannot be empty.");
+              return;
+            }
+            try {
+              await addon.api.note.renameNote(noteItem, input);
+              showHint(`Renamed to "${input.trim()}"`);
+            } catch (err) {
+              ztoolkit.log(err);
+              showHint("Rename failed — see the error console.");
+            }
           },
         },
       ],

@@ -80,6 +80,7 @@ import {
   getNoteTreeFlattened,
   getNoteTreeNodeById,
   getLinesInNote,
+  renameNote,
 } from "./utils/note";
 import {
   getAnnotationByLinkTarget,
@@ -187,6 +188,7 @@ const note = {
   getNoteTree,
   getNoteTreeFlattened,
   getNoteTreeNodeById,
+  renameNote,
 };
 
 const relation = {

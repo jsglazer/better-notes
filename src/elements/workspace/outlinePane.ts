@@ -25,18 +25,17 @@ export class OutlinePane extends PluginCEBase {
 
   _prefObserverID!: symbol;
 
+  // U22b: Mind Map and Bubble Map were removed — the tree view is the only
+  // outline mode. The array is still indexed by OutlineType, so its order
+  // must continue to match that enum.
   static outlineSources = [
     "",
     `chrome://${config.addonRef}/content/treeView.html`,
-    `chrome://${config.addonRef}/content/mindMap.html`,
-    `chrome://${config.addonRef}/content/bubbleMap.html`,
   ];
 
   static outlineMenuIDs = {
     "": OutlineType.empty,
     useTreeView: OutlineType.treeView,
-    useMindMap: OutlineType.mindMap,
-    useBubbleMap: OutlineType.bubbleMap,
   };
 
   get content() {
@@ -55,31 +54,6 @@ export class OutlinePane extends PluginCEBase {
     data-l10n-id="${config.addonRef}-toggleOutlinePane"
   ></toolbarbutton>
   <toolbarbutton
-    id="setOutline"
-    class="zotero-tb-button"
-    data-l10n-id="${config.addonRef}-setOutline"
-    type="menu"
-    wantdropmarker="true"
-  >
-    <menupopup id="setOutlinePopup">
-      <menuitem
-        id="useTreeView"
-        type="radio"
-        data-l10n-id="${config.addonRef}-useTreeView"
-      ></menuitem>
-      <menuitem
-        id="useMindMap"
-        type="radio"
-        data-l10n-id="${config.addonRef}-useMindMap"
-      ></menuitem>
-      <menuitem
-        id="useBubbleMap"
-        type="radio"
-        data-l10n-id="${config.addonRef}-useBubbleMap"
-      ></menuitem>
-    </menupopup>
-  </toolbarbutton>
-  <toolbarbutton
     id="saveOutline"
     class="zotero-tb-button"
     data-l10n-id="${config.addonRef}-saveOutline"
@@ -87,14 +61,6 @@ export class OutlinePane extends PluginCEBase {
     wantdropmarker="true"
   >
     <menupopup id="saveOutlinePopup">
-      <menuitem
-        id="saveImage"
-        data-l10n-id="${config.addonRef}-saveOutlineImage"
-      ></menuitem>
-      <menuitem
-        id="saveSVG"
-        data-l10n-id="${config.addonRef}-saveOutlineSVG"
-      ></menuitem>
       <menuitem
         id="saveFreeMind"
         data-l10n-id="${config.addonRef}-saveOutlineFreeMind"
@@ -118,7 +84,7 @@ export class OutlinePane extends PluginCEBase {
     if (newType === OutlineType.empty) {
       newType = OutlineType.treeView;
     }
-    if (newType > OutlineType.bubbleMap) {
+    if (newType > OutlineType.treeView) {
       newType = OutlineType.treeView;
     }
 
@@ -238,33 +204,9 @@ export class OutlinePane extends PluginCEBase {
       "*",
     );
 
-    // Update button hidden
-    const isTreeView = this.outlineType === OutlineType.treeView;
-    for (const key of ["saveImage", "saveSVG"]) {
-      const elem = this._queryID(key);
-      if (isTreeView) {
-        elem?.setAttribute("disabled", "true");
-      } else {
-        elem?.removeAttribute("disabled");
-      }
-    }
 
-    // Update set outline menu
-    this._queryID("setOutlinePopup")?.childNodes.forEach((elem) =>
-      (elem as XULMenuItemElement).removeAttribute("checked"),
-    );
-    this._queryID(
-      Object.keys(OutlinePane.outlineMenuIDs)[this.outlineType],
-    )?.setAttribute("checked", "true");
-  }
-
-  saveImage(type: "saveSVG" | "saveImage") {
-    this._outlineContainer.contentWindow?.postMessage(
-      {
-        type,
-      },
-      "*",
-    );
+    // U22b: the outline-mode radio menu is gone (tree view is the only mode),
+    // so there is nothing left to tick here.
   }
 
   async saveFreeMind() {
@@ -289,18 +231,6 @@ export class OutlinePane extends PluginCEBase {
         const workspace = getWorkspaceByUID(this.editor?._tabID || "");
         if (!workspace) return;
         workspace.toggleOutline(false);
-        break;
-      }
-      case "useTreeView":
-      case "useMindMap":
-      case "useBubbleMap": {
-        this.outlineType = OutlinePane.outlineMenuIDs[type];
-        await this.updateOutline();
-        break;
-      }
-      case "saveImage":
-      case "saveSVG": {
-        this.saveImage(type);
         break;
       }
       case "saveFreeMind": {

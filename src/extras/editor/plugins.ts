@@ -25,6 +25,7 @@ function initPlugins(options: {
   codeHighlight?: boolean;
   callouts?: boolean;
   inputRules?: boolean;
+  mathPreview?: boolean;
 }) {
   const core = _currentEditorInstance._editorCore;
   let plugins = core.view.state.plugins;
@@ -32,7 +33,9 @@ function initPlugins(options: {
     plugins = initLinkPreviewPlugin(plugins, options.linkPreview);
   if (options.markdownPaste.enable) plugins = initMarkdownPastePlugin(plugins);
   plugins = initMagicKeyPlugin(plugins, options.magicKey);
-  plugins = initMathPreviewPlugin(plugins);
+  if (options.mathPreview !== false) {
+    plugins = safePlugin(plugins, "mathPreview", initMathPreviewPlugin);
+  }
   // Each of these is independently switchable, and a failure in one must not
   // cost the others (or the editor) — a broken decoration plugin would
   // otherwise leave the note unusable.
@@ -48,20 +51,36 @@ function initPlugins(options: {
   if (options.inputRules !== false) {
     plugins = safePlugin(plugins, "inputRules", initMarkdownInputRulesPlugin);
   }
-  // Collect all plugins and reconfigure the state only once
-  const newState = core.view.state.reconfigure({
-    plugins: [
-      ...plugins,
-      columnResizing({
-        cellMinWidth: 80,
-        handleWidth: 5,
-      }),
-    ],
-  });
+  // Collect all plugins and reconfigure the state only once.
+  //
+  // U22b: guarded. `safePlugin` above only covers a plugin's *construction*;
+  // reconfigure/updateState is where a bad plugin actually detonates, and if
+  // that throws here the editor is left half-configured — which the user sees
+  // as edits no longer being saved. Falling back to the untouched state costs
+  // the plugin's features but keeps the note editable.
+  try {
+    const newState = core.view.state.reconfigure({
+      plugins: [
+        ...plugins,
+        columnResizing({
+          cellMinWidth: 80,
+          handleWidth: 5,
+        }),
+      ],
+    });
+    core.view.updateState(newState);
+  } catch (e) {
+    console.error(
+      "EN: Failed to install editor plugins; continuing with Zotero's own editor so notes stay editable.",
+      e,
+    );
+  }
 
-  initNodeViews(core.view);
-
-  core.view.updateState(newState);
+  try {
+    initNodeViews(core.view);
+  } catch (e) {
+    console.warn("EN: Failed to init node views", e);
+  }
 }
 
 /** Run one plugin initializer, keeping the existing plugin list if it throws. */

@@ -1,5 +1,6 @@
 import { Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
+import { safeDecorations } from "./safeDecorations";
 import hljs from "highlight.js/lib/core";
 
 import bash from "highlight.js/lib/languages/bash";
@@ -103,7 +104,7 @@ function initCodeHighlightPlugin(plugins: readonly Plugin[]) {
       key: new PluginKey("enhancedNotesCodeHighlight"),
       props: {
         decorations(state) {
-          return buildDecorations(state);
+          return safeDecorations("codeHighlight", () => buildDecorations(state));
         },
       },
     }),

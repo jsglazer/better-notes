@@ -27,6 +27,7 @@ pref("__prefsPrefix__.editor.headingCollapse", true);
 pref("__prefsPrefix__.editor.codeHighlight", true);
 pref("__prefsPrefix__.editor.callouts", true);
 pref("__prefsPrefix__.editor.markdownInputRules", true);
+pref("__prefsPrefix__.editor.mathPreview", true);
 
 pref("__prefsPrefix__.exportNotes.takeover", true);
 

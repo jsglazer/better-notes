@@ -10,6 +10,7 @@ export {
   parseHTMLLines,
   getLinesInNote,
   ensureUniqueItemNoteTitle,
+  renameNote,
   addLineToNote,
   getNoteTree,
   getNoteTreeFlattened,
@@ -274,6 +275,55 @@ async function renderNoteHTML(
     );
   });
   return doc.body.innerHTML;
+}
+
+/**
+ * U22b: rename a note.
+ *
+ * Zotero has no note title *field* — `getNoteTitle()` derives the title from
+ * the note's first line. So renaming means rewriting that first line, which is
+ * why this lives here rather than being a simple item property set.
+ *
+ * The first line's tag is preserved (an `<h1>` title stays an `<h1>`), and only
+ * its text is replaced; inline formatting inside the old title is dropped,
+ * which is what "rename" implies. A note whose first line is empty — or that
+ * has no content at all — gets a new `<h1>`.
+ *
+ * Returns true when the note was changed.
+ */
+async function renameNote(note: Zotero.Item, newTitle: string) {
+  if (!note?.isNote()) {
+    return false;
+  }
+  const title = newTitle.trim();
+  if (!title) {
+    return false;
+  }
+  const html = note.getNote();
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  // A note is normally wrapped in <div data-schema-version>; the lines are that
+  // div's children, not the body's.
+  const wrapper =
+    (doc.body.querySelector("div[data-schema-version]") as HTMLElement | null) ??
+    doc.body;
+  const first = wrapper.firstElementChild as HTMLElement | null;
+
+  if (first && first.textContent?.trim()) {
+    first.textContent = title;
+  } else {
+    const heading = doc.createElement("h1");
+    heading.textContent = title;
+    // Replace an existing blank first line rather than pushing it down.
+    if (first) {
+      wrapper.replaceChild(heading, first);
+    } else {
+      wrapper.insertBefore(heading, wrapper.firstChild);
+    }
+  }
+
+  note.setNote(wrapper === doc.body ? doc.body.innerHTML : wrapper.outerHTML);
+  await note.saveTx();
+  return true;
 }
 
 async function getNoteTree(

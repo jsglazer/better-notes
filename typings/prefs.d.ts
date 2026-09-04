@@ -28,6 +28,7 @@ declare namespace _ZoteroTypes {
       "editor.codeHighlight": boolean;
       "editor.callouts": boolean;
       "editor.markdownInputRules": boolean;
+      "editor.mathPreview": boolean;
       "exportNotes.takeover": boolean;
       "annotationNote.enableTagSync": boolean;
       "annotationNote.enableCreateNoteButton": boolean;

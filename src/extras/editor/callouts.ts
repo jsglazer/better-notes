@@ -1,5 +1,6 @@
 import { Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
+import { safeDecorations } from "./safeDecorations";
 
 export { initCalloutPlugin, CALLOUT_TYPES };
 
@@ -60,7 +61,7 @@ function initCalloutPlugin(plugins: readonly Plugin[]) {
       key: new PluginKey("enhancedNotesCallouts"),
       props: {
         decorations(state) {
-          return buildDecorations(state);
+          return safeDecorations("callouts", () => buildDecorations(state));
         },
       },
     }),
