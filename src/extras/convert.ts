@@ -171,7 +171,14 @@ async function rehype2remark(rehype: HRoot) {
               stripMathDelimiters(toText(node), "$"),
             );
           } else {
-            return h(node, "paragraph", all(h, node));
+            // U23: a plain <span> is inline packaging, not a block. Wrapping it
+            // in a paragraph made mdast treat its text as block content, whose
+            // leading/trailing whitespace is then trimmed — so `x <math> z` in
+            // a table cell came back as `x<math>z`, losing a space around every
+            // formula on every sync. Returning the children keeps them inline
+            // and keeps the spaces. (A styled span still takes one of the
+            // branches above and is untouched by this.)
+            return all(h, node);
           }
         },
         // U21: an empty <p> is Zotero's deliberate blank line. rehype-remark
@@ -279,22 +286,18 @@ async function rehype2remark(rehype: HRoot) {
             if (current?.type === "paragraph") {
               cached.children.push(...current.children);
             }
-            // https://github.com/windingwind/zotero-better-notes/issues/1300
-            // @ts-ignore inlineMath is not in mdast
-            else if (current?.type === "inlineMath") {
-              cached.children.push({
-                type: "text",
-                value: " ",
-              });
-              cached.children.push(current);
-              cached.children.push({
-                type: "text",
-                value: " ",
-              });
-            } else if (
-              current?.type &&
-              !paragraphNodes.includes(current?.type)
-            ) {
+            // U23: inline math inside a list item used to be padded with a
+            // space on each side here (issue #1300), with a matching rule in
+            // `rehype2note` taking one space back off on import. The pair was
+            // meant to cancel out and did not: this side padded
+            // unconditionally, while the import side only removed a space when
+            // the neighbour was a *text* node, and only when the list item had
+            // been through the merge path at all. So math next to `**bold**`,
+            // or at the start or end of a bullet, gained a space on every
+            // export and the file never settled. Neither rule is needed —
+            // `Ex.$y$is` parses back as math perfectly well — so whitespace is
+            // now carried through verbatim in both directions.
+            else if (current?.type && !paragraphNodes.includes(current?.type)) {
               cached.children.push(current);
             } else {
               children.push(current);
@@ -1075,34 +1078,12 @@ function rehype2note(rehype: HRoot) {
           (_n.type === "text" && _n.value.replace(/[\r\n]/g, "")),
       );
 
-      // https://github.com/windingwind/zotero-better-notes/issues/1300
-      // For all math-inline node in list, remove 1 space from its sibling text node
-      if (node.tagName === "li") {
-        for (const p of node.children) {
-          // U21: `raw`/`text` children have no `children` array — they now
-          // survive the filter above, so this loop must skip them.
-          if (!Array.isArray(p.children)) {
-            continue;
-          }
-          for (let idx = 0; idx < p.children.length; idx++) {
-            const _n = p.children[idx];
-            if (_n.properties?.className?.includes("math-inline")) {
-              if (idx > 0) {
-                const prev = p.children[idx - 1];
-                if (prev.type === "text" && prev.value.endsWith(" ")) {
-                  prev.value = prev.value.slice(0, -1);
-                }
-              }
-              if (idx < p.children.length - 1) {
-                const next = p.children[idx + 1];
-                if (next.type === "text" && next.value.startsWith(" ")) {
-                  next.value = next.value.slice(1);
-                }
-              }
-            }
-          }
-        }
-      }
+      // U23: the counterpart space-stripping rule for inline math in a list
+      // item (issue #1300) was removed here along with the space-padding in
+      // `rehype2remark`'s `li` handler. See the note there: the two were meant
+      // to cancel and did not, so a bullet containing a formula gained a space
+      // around it on every single sync. Whitespace now survives both
+      // directions untouched.
     },
   );
 

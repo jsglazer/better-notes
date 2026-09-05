@@ -287,3 +287,35 @@ test("a formula that already carries its delimiters is unwrapped once", async ()
   );
   assert.equal(md, "see $x^2$ here\n");
 });
+
+/* U23 — the note <-> md round trip must SETTLE, or every sync rewrites the
+   file and Obsidian reloads the note under the cursor. */
+
+test("inline math in a bullet keeps its spacing exactly", async () => {
+  // Two rules used to fight: rehype2remark's `li` handler padded inline math
+  // with a space on each side, and rehype2note took one back off — but only
+  // when the neighbour was a text node. Math next to **bold**, or first/last
+  // in the bullet, therefore gained a space on every single sync.
+  for (const md of [
+    "- Ex. $y$ is hourly wage\n",
+    "- mean **zero conditional** $E(u) = 0$\n",
+    "- $y_i$ is the actual value\n",
+    "- the actual value $y_i$\n",
+    "- outer\n\t- inner $x^2$ done\n",
+    "> 1. $u$ represents factors and $y = \\beta_0$ .\n",
+  ]) {
+    assert.equal(await note2md(await md2note(md)), md);
+  }
+});
+
+test("math glued to text without spaces stays glued", async () => {
+  const md = "- Ex.$y$is hourly\n";
+  assert.equal(await note2md(await md2note(md)), md);
+});
+
+test("a table cell keeps the spaces around its math", async () => {
+  // A plain <span> was converted to a paragraph, whose leading/trailing
+  // whitespace mdast then trims — so `x $y$ z` came back as `x$y$z`.
+  const md = "| A   | B       |\n| --- | ------- |\n| $u$ | x $y$ z |\n";
+  assert.equal(await note2md(await md2note(md)), md);
+});
