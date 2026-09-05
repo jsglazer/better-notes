@@ -261,3 +261,29 @@ test("a real escaped bracket is still escaped", async () => {
   const { md } = await assertStable(note("<p>A literal [[ stays put.</p>"));
   assert.match(md, /\\\[\\\[/);
 });
+
+test("math in a table header is not eaten one character per sync", async () => {
+  // Pre-existing bug: a table cell stores math as remark-math's bare
+  // `class="math math-inline"` with no `$` delimiters, and the export sliced
+  // the first and last character off regardless. The damage compounded on
+  // every sync: $E(u( = 0)$ -> $(u( = 0$ -> $u( = $ -> $( $ -> $$
+  let md =
+    "| A | Solve for $u$ | $E(u( = 0)$ |\n| --- | --- | --- |\n| x | y | z |\n";
+  const header = () => md.split("\n")[0];
+  for (let i = 0; i < 4; i++) {
+    md = await note2md(await md2note(md));
+    assert.match(header(), /Solve for \$u\$/, `lost \$u\$ on pass ${i + 1}`);
+    assert.match(
+      header(),
+      /\$E\(u\( = 0\)\$/,
+      `lost the formula on pass ${i + 1}`,
+    );
+  }
+});
+
+test("a formula that already carries its delimiters is unwrapped once", async () => {
+  const { md } = await assertStable(
+    note('<p>see <span class="math">$x^2$</span> here</p>'),
+  );
+  assert.equal(md, "see $x^2$ here\n");
+});

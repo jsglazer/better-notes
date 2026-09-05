@@ -124,6 +124,33 @@ function note2rehype(str: string) {
   return rehype;
 }
 
+/**
+ * U23: take the `$` / `$$` off a formula — but ONLY if they are actually there.
+ *
+ * A note normally stores math as `<span class="math">$u$</span>`, delimiters
+ * included, so the old `slice(1, -1)` / `slice(2, -2)` was right for that shape.
+ * It is not the only shape: math imported from markdown keeps remark-math's
+ * `class="math math-inline"` with the TeX *bare* (no delimiters) whenever the
+ * normalising pass in `rehype2note` doesn't reach it — inside a table, for one.
+ * A blind slice then ate a real character off each end of the formula, and
+ * because the damaged output was re-imported and re-sliced on the next sync,
+ * every formula in an affected table lost two more characters every time:
+ *
+ *   $E(u( = 0)$ -> $(u( = 0$ -> $u( = $ -> $( $ -> $$
+ *
+ * Checking before stripping stops the loss whatever the cause, and lets an
+ * already-bare formula export correctly (`u` -> `$u$`), which heals the note on
+ * the next round trip.
+ */
+function stripMathDelimiters(text: string, delimiter: "$" | "$$") {
+  const n = delimiter.length;
+  return text.length >= n * 2 &&
+    text.startsWith(delimiter) &&
+    text.endsWith(delimiter)
+    ? text.slice(n, -n)
+    : text;
+}
+
 async function rehype2remark(rehype: HRoot) {
   return await unified()
     .use(rehypeRemark, {
@@ -138,7 +165,11 @@ async function rehype2remark(rehype: HRoot) {
           } else if (node.properties?.style?.includes("color")) {
             return h(node, "html", toHtml(node));
           } else if (node.properties?.className?.includes("math")) {
-            return h(node, "inlineMath", toText(node).slice(1, -1));
+            return h(
+              node,
+              "inlineMath",
+              stripMathDelimiters(toText(node), "$"),
+            );
           } else {
             return h(node, "paragraph", all(h, node));
           }
@@ -156,7 +187,7 @@ async function rehype2remark(rehype: HRoot) {
         },
         pre: (h, node) => {
           if (node.properties?.className?.includes("math")) {
-            return h(node, "math", toText(node).slice(2, -2));
+            return h(node, "math", stripMathDelimiters(toText(node), "$$"));
           } else {
             const ret = rehype2remarkDefaultHandlers.pre(h, node);
             return ret;
