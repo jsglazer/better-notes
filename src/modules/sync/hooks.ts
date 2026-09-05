@@ -286,13 +286,32 @@ async function callSyncing(
       });
       const item = Zotero.Items.get(syncStatus.itemID);
       const filepath = jointPath(syncStatus.path, syncStatus.filename);
-      await addon.api.$import.fromMD(filepath, { noteId: item.id });
-      // Update md file to keep the metadata synced
-      await addon.api.$export.syncMDBatch(
-        syncStatus.path,
-        [item.id],
-        [mdStatusMap[item.id].meta!],
-      );
+      // U23: `ignoreVersion` — `fromMD`'s own "the target note seems to be
+      // newer than the file, import anyway?" prompt compares the file's
+      // `version` against the note's, and since v1.0.102 the file's `version`
+      // legitimately trails the note's (we stopped rewriting the whole file
+      // just to update that one number). Getting here already means the
+      // compare decided, from the content hashes, that the FILE is ahead and
+      // the note is not — so re-deciding it on the very signal that was
+      // demoted to a fallback produced a modal on every single auto-sync,
+      // including background ones, which stole focus and held the sync lock.
+      // Every other caller of `fromMD` already passes this.
+      const imported = await addon.api.$import.fromMD(filepath, {
+        noteId: item.id,
+        ignoreVersion: true,
+      });
+      // Only refresh the file's metadata if the import actually happened. A
+      // bailed-out import (cancelled prompt, unreadable file) used to fall
+      // straight through to this export, which would then write the UNCHANGED
+      // note back over the file — silently destroying the external edit that
+      // triggered the import in the first place.
+      if (imported) {
+        await addon.api.$export.syncMDBatch(
+          syncStatus.path,
+          [item.id],
+          [mdStatusMap[item.id].meta!],
+        );
+      }
       i += 1;
     }
     i = 1;
